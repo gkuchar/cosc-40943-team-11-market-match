@@ -1,8 +1,8 @@
 # Project Glossary
 
-**Project:** _[Your project name]_
-**Team:** _[Team NN]_
-**Client:** _[Client name and organization]_
+**Project:** Martket Match
+**Team:** \_11
+**Client:** Demetrie King
 **Version:** 0.1
 
 ---
@@ -48,15 +48,41 @@ _Rules:_
 
 ## Revision History
 
-| Date | Version | Description | Author |
-|---|---|---|---|
-| _[YYYY-MM-DD]_ | 0.1 | Initial terms from the client brief and first client meeting | _[Name]_ |
+| Date           | Version | Description                                                  | Author   |
+| -------------- | ------- | ------------------------------------------------------------ | -------- |
+| _[YYYY-MM-DD]_ | 0.1     | Initial terms from the client brief and first client meeting | _[Name]_ |
 
 ---
 
 ## Definitions
 
 _[One `###` heading per term, alphabetical. Follow the heading with a definition of one to three sentences. Add **Synonyms**, **Not to be confused with**, or **Source** lines where they help. Where a term only makes sense with an example, give one._
+
+### Market
+
+### Swipe
+
+### Card
+
+### Flip
+
+### Swipe Left / Swipe Right
+
+### Code
+
+### Time-to-Swipe
+
+### Consumer
+
+### Brand
+
+### Market
+
+### Demographic
+
+### Feedback
+
+### Survey
 
 _Worked examples of the format:_
 
