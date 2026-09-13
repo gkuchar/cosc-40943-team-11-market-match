@@ -1,8 +1,8 @@
 # Business Rules
 
-**Project:** _[Your project name]_
-**Team:** _[Team NN]_
-**Client:** _[Client name and organization]_
+**Project:** Market Match
+**Team:** 11
+**Client:** Demetrie King
 **Version:** 0.1
 
 ---
@@ -82,7 +82,7 @@ _The Source column is the defense. Every rule traces to a document or a person, 
 
 | Date | Version | Description | Author |
 |---|---|---|---|
-| _[YYYY-MM-DD]_ | 0.1 | Initial rules from the client brief and first client meeting | _[Name]_ |
+| 2026-09-11 | 0.1 | Initial rules from the client brief and first client meeting | Griffin Kuchar |
 
 ---
 
@@ -90,29 +90,81 @@ _The Source column is the defense. Every rule traces to a document or a person, 
 
 ### 1.1 Purpose
 
-_[One paragraph: this document collects the policies, regulations, standards, and formulas that govern the business your software operates in, so the specification can cite them rather than restate them.]_
+This document collects the policies, regulations, standards, and formulas that govern the Market Match business that our app operates in, so the specification can cite them rather than restate them.
 
 ### 1.2 Scope
 
-_[Which parts of the client's business these rules cover, and which are out of scope. If your client's organization has rules that your system does not touch, say so here rather than silently omitting them.]_
+These rules cover the participation and data policies of the Market Match business as
+described in the client brief and first client meeting.
+
+In scope:
+
+- **Consumer participation:** how consumers sign in, rate and inspect products, select
+  markets, and accrue and forfeit lottery entries (2.1).
+- **Brand participation:** how brands create products, join markets, and receive feedback
+  (2.2).
+- **Market lifecycle:** how markets are created and how they receive feedback (2.3).
+- **White-label operation:** how partner organizations brand their own instance, keep
+  their data isolated, and connect via API (2.4).
+- **Behavioral data capture:** what interaction data the platform records beyond explicit
+  ratings (2.5).
+
+Out of scope for this document:
+
+- **Prize disbursement.** These rules record how lottery entries are earned and expire,
+  but the drawing, winner selection, and payout of cash prizes (including any sweepstakes
+  or gambling regulations governing them) are business processes our system does not touch
+  as currently defined.
+- **API engineering constraints.** Authentication schemes, authorization, rate limiting,
+  versioning, and documentation for `BR-connect-api` are our team's design decisions and
+  belong in the specification, not here, since the client did not dictate them as policy.
+- **Demographic data handling.** The client noted demographic collection "where
+  appropriate," but the consent and legal-appropriateness policy governing it has not yet
+  been sourced, so no rule captures it. To be revisited once the client confirms the policy.
 
 ---
 
 ## 2. Rules
 
-_[Group rules under topic headings that fit your project. The Project Pulse headings are one example, not a required set: Course Administration, Teams and Assignment, Access and Ownership, Identity and Uniqueness, Editing and Locking, Deletion Integrity, Review and Submission._
+### 2.1 Consumers
 
-_Format each rule as a bold identifier, the rule in one sentence, then its source. Worked examples:]_
+- **`BR-sign-in`:** A consumer can ssign into the app via email + one-time code sent to email.
+- **`BR-rate-product`:** A consumer can swipe right on a product to signal interest or swipe left on a product to signal disinterest.
+- **`BR-tap-product`:** A consumer can tap on a product to reveal more information about a product.
+  **Source:**  Market Match website.
+- **`BR-select-market`:** A consumer can select a category of products (a market) from a catalog to begin rating products from by entering a market's ID code.
+  **Source:**  Market Match website.
+- **`BR-earn-entry`:** A consumer will earn one entry per 50 products rated into a lottery to potentially win cash prizes paid out Cash App or Venmo.
+  **Source:**  Market Match website.
+- **`BR-entry-expiration`:** A consumer's entry will expire after 30 days if unused.
+  **Source:**  Market Match website.
 
-### 2.1 _[Topic]_
+### 2.2 Brands/Products
 
-- **`BR-active-weeks`:** A student may submit or edit a weekly activity report only during a week that the course section has marked active.
-  **Source:** course policy, confirmed by the instructor 2026-09-10.
-- **`BR-section-admin-only`:** Only a course admin may create or edit a course section, configure its active-weeks window (see `BR-active-weeks`), or assign a rubric to it.
-  **Source:** department policy on grade-bearing records.
-- **`BR-artifact-key-unique`:** Every artifact key is unique within a team and remains stable across edits to the artifact's content.
-  **Source:** team decision, 2026-09-10. **Candidate for the specification instead of this file**, since the team, not the client, would approve a change.
+- **`BR-submit-product`:** A brand can create their product with a name, picture, and additional information.
+  **Source:**  Market Match website.
+- **`BR-join-market`:** A brand can join a market to have their product rated by consumers who select that market.
+  **Source:**  Market Match website.
+- **`BR-get-product-feedback`:** A brand can receieve feedback on their product based on the ratings submitted by consumers.
+  **Source:**  Market Match website.
 
-_[That third entry is deliberate. Flag rules you are not sure about rather than dropping them; deciding whether something is a rule or a requirement is a conversation to have with your client, and it is worth having.]_
+### 2.3 Markets
 
-_**Checklist:** Does every rule have a source? Could your client change it without asking you? Is it stated as one sentence about the business, rather than as a sentence about your software? Does any use case cite it, and if none does, is that correct?_
+- **`BR-submit-market`:** An entity can create a market with a name.
+  **Source:**  Market Match website.
+- **`BR-get-market-feedback`:** A market can receieve feedback on its products' ratings submitted by consumers.
+  **Source:**  Market Match website.
+
+### 2.4 White-Label-Architecture (Organizations)
+
+- **`BR-configure-branding`:** An organization can customize its instance of Market Match (outside of the main Market Match app) with its own logo, colors, and branding so the experience appears as its own product.
+**Source:**  Client brief.
+- **`BR-access-own-data`:** An organization can only access its own users, survey configurations, and collected data, kept fully separate from every other organization on the shared infrastructure.
+**Source:**  Client brief.
+- **`BR-connect-api`:** An organization can connect its external systems to Market Match through an authenticated API to manage surveys, users, campaigns, and responses programmatically.
+**Source:**  Client brief.
+
+### 2.5 Feedback
+
+- **`BR-capture-feedback`:** Market Match captures behavioral data from consumer interactions beyond the explicit ratings consumers submit. This includes but is not limited to swipe direction, swipe speed, time spent viewing an item, and session activity.
+**Source:**  Client brief.
