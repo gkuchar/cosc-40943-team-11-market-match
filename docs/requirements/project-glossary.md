@@ -60,50 +60,54 @@ _[One `###` heading per term, alphabetical. Follow the heading with a definition
 
 ### Market
 
+_The group of people a brand is targeting to acquire information about._
+
+**Synonyms:** group of users, target demographic, target users
+
+**Not to be confused with**: The different types of brands, a market is specifically a group of user's
+
 ### Swipe
+
+_The action the user takes on a Card which is a swipe left or right. Brands manufacture different cards that consumers swipe on._
 
 ### Card
 
+_A card has a front side and back side. The front side is a photo of the product and the product name. The back of the card includes more details in which a brand can put a desciprition of their product as well as a video showcasing their product._
+
 ### Flip
+
+_A card can be flipped from the front side to the back side, this is a metric tracked in which brands will be able to see._
 
 ### Swipe Left / Swipe Right
 
+_A user can swipe left on the card, which indicates that they dislike the product. This is another metric that is tracked that brands will be able to see for their products. A user can swipe right on the card, which indicates that they like the product, this is another metric._
+
 ### Code
+
+_Brands/Consumers recieve a one time code to "sign in" to the application, this allows quick sign on and access to the web application._
 
 ### Time-to-Swipe
 
+_A metric that measures how long it takes a user to swipe left or right on a product._
+
 ### Consumer
+
+_One user from a market, this is one person from the target population that is being sampled/surveyed._
 
 ### Brand
 
-### Market
+_Enterprise user of the application, making the survey's for their target markets. Brand's create the surveys that then are administered to consumers of markets._
 
 ### Demographic
 
+_Attributes of the markets and consumers, describe who the consumers are for targeted market experiments_
+
+**Synonyms:** college students at TCU, people attending football games, students in College of Science and Engineering
+
 ### Feedback
+
+_The application will recieve feedback from students at TCU and other colleges which is a requirement to incorporate the feedback from users into version 3 of the application._
 
 ### Survey
 
-_Worked examples of the format:_
-
-### Active Week
-
-_A week in which the course is in session and submissions are open. A student can submit a weekly activity report only during an active week, which makes this term the subject of a business rule rather than a piece of trivia._
-
-_**Not to be confused with:** the current calendar week, which continues during breaks when no week is active._
-
-### City-Pair
-
-_The origin and destination airports of a passenger journey, treated as an unordered pair. Used in International Civil Aviation Organization statistics._
-
-_**Synonyms:** O and D (the International Air Transport Association's term for the same concept). Both appear in source data, so any report that combines the two sources has to normalize them first._
-
-### Weekly Activity Report
-
-_A record of what one student did for their team during one week, submitted once per week by that student._
-
-_**Synonyms:** WAR, used conversationally by the client and in the existing spreadsheets. Spell it out on first use in any document._
-
-_**Source:** the client's existing Google Sheets process, described in [vision-and-scope.md](vision-and-scope.md) section 1.2._
-
-_[End of worked examples. Delete them and write your own terms below.]_
+_A survey is a group of cards that consmers will swipe left or right on. The main form of data on markets/consumers that brands will use for marketing research._
