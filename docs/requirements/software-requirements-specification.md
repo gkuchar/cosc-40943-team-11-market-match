@@ -1,8 +1,8 @@
 # Software Requirements Specification
 
-**Project:** _[Your project name]_
-**Team:** _[Team NN]_
-**Client:** _[Client name and organization]_
+**Project:** Market Match
+**Team:** 11
+**Client:** Demetrie King
 **Version:** 0.1
 
 ---
@@ -36,38 +36,57 @@ _Requirements cited from elsewhere keep their own identifiers: `UC-*` from [use-
 
 ## Revision History
 
-| Date | Version | Description | Author |
-|---|---|---|---|
-| _[YYYY-MM-DD]_ | 0.1 | Initial draft | _[Name]_ |
+| Date       | Version | Description | Author      |
+|------------|---|---|-------------|
+| 09/14/2026 | 0.1 | Initial draft | Vinh Nguyen |
 
 ---
 
 ## 1. Introduction
 
-### 1.1 The purpose of _[project name]_
+### 1.1 The purpose of Market Match
 
-_[What the system is for: who wants it, why, and who will use it. Even though the vision and scope answers this, restate it in a paragraph here, because people read this document without having read that one.]_
+Market Match is a swipe-based marketing and consumer feedback platform designed to make market research more interactive. The platform connects consumers, brands, and markets. Consumers can access a market and swipe through products to indicate interest or disinterest, while brands can use the resulting feedback to better understand consumer preferences.
+
+An MVP of Market Match already exists and recorded approximately 3,600 swipes at the most recent I-Fest. Market Match is beginning to expand to additional colleges and is working with TCU to gather feedback about what students would like to see at events.
+
+The client wants Market Match to grow beyond a traditional survey platform into a broader marketing platform where organizations can collect consumer feedback about products and ideas, including products that have not yet been released. The client also wants to expand toward enterprise organizations through white-label instances and API connections. As Market Match expands, the platform needs to remain stable while supporting increasing numbers of users and larger amounts of collected data.
 
 ### 1.2 The purpose of this document
 
-_[What this specification covers and for which release.]_
+This document specifies the functional and nonfunctional requirements for the Market Match release to be delivered by Team 11, with the release scope to be confirmed with the client and recorded in [vision-and-scope.md](vision-and-scope.md). It provides a shared reference for the client, developers, and testers to understand the expected system behavior, data requirements, external interfaces, quality attributes, operating environment, and implementation constraints. These requirements guide development and provide a basis for testing and evaluating whether the delivered software meets the agreed client needs.
 
-_Example: "This document describes the functional and nonfunctional requirements for release 1.0 of the Cafeteria Ordering System. It serves as the reference for the project's requirements, defining the scope, functionality, and constraints for stakeholders, developers, and testers."]_
+The specification links to the project glossary, vision and scope, use cases, and business rules rather than duplicating their content. Requirements that are not defined in those documents are specified here, and unresolved questions are tracked in [OPEN-ISSUES.md](OPEN-ISSUES.md).
 
 ### 1.3 Document conventions
 
 _[Any typographical conventions, and the identifier formats above, so that someone adding a requirement later knows how to name it.]_
 
+The following conventions apply throughout this specification:
+
+- **Requirement wording:** "Shall" identifies a required system behavior or property. Functional requirements in section 5.2 use the EARS patterns provided there to state the relevant trigger or condition and the expected system response. Each requirement must be specific enough to verify through a test, inspection, or measurement.
+- **Identifiers:** Requirements use the formats defined in [Identifiers](#identifiers). Prefixes and feature area codes are uppercase, and descriptive slugs use lowercase words separated by hyphens. Identifiers are unique within their namespace and remain stable when requirements are moved or revised. A retired identifier is marked withdrawn rather than reused for a different requirement.
+- **Cross-references:** References to use cases, business rules, objectives, success metrics, and features retain the identifiers assigned in their source documents. Their definitions remain in those documents rather than being copied into this specification.
+- **Terminology:** Project terms follow the definitions in the [project glossary](project-glossary.md). Acronyms are expanded on first use in the document's project-specific content.
+- **Formatting:** Backticks distinguish identifiers, field names, and literal values. Markdown links point to supporting documents or sections. Italic template instructions and worked examples are drafting guidance, not approved Market Match requirements.
+- **Unresolved decisions:** Unconfirmed requirements and values are explicitly marked as proposed or to be confirmed, with the corresponding question recorded in [OPEN-ISSUES.md](OPEN-ISSUES.md). Assumptions are identified separately from confirmed requirements.
+
 ### 1.4 References
 
 _[Every document this specification refers to, with a link. At minimum, the four other documents in this folder. Include external standards you must conform to.]_
 
-- _[Project glossary](project-glossary.md)_
-- _[Vision and scope](vision-and-scope.md)_
-- _[Use cases](use-cases.md)_
-- _[Business rules](business-rules.md)_
-- _[Open issues](OPEN-ISSUES.md)_
-- _[The Easy Approach to Requirements Syntax (EARS)](https://alistairmavin.com/ears/)_
+| Reference | Purpose |
+|---|---|
+| [Project glossary](project-glossary.md) | Defines the terms used consistently throughout the Market Match requirements. |
+| [Vision and scope](vision-and-scope.md) | Records the business objectives, success metrics, stakeholders, features, and release boundaries. |
+| [Use cases](use-cases.md) | Specifies user workflows, system responses, alternative flows, and exceptions. |
+| [Business rules](business-rules.md) | Records the business policies and rules that the software must enforce, with their sources. |
+| [Open issues](OPEN-ISSUES.md) | Tracks unanswered questions and unresolved requirements decisions. |
+| [First client meeting notes](../client-meeting-1.md) | Provides initial client context, the existing consumer workflow, user types, and expansion goals. |
+| [Napkin Round 0](../napkin-round-0.md) | Records the team's initial technical assessment, proposed direction, and project risks; proposals are not client-approved requirements. |
+| [The Easy Approach to Requirements Syntax (EARS)](https://alistairmavin.com/ears/) | Provides the requirement-writing approach used for non-use-case functional requirements in section 5.2. |
+
+Referenced project documents are working drafts. Template examples and unresolved proposals in those documents do not establish requirements for Market Match. Applicable external standards and their required versions will be added when confirmed with the client or through an explicit team decision.
 
 ---
 
