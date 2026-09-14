@@ -1,8 +1,8 @@
 # Vision and Scope
 
-**Project:** _[Your project name]_
-**Team:** _[Team NN]_
-**Client:** _[Client name and organization]_
+**Project:** Market Match
+**Team:** Team 11
+**Client:** Demetrie King
 **Version:** 0.1
 
 ---
@@ -33,7 +33,7 @@ _Why this matters more with an agent than it used to: ask an agent to insert a n
 
 | Date | Version | Description | Author |
 |---|---|---|---|
-| _[YYYY-MM-DD]_ | 0.1 | Initial draft from the client brief and first client meeting | _[Name]_ |
+| _[2026-09-11]_ | 0.1 | Initial draft from the client brief and first client meeting | _[Kritika Karanjit]_ |
 
 ---
 
@@ -50,6 +50,12 @@ _**Step 1: Describe the business.** Introduce the organization. Cover what it do
 _Example: "The client, XYZ Logistics, is a mid-sized shipping company that specializes in last-mile delivery services for e-commerce businesses. The company operates in five major cities, employs 200 delivery staff, and handles over 10,000 deliveries per day. The goal is to optimize delivery efficiency and customer satisfaction."_
 
 _**Checklist:** Would a reader who has never heard of this organization understand what it does and why this project exists?]_
+
+Market Match is a swipe-based marketing and consumer feedback platform designed to make market research more interactive. The platform connects consumers, brands, and markets. Consumers can access a market and swipe through products to indicate interest or disinterest, while brands can use the resulting feedback to better understand consumer preferences.
+
+An MVP of Market Match already exists and recorded approximately 3,600 swipes at the most recent I-Fest. Market Match is beginning to expand to additional colleges and is working with TCU to gather feedback about what students would like to see at events.
+
+The client wants Market Match to grow beyond a traditional survey platform into a broader marketing platform where organizations can collect consumer feedback about products and ideas, including products that have not yet been released. The client also wants to expand toward enterprise organizations through white-label instances and API connections. As Market Match expands, the platform needs to remain stable while supporting increasing numbers of users and larger amounts of collected data.
 
 ### 1.2 Current Process Flows (As-Is Process Flows)
 
@@ -88,9 +94,44 @@ _**Step 5: Write for an outsider.** Assume your reader knows nothing about this 
 
 _**Checklist:** Is the business context clear to someone unfamiliar with it? Does the flow give step-by-step detail? Are all actors and tools described? Are the inefficiencies illustrated with specific examples? Is there a mermaid diagram with one subgraph per actor?]_
 
+```mermaid
+flowchart TD
+    subgraph Consumer
+        A[Sign in using email and one-time code]
+        B[Enter a market ID code]
+        C[View products in the selected market]
+        D[Tap a product to view more information]
+        E[Swipe right or left on the product]
+        A --> B --> C --> D --> E
+    end
+
+    subgraph MarketMatch[Market Match]
+        F[Capture consumer interaction and feedback data]
+        G[Store product ratings and behavioral data]
+        F --> G
+    end
+
+    subgraph Brand
+        H[Create a product]
+        I[Join a market]
+        J[Receive product feedback]
+        H --> I
+        I --> J
+    end
+
+    E --> F
+    G --> J
+```
+The current Market Match process connects consumers with products from brands through markets. A consumer signs in using an email and a one-time code, enters a market ID code, and views products available within that market. The consumer can tap a product to see additional information and swipe right to indicate interest or left to indicate disinterest. Market Match captures the consumer's feedback and behavioral interaction data, including swipe direction, swipe speed, time spent viewing an item, and session activity. Brands can create products, join markets, and receive feedback based on consumer ratings.
+
+
 ### 1.3 References
 
 _[List every document referenced elsewhere in this one: the client's project brief, existing forms and reports, regulations, standards, competing products. Identify each by title, date, and where it can be obtained. The spreadsheet or screenshot your client showed you belongs here.]_
+
+- **Market Match Project Brief** — Provided by client Demetrie King to Team 11. Available through TCU Online.
+
+- **Market Match First Client Meeting Notes (`client-meeting-1.md`)** — Meeting with client Demetrie King, September 7, 2026. Available in the Team 11 GitHub repository: [client-meeting-1.md](https://github.com/gkuchar/cosc-40943-team-11-market-match/blob/main/docs/client-meeting-1.md)
 
 ---
 
@@ -101,6 +142,9 @@ _[Projects are launched in the belief that creating or changing a product will p
 ### 2.1 Business Opportunity or Problem Statement
 
 _[State the problem being solved or the opportunity being exploited, in the client's own terms. One or two paragraphs. This is the answer to "why is anyone paying for this?"]_
+Market Match has an opportunity to provide companies and organizations with a more interactive way to collect consumer feedback. Instead of relying only on traditional surveys, Market Match allows consumers to swipe through products and indicate their preferences while the platform captures feedback and interaction data.
+
+As Market Match expands to more colleges and organizations, the platform needs to support increasing numbers of users and larger amounts of data while remaining stable. The client also wants to expand Market Match beyond its current MVP by supporting enterprise organizations and allowing them to connect through APIs to create and manage their own surveys.
 
 ### 2.2 Business Objectives
 
@@ -115,6 +159,11 @@ _Examples:_
 _**How to elicit these.** Clients rarely volunteer numbers. Ask: What business problem are you trying to solve? What is the motivation for solving it now? What would a highly successful solution do for you? What is a successful solution worth? If the answer contains no number, ask what the number is today._
 
 _**Checklist:** A year from now, could someone tell whether each objective was met? Does each one contain a quantity?]_
+- `BO-platform-scalability`: Support growth in Market Match users and collected data while maintaining application stability. A quantitative target has not yet been provided by the client.
+
+- `BO-college-expansion`: Expand Market Match to additional colleges. The client stated that the platform is already rolling out to more schools, but a target number of colleges and deadline have not yet been provided.
+
+- `BO-enterprise-expansion`: Expand Market Match to enterprise organizations through API connectivity so organizations can create and manage their own surveys. A target number of enterprise organizations and deadline have not yet been provided.
 
 ### 2.3 Success Metrics
 
@@ -136,6 +185,12 @@ _**How to elicit these.** Ask "how will you know this worked?", then ask what th
 _**Choose your success metrics wisely. Make sure they measure what is important to the business, not just what is easy to measure.** "Reduce product development costs by 20 percent" is easy to measure, and also easy to achieve by laying off employees or investing less in innovation, neither of which is the intended outcome. Prefer a metric that gets worse if you build the wrong thing._
 
 _**Checklist:** Does each metric name its source, its baseline, and its deadline? Can this software actually move it? Can it be measured during testing or shortly after release, rather than a year later? Does every business objective have at least one metric behind it, and does every metric trace back to an objective?]_
+
+- `SM-platform-stability`: Measure Market Match's ability to remain stable as the number of users and amount of collected data increase. The baseline user/data capacity and acceptable performance target have not yet been provided by the client.
+
+- `SM-college-adoption`: Track the number of colleges actively using Market Match. The client stated that Market Match is rolling out to additional schools, but the current baseline, target number of colleges, and deadline have not yet been confirmed.
+
+- `SM-enterprise-adoption`: Track the number of enterprise organizations using Market Match through its planned API capabilities. The baseline, target number of organizations, and deadline have not yet been provided by the client.
 
 ### 2.4 Vision Statement
 
@@ -162,6 +217,15 @@ _Worked example:_
 | **Our product** | _keeps the whole cycle in one system, so nothing is transcribed by hand_ |
 
 _**Use this in the meeting.** Read the filled-in table back to your client out loud and watch what they correct. It is the fastest way to discover you misunderstood the project, and it costs ninety seconds. Corrections go straight into [OPEN-ISSUES.md](OPEN-ISSUES.md)._
+| | |
+|---|---|
+| **For** | consumers, brands, and markets |
+| **Who** | need an interactive way to provide and collect consumer preference feedback |
+| **The** *Market Match* | *is a swipe-based marketing and consumer feedback platform* |
+| **That** | allows consumers to interact with products and provide preference data that brands and markets can use to understand consumer interests |
+| **Unlike** | traditional survey-based methods of collecting consumer feedback |
+| **Our product** | provides an interactive swipe-based experience that connects consumers, brands, and markets while collecting consumer preference and interaction data |
+
 
 ### 2.5 Proposed Process Flows (To-Be Process Flows)
 
@@ -181,6 +245,12 @@ _Examples:_
 
 _**State risks as mechanisms, not categories.** "Security risk" names a category and tells nobody anything. "The peer evaluation database holds student grades, is reachable from the public internet, and has no rate limiting" names a mechanism someone can act on._
 
+- `RI-low-user-adoption`: Consumers may not use Market Match frequently enough or provide enough swipes for brands and markets to receive useful feedback. This could reduce the value of the platform to participating organizations. (Probability 0.4, Impact 8) Mitigation: Continue gathering feedback from users, to improve the user experience.
+
+- `RI-growth-stability`: As Market Match expands to more colleges and organizations, increased users and collected data could affect the stability and performance of the platform. This could negatively affect user experience and future adoption. (Probability 0.5, Impact 8) Mitigation: Design and test the platform for increasing user and data loads.
+
+- `RI-enterprise-adoption`: Enterprise organizations may not adopt Market Match or integrate with its planned API capabilities, limiting the client's goal of expanding the platform to larger organizations. (Probability 0.4, Impact 7) Mitigation: Confirm enterprise requirements and API expectations with potential organizational users before implementation.
+
 ### 2.7 Business Assumptions and Dependencies
 
 _[An assumption is something you believe without proof, which would force this document to change if it turned out false. A dependency is something outside your control that the project relies on. Both live here under `AS-*`.]_
@@ -192,6 +262,14 @@ _Examples:_
 - _`AS-restaurant-integration`: If a restaurant has its own online ordering system, the Cafeteria Ordering System must be able to communicate with it bi-directionally._
 
 _**Checklist:** For each assumption, what happens to this project if it is false? If the answer is "nothing", it is not worth recording. If the answer is "we start over", raise it with your client this week._
+
+- `AS-existing-platform`: The existing Market Match MVP and its current functionality will remain available to the team as the basis for understanding and improving the system.
+
+- `AS-client-access`: The client will provide the team with the access and information needed to understand the existing Market Match system and its data.
+
+- `AS-user-growth`: Market Match is expected to continue expanding to additional colleges and organizations, so the system will need to support growth in users and collected data.
+
+- `AS-api-expansion`: Future enterprise use of Market Match is expected to involve API connectivity. The exact API requirements and workflow still need to be confirmed with the client.
 
 ---
 
@@ -209,6 +287,13 @@ _A stakeholder is not always a user. The person paying for the software, the per
 
 _**Attitude is the column students leave blank, and the one that predicts trouble.** A stakeholder whose workload increases because of your software is not automatically supportive, and finding that out in December is too late._
 
+| Stakeholder | Major value or benefit from this product | Attitude | Major features of interest | Constraints | End user? |
+|---|---|---|---|---|---|
+| Consumers | Interactive way to view products and provide preference feedback | Supportive | Viewing products, swiping, and accessing product information | Must have access to Market Match and a participating market | Yes |
+| Brands | Receive consumer feedback and better understand consumer preferences | Supportive | Adding products, participating in markets, and viewing feedback | Depends on sufficient consumer participation and useful feedback data | Yes |
+| Markets | Connect consumers with participating products and collect feedback | Supportive | Managing market participation and receiving feedback | Exact market management workflow still needs clarification | Yes |
+| Client / Product Owner | Grow Market Match to more colleges and organizations and improve the platform | Supportive | Scalability, stability, consumer engagement, and future enterprise/API capabilities | Requirements for some future capabilities are still being defined | No |
+
 ### 3.2 User Environment
 
 _[Describe the working environment of the target users:_
@@ -218,6 +303,10 @@ _[Describe the working environment of the target users:_
 - _Any environmental constraints: mobile, outdoors, noisy, gloved hands, poor connectivity?_
 - _Which platforms are in use today, and which are planned?_
 - _What other applications are in use, and does yours have to integrate with them?]_
+
+Market Match serves three primary user types: consumers, brands, and markets. Consumers access markets and interact with products through the swipe-based Market Match experience. Brands participate in markets and use the collected consumer feedback to better understand consumer preferences.
+
+Market Match is expanding to additional colleges, so the number of users and amount of collected data are expected to increase. The client wants the platform to remain stable as usage grows. The exact devices, supported platforms, expected number of users, connectivity requirements, and other environmental constraints have not yet been confirmed with the client.
 
 ### 3.3 Alternatives and Competition
 
@@ -229,6 +318,10 @@ _[Identify the alternatives your stakeholders see as available: buying a competi
 
 _Always include the status quo as a row. It is the alternative that wins most often, and the one your product actually has to beat._
 
+| Alternative | Strengths | Weaknesses for this client |
+|---|---|---|
+| Traditional surveys / current feedback methods | Familiar way to collect structured consumer feedback | Less interactive than Market Match's swipe-based approach |
+| Current Market Match MVP (status quo) | Already provides the core swipe-based consumer feedback experience | Needs to support the client's planned growth and future capabilities |
 ---
 
 ## 4. Scope and Limitations
@@ -246,6 +339,18 @@ _[Put the product in context relative to other systems and the user's environmen
       PP --> Gmail[(Gmail)]
       PP --> LMS[(Learning management system)]
     ```
+    Market Match is a platform that connects consumers, brands, and markets. Consumers interact with products and provide preference feedback, while brands and markets use the resulting feedback to better understand consumer interests. The client also plans for enterprise organizations to connect with Market Match through APIs, although the exact integration requirements have not yet been confirmed.
+
+```mermaid
+flowchart LR
+    Consumer[Consumer] -->|Views products and provides feedback| MM[Market Match]
+    Brand[Brand] -->|Provides products| MM
+    MM -->|Consumer feedback| Brand
+    Market[Market] -->|Provides market information| MM
+    MM -->|Consumer feedback| Market
+    Enterprise[Enterprise Organization] -->|Future API connection| MM
+    MM -->|Future API data access| Enterprise
+```
 
 ### 4.2 Major Features and Scope
 
@@ -268,6 +373,18 @@ _Examples:_
 - _`FEAT-performance-tracking`: Submit and review weekly activity reports and peer evaluations._
 - _`FEAT-grade-generation`: Generate weekly activity report and peer evaluation grades for an entire section._
 
+- `FEAT-consumer-feedback`: Allow consumers to view products and provide preference feedback through the Market Match swipe-based experience.
+
+- `FEAT-product-information`: Allow consumers to view additional information about products before providing feedback.
+
+- `FEAT-brand-participation`: Allow brands to provide products, participate in markets, and receive consumer feedback.
+
+- `FEAT-market-participation`: Support markets that connect consumers with participating products and collect resulting feedback.
+
+- `FEAT-feedback-data`: Capture consumer preference and interaction data so it can be used to understand consumer interests.
+
+- `FEAT-enterprise-integration`: Support future enterprise connectivity through APIs. The detailed requirements for this capability still need to be confirmed with the client.
+
 ### 4.3 MVP Scope
 
 _[Of the features above, which ones ship in the release you actually deliver in December? Name them by identifier. Then name what is explicitly **out**, also by identifier, so it is on the record.]_
@@ -278,8 +395,13 @@ _**Explicitly out of scope:** `FEAT-...` (reason), `FEAT-...` (reason)_
 
 _Ask your client the question directly: "If we can deliver only one of these in December, which one is it?" The answer is worth more than the rest of the meeting. A client who cannot choose has not thought about it yet, which is itself something you need to know now rather than in November._
 
+
 ### 4.4 Deployment Considerations
 
 _[Summarize what it takes to get this into its operating environment. How will users reach it? Are they spread across locations or time zones? What infrastructure has to change for capacity, network access, data storage, or data migration? Who trains the users? Who maintains it after this team graduates, and what does that person already know how to run?]_
 
 _That last question shapes your architecture, so ask it in the first client meeting rather than the last._
+
+Market Match is intended to serve consumers, brands, and markets, with usage expected to expand as the platform reaches additional colleges and organizations. The client has emphasized the need for the platform to remain stable as the number of users and amount of collected data increase.
+
+Specific deployment infrastructure, capacity requirements, data migration needs, user training responsibilities, and long-term maintenance responsibilities have not yet been confirmed with the client.
