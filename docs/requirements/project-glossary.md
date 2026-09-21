@@ -60,11 +60,11 @@ _[One `###` heading per term, alphabetical. Follow the heading with a definition
 
 ### Market
 
-_The group of people a brand is targeting to acquire information about._
+_The survey with many cards that a user swipes left or right on. This is the main interaction for the users of the product and is used by brands and vendors to gather information on their target audience. Some of the statistics shown are the reach, likes, passes, and approval percentage._
 
-**Synonyms:** group of users, target demographic, target users
+**Synonyms:** survey, market survey
 
-**Not to be confused with**: The different types of brands, a market is specifically a group of user's
+**Not to be confused with**: The group of people that vendors and brands are targeting
 
 ### Swipe
 
@@ -111,3 +111,61 @@ _The application will recieve feedback from students at TCU and other colleges w
 ### Survey
 
 _A survey is a group of cards that consmers will swipe left or right on. The main form of data on markets/consumers that brands will use for marketing research._
+
+### Skew
+
+_A skew is a singular product that a brand wants feedback on._
+
+**Synonyms:** product
+
+### Admin Dashboard
+
+_The Admin dashboard allows for the creation of products, market surveys, and uploading of photos/videos so brands have their skews on the application_
+
+### Vendor Dashboard
+
+_The Vendor dashboard allows for a vendor to see all of their market surveys they currently have._
+
+### Reach
+
+_On a market survey the reach is the number of consumers that saw the skew._
+
+**Synonyms**: impressions
+
+### Likes
+
+_On a market survey the likes is the number of people that liked the product, also corresponds to swiping right._
+
+### Passes
+
+_On a market survey the passes is the number of the people that did not like the product, also corresponds to a user swiping left on a skew._
+
+### Approval Percentage
+
+_On a market survey the approval percentage is the number of likes divided by the reach._
+
+### Brand Dashboard
+
+_The brand dashboard shows statistics for each brand on Market Match. This dashboard includes an overview, analytics, inventory, settings, and replay tour page._
+
+### Brand Engagement Score
+
+_The brand engagement score is the percentage of consumers that swiped right, or liked a skew._
+
+**Synonyms**: impact score
+
+### Inventory - Brand Dashbaord
+
+_The inventory page on the brand dashboard includes all the products from brands. Each skew includes product name, reach, likes, passes, approval percentage, gender, age, ethnicity, and flip rate percentage. It also includes a detailed view that includes all the prior stats plus average decision time, average dwell time, and top performing locations._
+
+### Average decision time
+
+_The amount of time it takes a consumer to make a decision to swipe left or right. This would be populated when the user is hovering near the call to action buttons._
+
+### Average dwell time
+
+_The amount of time the consumer stays on a skew card._
+
+### Settings - Brand Dashboard
+
+_The settings page on the brand dashboard allows a brand to select their banner photo, profile photo, a brand overview, location/address, and social media handles._
