@@ -3,7 +3,7 @@
 **Project:** Martket Match
 **Team:** \_11
 **Client:** Demetrie King
-**Version:** 0.1
+**Version:** 0.3
 
 ---
 
@@ -48,9 +48,11 @@ _Rules:_
 
 ## Revision History
 
-| Date           | Version | Description                                                  | Author   |
-| -------------- | ------- | ------------------------------------------------------------ | -------- |
-| _[YYYY-MM-DD]_ | 0.1     | Initial terms from the client brief and first client meeting | _[Name]_ |
+| Date       | Version | Description                                                                                                                                                                                                             | Author            |
+| ---------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| 2026-09-14 | 0.1     | Initial terms from the client brief and first client meeting                                                                                                                                                              | Matthew Stafford  |
+| 2026-09-21 | 0.2     | Dashboard, metric, and card terms from the brand dashboard walkthrough                                                                                                                                                    | Matthew Stafford  |
+| 2026-09-23 | 0.3     | Tenancy, role, market assembly, and environment terms from the second client meeting. Renamed Skew to SKU, split Code into One-Time Code and Market Code, merged Survey into Market, and corrected Brand and Demographic. | Matthew Stafford  |
 
 ---
 
@@ -58,114 +60,370 @@ _Rules:_
 
 _[One `###` heading per term, alphabetical. Follow the heading with a definition of one to three sentences. Add **Synonyms**, **Not to be confused with**, or **Source** lines where they help. Where a term only makes sense with an example, give one._
 
-### Market
+### Admin
 
-_The survey with many cards that a user swipes left or right on. This is the main interaction for the users of the product and is used by brands and vendors to gather information on their target audience. Some of the statistics shown are the reach, likes, passes, and approval percentage._
+_The platform-wide role that can create Organizations and users, assign roles, build Categories and Inventory, create and launch Markets, approve Brand-submitted content, and delete products. The client, Demetrie King, is the only Admin, and every other user logs in as a Consumer until he changes them._
 
-**Synonyms:** survey, market survey
+**Synonyms:** administrator, platform admin
 
-**Not to be confused with**: The group of people that vendors and brands are targeting
+**Not to be confused with:** an organization-level admin, which is a WorkOS capability the client has considered delegating so an Organization could invite its own users. That is not in place today.
 
-### Swipe
+**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
 
-_The action the user takes on a Card which is a swipe left or right. Brands manufacture different cards that consumers swipe on._
+### Admin Dashboard
+
+_The Admin dashboard allows for the creation of products, market surveys, and uploading of photos/videos so Brands have their SKUs on the application. It is also where the Admin creates Organizations and users, assigns Roles, builds Categories, adds Inventory items, generates Market Codes, sets a Market to Public Access, launches Markets, and deletes products._
+
+**Not to be confused with:** WorkOS, which is the separate third-party console where user, Organization, and Role records actually live.
+
+### Approval
+
+_The client's review of Brand-submitted content before it goes live. Approval is required both when a Brand creates an Inventory item and when a Brand updates an existing item's images or details, so nothing reaches a Market without the Admin seeing it._
+
+**Synonyms:** admin approval, review
+
+**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+
+### Approval Percentage
+
+_On a Market the approval percentage is the number of Likes divided by the Reach._
+
+**Not to be confused with:** the Brand Engagement Score, which measures the same idea across a whole Brand rather than for one SKU on one Market. Also not Approval, which is the Admin reviewing Brand-submitted content.
+
+### Average Decision Time
+
+_The amount of time it takes a Consumer to make a decision to swipe left or right. This would be populated when the user is hovering near the call to action buttons._
+
+**Not to be confused with:** Time-to-Swipe, the raw per-swipe measurement this figure averages, and Average Dwell Time, which counts all time on the Card rather than time spent deciding.
+
+### Average Dwell Time
+
+_The amount of time the Consumer stays on a SKU Card._
+
+**Not to be confused with:** Average Decision Time, which counts only the deciding portion, near the call to action buttons.
+
+### Brand
+
+_The entity that owns the products on the Cards, such as Celsius. A Brand owns its Inventory of SKUs, its Brand Card, and the Markets its products appear in, and it reads its own product statistics on the Brand Dashboard. A Brand can have its own market surveys; today the Admin builds those Markets on the Brand's behalf, because self-serve Market creation is deferred until the client settles pricing._
+
+**Not to be confused with:** a Vendor, which is the organization that receives a Market and its results rather than the company whose products are being rated. A Brand may also be a Vendor, but the two roles are assigned separately.
+
+**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+
+### Brand Card - Brand Dashboard
+
+_The Brand's profile within Market Match: its overview, address and location, and social media handles. A Brand fills this in itself when it first logs in, and it is what a Consumer or Vendor sees when they look at the Brand rather than at one of its products._
+
+**Not to be confused with:** Brand Card - Market, the Card type chosen at Market creation. See also Settings - Brand Dashboard, the page where this profile is edited.
+
+**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+
+### Brand Card - Market
+
+_One of the two Card types the Admin chooses between when creating a Market, the other being a standard market card. A brand card presents a Brand rather than a single product._
+
+**Not to be confused with:** Brand Card - Brand Dashboard, which is the Brand's own profile page and a different thing entirely. The exact difference in behavior between a brand card and a standard market card has not been confirmed with the client.
+
+**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+
+### Brand Dashboard
+
+_The brand dashboard shows statistics for each Brand on Market Match. This dashboard includes an overview, analytics, inventory, settings, and replay tour page._
+
+### Brand Engagement Score
+
+_The brand engagement score is the percentage of Consumers that swiped right, or liked a SKU._
+
+**Synonyms:** impact score
+
+**Not to be confused with:** Approval Percentage, which is the same ratio computed for one SKU on one Market. The engagement score is the Brand-level figure.
 
 ### Card
 
-_A card has a front side and back side. The front side is a photo of the product and the product name. The back of the card includes more details in which a brand can put a desciprition of their product as well as a video showcasing their product._
+_A Card has a front side and back side. The front side is a photo of the product and the product name. The back of the Card includes more details in which a Brand can put a description of their product as well as a video showcasing their product. A Card carries up to three photos and one video, and the video is supplied as a YouTube link rather than an uploaded file._
+
+**Not to be confused with:** a Text Card, which is a Card with no product photo or video.
+
+### Category
+
+_A named grouping of Line Items inside a Market. A Category is usually a product type such as energy drinks, sports drinks, or chips, but it can also be a question, in which case the Cards under it are Text Cards holding the answer options. The Admin creates Categories, attaches Inventory items to them, and assembles a Market by selecting which Categories it contains._
+
+_**Example.** "What type of music do y'all want?" is a Category; each music genre under it is a Text Card._
+
+**Not to be confused with:** a Market, which is the whole survey. A Market contains Categories; a Category contains Line Items.
+
+**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+
+### Cloudflare
+
+_Where Market Match is hosted. The application runs as two Cloudflare Workers, one serving Production from the main branch and one serving the Preview Link, and Cloudflare also stores the platform's image files._
+
+**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+
+### Consumer
+
+_One user from a Market, this is one person from the target population that is being sampled/surveyed. Consumer is the role every user receives automatically on first login, no matter how they arrive; only the Admin can change a user to Brand or Vendor. Most Consumers today never log in at all, because the TCU and UTD Markets are run as Public Access._
+
+**Not to be confused with:** a Vendor, which is the organization receiving the results rather than a person answering.
+
+### CPG
+
+_Consumer Packaged Goods: everyday branded products sold at retail, such as energy drinks, sports drinks, and chips. This is the client's primary market segment, and the fixed category structure he described applies on the CPG side; non-CPG uses, such as a job fair or a music preference survey, get Categories built to order._
+
+**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+
+### Demographic
+
+_Attributes of the Markets and Consumers, describing who the Consumers are for targeted market experiments._
+
+_**Examples.** College students at TCU; people attending football games; students in the College of Science and Engineering._
+
+**Not to be confused with:** a Market, which is the survey itself rather than the population it is aimed at.
+
+### Feedback
+
+_Two stakeholders use this word for two different things, and both uses are live in this project._
+
+_The client means, first, the consumer preference data a Market collects — "get some great feedback before they buy anything." He also means, second, the comments TCU students give him about the Market Match application itself, which he acts on by making small UI changes on his own side and which he has committed to routing past the team so those changes do not collide with Version 3 work. Incorporating that second kind into Version 3 is a project requirement._
+
+**Synonyms:** user feedback and product feedback, for the second sense only
+
+**Not to be confused with:** Likes, Passes, and Reach, which are the specific measures the first sense produces. When writing requirements, name the measure instead of saying "feedback".
 
 ### Flip
 
-_A card can be flipped from the front side to the back side, this is a metric tracked in which brands will be able to see._
+_A Card can be flipped from the front side to the back side. This is a metric tracked in which Brands will be able to see, reported on the Brand Dashboard as flip rate percentage._
+
+### Inventory
+
+_The collection of Line Items a Brand or the Admin has loaded into Market Match. Items are added one at a time, given up to three photos and one YouTube video link or made into a Text Card, and then attached to a Category so they can appear in a Market._
+
+**Not to be confused with:** Inventory - Brand Dashboard, which is the page that reports statistics on those items rather than the collection itself.
+
+**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+
+### Inventory - Brand Dashboard
+
+_The inventory page on the brand dashboard includes all the products from Brands. Each SKU includes product name, Reach, Likes, Passes, Approval Percentage, gender, age, ethnicity, and flip rate percentage. It also includes a detailed view that includes all the prior stats plus Average Decision Time, Average Dwell Time, and top performing locations._
+
+**Not to be confused with:** Inventory, which is the collection of Line Items itself rather than this reporting page.
+
+### Launch
+
+_The Admin action that makes a Market live. A Market is created, assigned to an Organization, given its Categories, and those Categories applied, all before launch; launching is what makes its QR Code, link, and Market Code actually reach the survey._
+
+**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+
+### Likes
+
+_On a Market the likes is the number of people that liked the product, also corresponds to swiping right._
+
+### Line Item
+
+_A single entry inside a Category, added to Inventory one at a time. A Line Item is either a product, with up to three photos and one YouTube video link, or a Text Card. The number of Categories and Line Items in a Market is one of the three inputs to Market Pricing._
+
+**Synonyms:** item
+
+**Not to be confused with:** a SKU. Every SKU is a Line Item, but a Line Item can also be a Text Card with no product behind it.
+
+**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+
+### Market
+
+_A named collection of Cards, grouped into Categories, that Consumers swipe through. A Market has an auto-generated Market Code, is assigned to exactly one Organization, and must be launched before anyone can reach it. This is the main interaction for the users of the product and is used by Brands and Vendors to gather information on their target audience. Some of the statistics shown are the Reach, Likes, Passes, and Approval Percentage._
+
+**Synonyms:** survey, market survey
+
+**Not to be confused with:** the group of people that Vendors and Brands are targeting, which is a Demographic. Also not a Category, which is a grouping of Line Items inside a Market.
+
+### Market Code
+
+_The unique code automatically generated when a Market is created, tied to that Market. A Consumer enters it to pull up that Market's survey. The client hands this code out when he wants a specific audience to reach a specific Market._
+
+**Synonyms:** market ID code, unique code
+
+**Not to be confused with:** the One-Time Code used to sign in, and the QR Code, which is the scannable form of a Public Access link rather than a typed code.
+
+**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+
+### Market Pricing
+
+_What the client charges a Vendor or Brand for a Market, set case by case on three inputs: how much has to be built (how many Categories and Line Items), how long the Market stays open, and how many people it goes to. Recorded here because unsettled pricing is the client's stated reason that self-serve Market creation is out of scope for this phase._
+
+**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+
+### MVP
+
+_Minimum Viable Product: the version of Market Match the client built himself and runs in Production today. It is working and taking real traffic, which sets the constraint on this project — the MVP must keep working while Version 3 is built._
+
+**Not to be confused with:** Version 3, the platform the team is building. The team's documents also call the MVP "version 2".
+
+**Source:** `client-meeting-1.md`, `napkin-round-0.md`, and [`client-meeting-2.md`](../client-meeting-2.md)
+
+### One-Time Code
+
+_A single-use code emailed to a user so they can sign in at login.marketmatch.app without a password. The client uses it as the standard sign-in path for Brand, Vendor, and Admin users, and cites it as the security control on the platform._
+
+**Synonyms:** sign-in code, email code
+
+**Not to be confused with:** the Market Code, which is entered after sign-in to open a particular Market. Sign-in answers "who are you"; a Market Code answers "which Market do you want".
+
+**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+
+### Organization
+
+_The container that a set of user emails and a set of Markets are both assigned to. An Organization decides which Markets and which results a user can see: only users whose emails are attached to an Organization can see the Markets assigned to it. The client creates one Organization per department or company rather than one per institution, because a single TCU Organization would let every department see every TCU Market's results._
+
+_**Example.** TCU is not one Organization. TCU Director of Student Activities is one, TCU food services is another, and each sees only the Markets assigned to it._
+
+**Synonyms:** tenant (the team's word in `napkin-round-0.md` and `initial-questions.md`), org
+
+**Not to be confused with:** Brand and Vendor, which are roles held by users inside an Organization, not containers. Getting this wrong is the multi-tenant data isolation risk named in `napkin-round-0.md`.
+
+**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+
+### Passes
+
+_On a Market the passes is the number of the people that did not like the product, also corresponds to a user swiping left on a SKU._
+
+### Preview Link
+
+_The Cloudflare preview deployment the client tests a change on before merging to main. It is a separate URL with its own Worker and its own WorkOS side, and the client's workflow is to request a preview link, test the change there, and only then commit and push to main._
+
+**Synonyms:** staging, staging link, preview deploy
+
+**Not to be confused with:** Production, and the TCU Staging Branch, which is the team's own separate deployment of the same kind.
+
+**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+
+### Production
+
+_The live Market Match at marketmatch.app and login.marketmatch.app, served by the main Cloudflare Worker from the main branch. This is what the client's real users are swiping on today, which is why nothing reaches it without first being tested on the Preview Link._
+
+**Not to be confused with:** the Preview Link, which the client calls his staging.
+
+**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+
+### Public Access
+
+_A Market setting that lets a Consumer reach the survey with no login, no email, and no Market Code, by scanning a QR Code or clicking a link. The Market is still assigned to an Organization, so its Vendor still sees the results. This is how TCU and UTD run today, deliberately, to get people used to the product before asking them to sign in._
+
+**Synonyms:** public market, open market
+
+**Not to be confused with:** One-Time Code sign-in, which is the opposite path. A Public Access Market collects no identity at all, which is why Market Match currently holds no student emails.
+
+**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+
+### QR Code
+
+_The scannable code generated for a Public Access Market, and the main way Consumers reach a Market today._
+
+**Not to be confused with:** the Market Code, which is a code a signed-in Consumer types in. A QR Code carries a link; a Market Code is entered by hand.
+
+**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+
+### Reach
+
+_On a Market the reach is the number of Consumers that saw the SKU._
+
+**Synonyms:** impressions
+
+### Role
+
+_What a user is allowed to do in Market Match: Consumer, Brand, Vendor, or Admin. Every user is a Consumer on first login and only the Admin can grant Brand or Vendor. A user holding more than one role can switch between them from the dashboard; a user holding only Consumer sees no dashboard switcher at all._
+
+**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+
+### Settings - Brand Dashboard
+
+_The settings page on the brand dashboard allows a Brand to select their banner photo, profile photo, a brand overview, location/address, and social media handles._
+
+**Not to be confused with:** the Brand Card - Brand Dashboard, which is the profile this page edits.
+
+### SKU
+
+_A single product a Brand wants feedback on, and the unit that Reach, Likes, Passes, Approval Percentage, and flip rate are all reported against._
+
+**Synonyms:** skew (the client's spelling and how the team recorded it through version 0.2), product
+
+**Not to be confused with:** its meaning in retail generally, where a SKU is the identifier code for a stockable item rather than the item itself. Here the word means the product. Also not a Line Item, which may be a Text Card with no product behind it.
+
+### Swipe
+
+_The action the user takes on a Card, which is a swipe left or right. Brands manufacture different Cards that Consumers swipe on._
 
 ### Swipe Left / Swipe Right
 
-_A user can swipe left on the card, which indicates that they dislike the product. This is another metric that is tracked that brands will be able to see for their products. A user can swipe right on the card, which indicates that they like the product, this is another metric._
+_A user can swipe left on the Card, which indicates that they dislike the product. This is another metric that is tracked that Brands will be able to see for their products. A user can swipe right on the Card, which indicates that they like the product, this is another metric._
 
-### Code
+**Not to be confused with:** Likes and Passes, which are the counts these two actions accumulate on a Market.
 
-_Brands/Consumers recieve a one time code to "sign in" to the application, this allows quick sign on and access to the web application._
+### TCU Staging Branch
+
+_The branch on the client's repository where Team 11's work lives, `tcu-fall-2026-stage`, with its own staging preview so the client can follow the team's changes without them reaching Production. The team works here rather than in a fork so both sides can watch each other's work and compare before anything is merged._
+
+**Synonyms:** `tcu-fall-2026-stage`, TCU branch, TCU staging
+
+**Not to be confused with:** the client's own Preview Link, which is where he tests his small UI changes.
+
+**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+
+### Text Card
+
+_A Line Item that is text only, with no product photo and no video. Used when the Category is a question rather than a product type, so the Consumer swipes on a written option instead of an image._
+
+**Not to be confused with:** a Card, which by default has a product photo on the front. A Text Card is the exception.
+
+**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
 
 ### Time-to-Swipe
 
 _A metric that measures how long it takes a user to swipe left or right on a product._
 
-### Consumer
+**Not to be confused with:** Average Decision Time, which is this same measure averaged across Consumers and reported on the Brand Dashboard. Time-to-Swipe is the raw per-swipe measurement.
 
-_One user from a market, this is one person from the target population that is being sampled/surveyed._
+### Vendor
 
-### Brand
+_The organization that receives a Market and its results, such as TCU Director of Student Activities or UTD. A Vendor user signs in and sees the Markets assigned to their Organization on the Vendor Dashboard. The only information Market Match holds about a Vendor user is their email address._
 
-_Enterprise user of the application, making the survey's for their target markets. Brand's create the surveys that then are administered to consumers of markets._
+**Not to be confused with:** a Brand, which owns the products being rated. See Brand for the split.
 
-### Demographic
-
-_Attributes of the markets and consumers, describe who the consumers are for targeted market experiments_
-
-**Synonyms:** college students at TCU, people attending football games, students in College of Science and Engineering
-
-### Feedback
-
-_The application will recieve feedback from students at TCU and other colleges which is a requirement to incorporate the feedback from users into version 3 of the application._
-
-### Survey
-
-_A survey is a group of cards that consmers will swipe left or right on. The main form of data on markets/consumers that brands will use for marketing research._
-
-### Skew
-
-_A skew is a singular product that a brand wants feedback on._
-
-**Synonyms:** product
-
-### Admin Dashboard
-
-_The Admin dashboard allows for the creation of products, market surveys, and uploading of photos/videos so brands have their skews on the application_
+**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
 
 ### Vendor Dashboard
 
-_The Vendor dashboard allows for a vendor to see all of their market surveys they currently have._
+_The Vendor dashboard allows for a Vendor to see all of their market surveys they currently have, meaning the Markets assigned to their Organization and the results those Markets have collected._
 
-### Reach
+### Version 3
 
-_On a market survey the reach is the number of consumers that saw the skew._
+_The enterprise-grade Market Match the team is building: multi-organization, API-first, secure, scalable, and White-Label, able to survive an event where thousands of people scan a QR Code at once._
 
-**Synonyms**: impressions
+**Not to be confused with:** the MVP, which is the live application it will eventually replace.
 
-### Likes
+**Source:** `napkin-round-0.md`
 
-_On a market survey the likes is the number of people that liked the product, also corresponds to swiping right._
+### Vibe-Coded
 
-### Passes
+_Built by prompting an AI coding tool rather than writing the code by hand. The client vibe-coded the current MVP, starting in Google Antigravity and moving to Claude Code. The term is recorded because it names the project's central risk: an application with no design documents, whose architecture nobody has written down._
 
-_On a market survey the passes is the number of the people that did not like the product, also corresponds to a user swiping left on a skew._
+**Source:** `client-meeting-1.md`, `napkin-round-0.md`, and [`client-meeting-2.md`](../client-meeting-2.md)
 
-### Approval Percentage
+### White-Label
 
-_On a market survey the approval percentage is the number of likes divided by the reach._
+_Running Market Match for an enterprise organization under that organization's own branding, so the platform looks like theirs rather than like Market Match. Named by the client as a Version 3 goal alongside API access._
 
-### Brand Dashboard
+**Source:** `napkin-round-0.md` and the vision and scope
 
-_The brand dashboard shows statistics for each brand on Market Match. This dashboard includes an overview, analytics, inventory, settings, and replay tour page._
+### WorkOS
 
-### Brand Engagement Score
+_The third-party identity platform Market Match uses for users, Organizations, Roles, and sign-in. Creating a user, creating an Organization, attaching an email to it, and assigning a Role all happen in the WorkOS console rather than in Market Match itself. WorkOS has its own production and staging sides, matching Market Match's._
 
-_The brand engagement score is the percentage of consumers that swiped right, or liked a skew._
+**Not to be confused with:** the Admin Dashboard, which is Market Match's own console for Markets, Categories, and Inventory.
 
-**Synonyms**: impact score
+**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
 
-### Inventory - Brand Dashbaord
+### Wrangler
 
-_The inventory page on the brand dashboard includes all the products from brands. Each skew includes product name, reach, likes, passes, approval percentage, gender, age, ethnicity, and flip rate percentage. It also includes a detailed view that includes all the prior stats plus average decision time, average dwell time, and top performing locations._
+_Cloudflare's command-line tool, used to deploy Market Match's Workers._
 
-### Average decision time
-
-_The amount of time it takes a consumer to make a decision to swipe left or right. This would be populated when the user is hovering near the call to action buttons._
-
-### Average dwell time
-
-_The amount of time the consumer stays on a skew card._
-
-### Settings - Brand Dashboard
-
-_The settings page on the brand dashboard allows a brand to select their banner photo, profile photo, a brand overview, location/address, and social media handles._
+**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
