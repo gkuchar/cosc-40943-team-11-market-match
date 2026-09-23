@@ -1,6 +1,6 @@
 # Project Glossary
 
-**Project:** Martket Match
+**Project:** Market Match
 **Team:** \_11
 **Client:** Demetrie King
 **Version:** 0.3
@@ -48,11 +48,11 @@ _Rules:_
 
 ## Revision History
 
-| Date       | Version | Description                                                                                                                                                                                                             | Author            |
-| ---------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
-| 2026-09-14 | 0.1     | Initial terms from the client brief and first client meeting                                                                                                                                                              | Matthew Stafford  |
-| 2026-09-21 | 0.2     | Dashboard, metric, and card terms from the brand dashboard walkthrough                                                                                                                                                    | Matthew Stafford  |
-| 2026-09-23 | 0.3     | Tenancy, role, market assembly, and environment terms from the second client meeting. Renamed Skew to SKU, split Code into One-Time Code and Market Code, merged Survey into Market, and corrected Brand and Demographic. | Matthew Stafford  |
+| Date       | Version | Description                                                                                                                                                                                                               | Author           |
+| ---------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| 2026-09-14 | 0.1     | Initial terms from the client brief and first client meeting                                                                                                                                                              | Matthew Stafford |
+| 2026-09-21 | 0.2     | Dashboard, metric, and card terms from the brand dashboard walkthrough                                                                                                                                                    | Matthew Stafford |
+| 2026-09-23 | 0.3     | Tenancy, role, market assembly, and environment terms from the second client meeting. Renamed Skew to SKU, split Code into One-Time Code and Market Code, merged Survey into Market, and corrected Brand and Demographic. | Matthew Stafford |
 
 ---
 
@@ -68,7 +68,7 @@ _The platform-wide role that can create Organizations and users, assign roles, b
 
 **Not to be confused with:** an organization-level admin, which is a WorkOS capability the client has considered delegating so an Organization could invite its own users. That is not in place today.
 
-**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+**Source:** second client meeting with Demetrie King
 
 ### Admin Dashboard
 
@@ -82,7 +82,7 @@ _The client's review of Brand-submitted content before it goes live. Approval is
 
 **Synonyms:** admin approval, review
 
-**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+**Source:** second client meeting with Demetrie King
 
 ### Approval Percentage
 
@@ -108,7 +108,7 @@ _The entity that owns the products on the Cards, such as Celsius. A Brand owns i
 
 **Not to be confused with:** a Vendor, which is the organization that receives a Market and its results rather than the company whose products are being rated. A Brand may also be a Vendor, but the two roles are assigned separately.
 
-**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+**Source:** second client meeting with Demetrie King
 
 ### Brand Card - Brand Dashboard
 
@@ -116,7 +116,7 @@ _The Brand's profile within Market Match: its overview, address and location, an
 
 **Not to be confused with:** Brand Card - Market, the Card type chosen at Market creation. See also Settings - Brand Dashboard, the page where this profile is edited.
 
-**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+**Source:** second client meeting with Demetrie King
 
 ### Brand Card - Market
 
@@ -124,7 +124,7 @@ _One of the two Card types the Admin chooses between when creating a Market, the
 
 **Not to be confused with:** Brand Card - Brand Dashboard, which is the Brand's own profile page and a different thing entirely. The exact difference in behavior between a brand card and a standard market card has not been confirmed with the client.
 
-**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+**Source:** second client meeting with Demetrie King
 
 ### Brand Dashboard
 
@@ -152,13 +152,13 @@ _**Example.** "What type of music do y'all want?" is a Category; each music genr
 
 **Not to be confused with:** a Market, which is the whole survey. A Market contains Categories; a Category contains Line Items.
 
-**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+**Source:** second client meeting with Demetrie King
 
 ### Cloudflare
 
 _Where Market Match is hosted. The application runs as two Cloudflare Workers, one serving Production from the main branch and one serving the Preview Link, and Cloudflare also stores the platform's image files._
 
-**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+**Source:** second client meeting with Demetrie King
 
 ### Consumer
 
@@ -170,7 +170,7 @@ _One user from a Market, this is one person from the target population that is b
 
 _Consumer Packaged Goods: everyday branded products sold at retail, such as energy drinks, sports drinks, and chips. This is the client's primary market segment, and the fixed category structure he described applies on the CPG side; non-CPG uses, such as a job fair or a music preference survey, get Categories built to order._
 
-**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+**Source:** second client meeting with Demetrie King
 
 ### Demographic
 
@@ -200,7 +200,7 @@ _The collection of Line Items a Brand or the Admin has loaded into Market Match.
 
 **Not to be confused with:** Inventory - Brand Dashboard, which is the page that reports statistics on those items rather than the collection itself.
 
-**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+**Source:** second client meeting with Demetrie King
 
 ### Inventory - Brand Dashboard
 
@@ -212,7 +212,7 @@ _The inventory page on the brand dashboard includes all the products from Brands
 
 _The Admin action that makes a Market live. A Market is created, assigned to an Organization, given its Categories, and those Categories applied, all before launch; launching is what makes its QR Code, link, and Market Code actually reach the survey._
 
-**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+**Source:** second client meeting with Demetrie King
 
 ### Likes
 
@@ -226,7 +226,7 @@ _A single entry inside a Category, added to Inventory one at a time. A Line Item
 
 **Not to be confused with:** a SKU. Every SKU is a Line Item, but a Line Item can also be a Text Card with no product behind it.
 
-**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+**Source:** second client meeting with Demetrie King
 
 ### Market
 
@@ -244,13 +244,13 @@ _The unique code automatically generated when a Market is created, tied to that 
 
 **Not to be confused with:** the One-Time Code used to sign in, and the QR Code, which is the scannable form of a Public Access link rather than a typed code.
 
-**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+**Source:** second client meeting with Demetrie King
 
 ### Market Pricing
 
 _What the client charges a Vendor or Brand for a Market, set case by case on three inputs: how much has to be built (how many Categories and Line Items), how long the Market stays open, and how many people it goes to. Recorded here because unsettled pricing is the client's stated reason that self-serve Market creation is out of scope for this phase._
 
-**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+**Source:** second client meeting with Demetrie King
 
 ### MVP
 
@@ -258,7 +258,7 @@ _Minimum Viable Product: the version of Market Match the client built himself an
 
 **Not to be confused with:** Version 3, the platform the team is building. The team's documents also call the MVP "version 2".
 
-**Source:** `client-meeting-1.md`, `napkin-round-0.md`, and [`client-meeting-2.md`](../client-meeting-2.md)
+**Source:** `client-meeting-1.md`, `napkin-round-0.md`, and the second client meeting
 
 ### One-Time Code
 
@@ -268,7 +268,7 @@ _A single-use code emailed to a user so they can sign in at login.marketmatch.ap
 
 **Not to be confused with:** the Market Code, which is entered after sign-in to open a particular Market. Sign-in answers "who are you"; a Market Code answers "which Market do you want".
 
-**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+**Source:** second client meeting with Demetrie King
 
 ### Organization
 
@@ -280,7 +280,7 @@ _**Example.** TCU is not one Organization. TCU Director of Student Activities is
 
 **Not to be confused with:** Brand and Vendor, which are roles held by users inside an Organization, not containers. Getting this wrong is the multi-tenant data isolation risk named in `napkin-round-0.md`.
 
-**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+**Source:** second client meeting with Demetrie King
 
 ### Passes
 
@@ -294,7 +294,7 @@ _The Cloudflare preview deployment the client tests a change on before merging t
 
 **Not to be confused with:** Production, and the TCU Staging Branch, which is the team's own separate deployment of the same kind.
 
-**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+**Source:** second client meeting with Demetrie King
 
 ### Production
 
@@ -302,7 +302,7 @@ _The live Market Match at marketmatch.app and login.marketmatch.app, served by t
 
 **Not to be confused with:** the Preview Link, which the client calls his staging.
 
-**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+**Source:** second client meeting with Demetrie King
 
 ### Public Access
 
@@ -312,7 +312,7 @@ _A Market setting that lets a Consumer reach the survey with no login, no email,
 
 **Not to be confused with:** One-Time Code sign-in, which is the opposite path. A Public Access Market collects no identity at all, which is why Market Match currently holds no student emails.
 
-**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+**Source:** second client meeting with Demetrie King
 
 ### QR Code
 
@@ -320,7 +320,7 @@ _The scannable code generated for a Public Access Market, and the main way Consu
 
 **Not to be confused with:** the Market Code, which is a code a signed-in Consumer types in. A QR Code carries a link; a Market Code is entered by hand.
 
-**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+**Source:** second client meeting with Demetrie King
 
 ### Reach
 
@@ -332,7 +332,7 @@ _On a Market the reach is the number of Consumers that saw the SKU._
 
 _What a user is allowed to do in Market Match: Consumer, Brand, Vendor, or Admin. Every user is a Consumer on first login and only the Admin can grant Brand or Vendor. A user holding more than one role can switch between them from the dashboard; a user holding only Consumer sees no dashboard switcher at all._
 
-**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+**Source:** second client meeting with Demetrie King
 
 ### Settings - Brand Dashboard
 
@@ -366,7 +366,7 @@ _The branch on the client's repository where Team 11's work lives, `tcu-fall-202
 
 **Not to be confused with:** the client's own Preview Link, which is where he tests his small UI changes.
 
-**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+**Source:** second client meeting with Demetrie King
 
 ### Text Card
 
@@ -374,7 +374,7 @@ _A Line Item that is text only, with no product photo and no video. Used when th
 
 **Not to be confused with:** a Card, which by default has a product photo on the front. A Text Card is the exception.
 
-**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+**Source:** second client meeting with Demetrie King
 
 ### Time-to-Swipe
 
@@ -388,7 +388,7 @@ _The organization that receives a Market and its results, such as TCU Director o
 
 **Not to be confused with:** a Brand, which owns the products being rated. See Brand for the split.
 
-**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+**Source:** second client meeting with Demetrie King
 
 ### Vendor Dashboard
 
@@ -406,7 +406,7 @@ _The enterprise-grade Market Match the team is building: multi-organization, API
 
 _Built by prompting an AI coding tool rather than writing the code by hand. The client vibe-coded the current MVP, starting in Google Antigravity and moving to Claude Code. The term is recorded because it names the project's central risk: an application with no design documents, whose architecture nobody has written down._
 
-**Source:** `client-meeting-1.md`, `napkin-round-0.md`, and [`client-meeting-2.md`](../client-meeting-2.md)
+**Source:** `client-meeting-1.md`, `napkin-round-0.md`, and the second client meeting
 
 ### White-Label
 
@@ -420,10 +420,10 @@ _The third-party identity platform Market Match uses for users, Organizations, R
 
 **Not to be confused with:** the Admin Dashboard, which is Market Match's own console for Markets, Categories, and Inventory.
 
-**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+**Source:** second client meeting with Demetrie King
 
 ### Wrangler
 
 _Cloudflare's command-line tool, used to deploy Market Match's Workers._
 
-**Source:** [`client-meeting-2.md`](../client-meeting-2.md)
+**Source:** second client meeting with Demetrie King
