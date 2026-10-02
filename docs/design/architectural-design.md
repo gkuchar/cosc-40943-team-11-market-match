@@ -1,8 +1,8 @@
 # Architectural Design
 
-**Project:** _[Your project name]_
-**Team:** _[Team NN]_
-**Client:** _[Client name and organization]_
+**Project:** Market Match
+**Team:** Team 11
+**Client:** Demetrie King, Market Match
 **Version:** 0.1
 
 ---
@@ -34,7 +34,7 @@ _[These are slugs, like every other identifier in your project, so an inserted d
 
 | Version | Date | Author | Change                         |
 | ------- | ---- | ------ | ------------------------------ |
-| 0.1     |      |        | Initial draft for Checkpoint 1 |
+| 0.1     |   2026-10-02    |   Team 11     | Initial draft for Checkpoint 1 |
 
 ---
 
@@ -45,6 +45,8 @@ _Due: Checkpoint 1._
 ### 1.1 Requirements overview
 
 _[Your [specification](../requirements/software-requirements-specification.md) and your [use cases](../requirements/use-cases.md) are the requirements overview. Link them here; do not summarize them.]_
+
+See the [Software Requirements Specification](../requirements/software-requirements-specification.md) and the [Use Cases](../requirements/use-cases.md).
 
 ### 1.2 Quality goals
 
@@ -63,6 +65,8 @@ _Example, from the Cafeteria Ordering System:]_
 ### 1.3 Stakeholders
 
 _[Your stakeholders are profiled in section 3.1 of [vision and scope](../requirements/vision-and-scope.md). Link it here; do not copy it.]_
+
+See [Vision and Scope, Section 3.1 — Stakeholder Profiles](../requirements/vision-and-scope.md#31-stakeholder-profiles).
 
 ## 2. Architecture Constraints
 
@@ -85,29 +89,29 @@ _This is your project's one context diagram. Section 4.1 of [vision and scope](.
 _arc42 divides context into a **business context** (who and what crosses the boundary) and a **technical context** (the channels and protocols). This diagram is the business context. The protocols go on the arrows of the container diagram in section 5.1._
 
 _The **trust boundary** is not drawn here. You name it in writing in section 8.1, as Project Pulse does._
-
-_Example:]_
+**System context diagram:**
 
 ```mermaid
 C4Context
-    title System Context: Cafeteria Ordering System
+    title System Context: Market Match
 
-    Person(patron, "Patron", "Employee ordering a meal")
-    Person(staff, "Cafeteria Staff", "Prepares and delivers orders")
-    Person(menu, "Menu Manager", "Maintains the daily menu")
+    Person(consumer, "Consumer", "Views products and provides preference feedback")
+    Person(brand, "Brand", "Manages products and reviews consumer feedback and insights")
+    Person(vendor, "Vendor", "Participates in markets and accesses available information and insights")
+    Person(admin, "Administrator", "Manages platform information and accesses platform data")
+    Person(enterprise, "Enterprise Organization", "Uses API-based integrations and white-label capabilities")
 
-    System(cos, "Cafeteria Ordering System", "Takes, prepares, and delivers meal orders")
+    System(mm, "Market Match", "Connects consumers with products and provides consumer preference feedback and insights")
 
-    System_Ext(payroll, "Payroll System", "Deducts meal payments from pay")
-    System_Ext(sso, "Corporate Sign-On", "Authenticates employees")
-    System_Ext(email, "Corporate Email", "Order confirmations")
+    System_Ext(workos, "WorkOS", "Provides authentication and role management")
 
-    Rel(patron, cos, "Orders meals")
-    Rel(staff, cos, "Fulfils orders")
-    Rel(menu, cos, "Edits menu")
-    Rel(cos, payroll, "Submits payment requests")
-    Rel(cos, sso, "Verifies identity")
-    Rel(cos, email, "Sends confirmations")
+    Rel(consumer, mm, "Views products and provides feedback")
+    Rel(brand, mm, "Manages products and accesses feedback and insights")
+    Rel(vendor, mm, "Participates in markets and accesses information and insights")
+    Rel(admin, mm, "Manages platform information and accesses platform data")
+    Rel(enterprise, mm, "Uses authorized APIs and white-label services")
+
+    Rel(mm, workos, "Uses for authentication and role management")
 ```
 
 ## 4. Solution Strategy
@@ -118,11 +122,9 @@ _[Three to five bullets: the few moves that shape everything else. arc42 suggest
 
 _Each bullet is one sentence, and it cites what explains it: the key decision in section 9.2 where one exists, and otherwise the quality goal and the building block in section 5 it shapes. Keep it short; the reasoning lives in section 9. A bullet that cites nothing is either not load-bearing, or it is a decision you have not written down yet._
 
-_Example:]_
-
-- _**One deployable with one managed database** (`KD-deployment-shape`), because nobody on the cafeteria side can operate infrastructure (quality goal 3)._
-- _**Payment is the only component that talks to the Payroll System** (section 5.2), so payroll data crosses the trust boundary in exactly one place (quality goal 1)._
-- _**Divided by use case area**, Ordering, Menu, and Delivery, each owning its own rules, so a menu change never touches ordering code (quality goal 3, `MNT-menu-self-service`)._
+- **Preserve the existing Market Match production deployment shape** (`KD-deployment-shape`): the React front end and Cloudflare Worker API are deployed together, with Cloudflare D1 providing production data storage.
+- **Separate the browser interface, application API, and persistent data into three architectural containers** (section 5.1), keeping user interaction, server-side application behavior, and production data storage separated by responsibility.
+- **Use WorkOS as the external authentication service** (sections 3 and 5.1), with authentication handled through the application API rather than implementing a separate authentication system within Market Match.
 
 ## 5. Building Block View
 
@@ -138,37 +140,38 @@ _Under the diagram, one or two sentences on **why the system is divided this way
 
 _Three containers is a normal answer. If you have more than five, check each one against section 9: which decision, driven by which quality attribute, requires it to run separately?_
 
-_Example:]_
+**Container diagram:**
 
 ```mermaid
 C4Container
-    title Container Diagram: Cafeteria Ordering System
+    title Container Diagram: Market Match
 
-    Person(patron, "Patron", "Employee ordering a meal")
-    Person(staff, "Cafeteria Staff", "Prepares and delivers orders")
-    Person(menu, "Menu Manager", "Maintains the daily menu")
+    Person(consumer, "Consumer", "Views products and provides preference feedback")
+    Person(brand, "Brand", "Manages products and reviews feedback and insights")
+    Person(vendor, "Vendor", "Accesses market information and insights")
+    Person(admin, "Administrator", "Manages platform information")
+    Person(enterprise, "Enterprise Organization", "Uses API-based integrations and white-label capabilities")
 
-    System_Boundary(cos, "Cafeteria Ordering System") {
-        Container(web, "Web Front End", "Vue.js", "Ordering, menu, and fulfilment screens in the browser")
-        Container(app, "Application", "Java / Spring Boot", "Every business rule; serves the front end")
-        ContainerDb(db, "Database", "PostgreSQL", "Orders, menus, and delivery slots")
+    System_Boundary(mm, "Market Match") {
+        Container(web, "Web Front End", "React 19 / Vite", "Provides the browser-based Market Match user interface")
+        Container(api, "Application API", "Cloudflare Worker / Hono", "Handles API requests, authentication, business logic, and data access")
+        ContainerDb(db, "Production Database", "Cloudflare D1", "Stores Market Match production data")
     }
 
-    System_Ext(payroll, "Payroll System", "Deducts meal payments from pay")
-    System_Ext(sso, "Corporate Sign-On", "Authenticates employees")
-    System_Ext(email, "Corporate Email", "Order confirmations")
+    System_Ext(workos, "WorkOS", "Provides authentication and role management")
 
-    Rel(patron, web, "Orders meals", "HTTPS")
-    Rel(staff, web, "Fulfils orders", "HTTPS")
-    Rel(menu, web, "Edits menu", "HTTPS")
-    Rel(web, app, "Calls", "JSON/HTTPS")
-    Rel(app, db, "Reads and writes", "JDBC")
-    Rel(app, payroll, "Submits payment requests", "not yet known: RISK-payroll-api-unavailable")
-    Rel(app, sso, "Verifies identity", "OpenID Connect")
-    Rel(app, email, "Sends confirmations", "SMTP")
+    Rel(consumer, web, "Uses Market Match", "HTTPS")
+    Rel(brand, web, "Uses Market Match", "HTTPS")
+    Rel(vendor, web, "Uses Market Match", "HTTPS")
+    Rel(admin, web, "Uses Market Match", "HTTPS")
+    Rel(enterprise, api, "Uses authorized API services", "HTTPS/JSON")
+
+    Rel(web, api, "Calls API", "HTTPS/JSON")
+    Rel(api, db, "Reads and writes application data", "D1 binding")
+    Rel(api, workos, "Authenticates users and obtains identity information", "HTTPS")
 ```
 
-_The system is one application and one database because nobody on the cafeteria side can operate more (`KD-deployment-shape`). The front end is a separate container only because it runs in the browser; it ships inside the application's package._
+The system uses a browser-based React front end, a Cloudflare Worker API, and Cloudflare D1 for production data storage. The front end and API are deployed together under the existing production deployment model described in `KD-deployment-shape`.
 
 ### 5.2 Use case areas and components
 
@@ -224,6 +227,8 @@ _[Four short paragraphs. The last three each cite the `SEC-*` requirement they a
 
 _Secrets (passwords, API keys, connection strings) never appear in this document or in the repository. Say where they will live, not what they are.]_
 
+**Trust boundary:** The Application API running in the Cloudflare Worker is the server-side trust boundary for Market Match. Requests from the browser and interactions with external systems such as WorkOS cross this boundary. Authentication and authorization are enforced by the application API before protected application data or functionality is accessed.
+
 ### 8.2 Other concepts
 
 _Due: Checkpoint 1, a subsection for every concept in the table below; then kept current, adding the file that shows each rule once code exists and a new concept whenever one appears. [Anything every component must do the same way. Your agent starts every session with no memory of the last, so a convention that is not written here gets reinvented each time. Write every concept now, while each is still cheap to choose; the last column says when a missing one would start to hurt._
@@ -246,6 +251,46 @@ _One short subsection each: the rule in one sentence, why, and the file that sho
 _Example, from the Cafeteria Ordering System:_
 
 **8.2.1 Error handling.** _Every endpoint returns `{ "ok": false, "error": { "code", "message" } }` on failure, produced by one exception handler; no controller builds its own error body, and no response carries an exception's own message. Why: the ordering screen and the menu screen share one error display, and an exception's message can reveal the database behind it. Shown in: `ApiExceptionHandler`._
+
+#### 8.2.1 Error handling
+
+Frontend API calls are centralized through `services/apiService.ts`; non-successful HTTP responses are treated as errors using the error information returned by the API. This keeps API failure handling consistent across frontend features.
+
+#### 8.2.2 Time and time zones
+
+No project-wide time-zone convention is documented in the existing Market Match architecture. This remains to be defined if requirements introduce deadlines or other time-sensitive behavior.
+
+#### 8.2.3 API conventions
+
+Frontend-to-backend communication uses `/api/*` endpoints with JSON over HTTPS. Frontend API access is centralized through `services/apiService.ts`.
+
+#### 8.2.4 Code conventions
+
+No architecture-level project-wide code convention beyond the existing technology and repository structure is currently documented. Existing conventions should be preserved unless the team records a new decision.
+
+#### 8.2.5 Validation
+
+Input validation is performed before invalid data is persisted. Existing product CSV processing classifies rows as `VALID`, `WARNING`, or `ERROR`, and critical validation errors prevent those rows from being imported.
+
+#### 8.2.6 Configuration and secrets
+
+Environment-specific configuration and secrets are kept outside source code. Local development uses environment files such as `.env.local` and `.dev.vars`, while production Worker secrets are managed through Cloudflare; secrets must not be committed to the repository.
+
+#### 8.2.7 Logging
+
+No project-wide logging convention is documented in the existing architecture. A common logging policy remains to be defined as implementation work requires it.
+
+#### 8.2.8 Persistence and concurrency
+
+Production persistence uses Cloudflare D1, while local development uses PostgreSQL. Schema changes that affect both environments must be kept synchronized. No project-wide concurrency policy is currently documented.
+
+#### 8.2.9 Auditing
+
+No project-wide auditing convention is documented in the existing Market Match architecture. Auditing requirements should be defined before implementing features that require tracking who changed data and when.
+
+#### 8.2.10 Testing
+
+Existing testing includes functional checks for authentication, role-based authorization, and API access. New implementation work should preserve these checks and add tests for changed behavior.
 
 ## 9. Architecture Decisions
 
@@ -271,15 +316,13 @@ _A decision without a **rejected alternative** is not a decision, it is a descri
 
 _A decision that turns out wrong is not deleted or rewritten. Mark it **Superseded by `KD-<new-slug>`** and write the new decision as its own entry, so the reasoning behind both stays readable._
 
-_Example:]_
+**`KD-deployment-shape`: one application deployment.** _Accepted._
 
-**`KD-deployment-shape`: one deployable.** _Accepted._
-
-- **Driving requirements:** _`CO-no-dedicated-ops`; `AVL-lunch-window`._
-- **Context:** _About 400 patrons, one lunch peak a day, and nobody on the client side who can operate infrastructure._
-- **Decision:** _The front end is built into the back end's package and ships as one container to one host, with one managed database._
-- **Rejected:** _Separate services for ordering, menu, and delivery. They would add network calls, three deployments, and failure modes between them, to solve a scaling problem 400 users do not have._
-- **Trade-off:** _The system scales only as a whole, and a bad deploy takes all of it down._
+- **Driving requirements:** Existing Market Match production architecture and deployment environment.
+- **Context:** Market Match already has a production deployment in which the React frontend is built as static assets, `/api/*` requests are handled by a Cloudflare Worker, and production data is stored in Cloudflare D1.
+- **Decision:** Continue the existing production deployment shape: deploy the built React frontend and the API together through the Cloudflare Worker deployment, with Cloudflare D1 as the production database.
+- **Rejected:** Split the frontend and API into independently deployed services. This would change the existing production deployment model and introduce additional deployment and integration complexity without a documented requirement for that separation.
+- **Trade-off:** The frontend and API remain coupled at deployment time, while local development differs from production because local development uses PostgreSQL and production uses D1.
 
 ## 10. Quality Requirements
 
