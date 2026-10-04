@@ -30,6 +30,8 @@ _[Send the shortlist to your client the day before. A client who has seen the qu
 | ID | Question | Why it matters | Who can answer | Raised |
 |---|---|---|---|---|
 | OI-1 | _[The question, phrased so it has a definite answer. Not "tell us about reporting" but "who is allowed to see another student's evaluation scores?"]_ | _[What we get wrong if we guess. Name the artifact or decision it blocks.]_ | _[Client, instructor, a specific user, or the team itself]_ | _[YYYY-MM-DD]_ |
+| OI-2 | For CSV product onboarding, what headers, encoding, delimiter, image-supply method, and file/row limits apply? Are valid rows saved when others fail, and how are existing products handled? Confirm the inherited field requirements, media limits, brand roles, and separate market-publication workflow. | Finalizes UC-BRND-import-products without inventing batch behavior or changing UC-BRND-create-product assumptions. | Demetrie King and Team 11 | 2026-10-04 |
+| OI-3 | For API product onboarding, what request/response contract, authentication, media-transfer method, request limits, and retry mechanism apply? Are products sent individually or in batches, how are mixed-validity batches handled, and how are existing products handled? Confirm the inherited field requirements, media limits, brand roles, and separate market-publication workflow. | Finalizes UC-BRND-create-products-via-api and its authorization, validation, and duplicate-prevention tests. | Demetrie King and Team 11 | 2026-10-04 |
 
 ## Resolved
 

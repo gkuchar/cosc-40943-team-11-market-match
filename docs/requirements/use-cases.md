@@ -30,6 +30,7 @@ _Within one use case, `PRE-1`, `POST-1`, and the step numbers are local and may 
 | Date | Version | Description | Author |
 |---|---|---|---|
 | 2026-09-14 | 0.1 | Draft four use cases derived from the vision and scope feature list | Chris Ramirez |
+| 2026-10-04 | 0.1 | Add CSV and API product-onboarding drafts using existing product-creation assumptions | Chris Ramirez |
 
 ---
 
@@ -46,6 +47,8 @@ This document describes how Market Match consumers enter a market, inspect produ
 _[Which feature areas from the vision and scope are covered here. Name the `FEAT-*` entries. If a feature has no use cases yet, say so rather than leaving the reader to notice.]_
 
 These initial use cases cover `FEAT-consumer-feedback`, `FEAT-product-information`, and `FEAT-feedback-data`, and partially cover `FEAT-market-participation` through consumer market entry and `FEAT-brand-participation` through product creation.
+
+Brand product creation includes individual entry, CSV import, and API onboarding. The product-creation API partially addresses `FEAT-enterprise-integration`; wider enterprise API workflows are not specified here.
 
 ---
 
@@ -107,7 +110,7 @@ _[Your area codes, then a table of every use case by area. Write this list first
 | MKT | Market participation: `FEAT-market-participation` | `UC-MKT-enter-market`: Enter a market |
 | PROD | Product information: `FEAT-product-information` | `UC-PROD-view-product-details`: View product details |
 | FDBK | Consumer feedback and data capture: `FEAT-consumer-feedback`, `FEAT-feedback-data` | `UC-FDBK-rate-product`: Rate a product |
-| BRND | Brand participation: `FEAT-brand-participation` | `UC-BRND-create-product`: Create a product |
+| BRND | Brand participation: `FEAT-brand-participation` | `UC-BRND-create-product`: Create a product; `UC-BRND-import-products`: Import products from CSV; `UC-BRND-create-products-via-api`: Create products through the API |
 
 ---
 
@@ -346,6 +349,126 @@ Confirmation displays the saved product name, picture, and available additional 
 **Related Use Cases:** `UC-PROD-view-product-details`: View product details (after the product participates in a market).
 **Assumptions:** Brands have authenticated product-creation access; exact roles are unconfirmed. Market joining is a separate goal, following vision and scope section 1.2.
 **Open Issues:** Which product fields are required, and what name, format, and media limits apply? Who may create products for a brand? How does a created product join a market and become visible to consumers?
+
+---
+
+### UC-BRND-import-products: Import products from CSV
+
+**UC ID and Name:** `UC-BRND-import-products`: Import products from CSV
+**Created By:** Chris Ramirez
+**Date Created:** 2026-10-04
+**Primary Actor:** Brand
+**Secondary Actors:** None
+**Trigger:** The brand chooses to upload a CSV containing multiple products.
+**Description:** The brand creates multiple products from a CSV rather than entering each product individually.
+
+**Preconditions:**
+
+- PRE-1. The brand has an authenticated session authorized to create products.
+
+**Postconditions:**
+
+- POST-1. Each successfully imported product contains its accepted content and is associated with the importing brand.
+- POST-2. The brand receives a result identifying the created products and the outcome of each submitted row.
+
+**Main Success Scenario:**
+
+1. The brand chooses to import products from CSV.
+2. The system presents the CSV structure and product fields: product name, picture, and additional information.
+3. The brand supplies a CSV in the supported structure and submits it.
+4. The system rechecks authorization, validates the file and product content, stores the accepted products under the brand, and displays confirmation identifying each created product and its saved content.
+
+**Extensions:**
+
+- **3a. The brand cancels before submitting:**
+  - 3a1. The system ends the use case without creating products.
+- **4a. The file is empty, unreadable, or has an unsupported structure:**
+  - 4a1. The system identifies the file error and creates no products. The brand returns to step 3 with a corrected file or cancels.
+- **4b. A row contains invalid product content:**
+  - 4b1. The system identifies the affected row and fields and creates no product from that invalid row. Whether valid rows are saved or the entire import is rejected is pending client confirmation (OI-2).
+  - 4b2. The brand corrects the affected content and returns to step 3, following the retry behavior for any products already saved.
+- **4c. Authorization has expired or been removed:**
+  - 4c1. The system rejects the import and asks the brand to restore authorized access; the use case ends without newly created products.
+- **4d. Uploading or saving fails, or the outcome cannot be confirmed:**
+  - 4d1. The system reports the failure or uncertain outcome and retains the submitted content where possible. If the brand retries the same submission, the system reconciles completed saves before resuming step 4 without creating duplicates.
+
+**Priority:** High (provisional)
+**Frequency of Use:** Once per CSV import; typical row count and import frequency are unconfirmed.
+**Business Rules:** `BR-submit-product`
+
+**Associated Information:**
+
+| Property name | Data type | Validation rule | Security or access concerns | Glossary reference |
+|---|---|---|---|---|
+| CSV file | File containing product rows | Must be readable and contain product rows; headers, encoding, delimiter, and file/row limits pending confirmation | Supplied by the authorized brand; file content cannot grant access to another brand | No current glossary entry |
+| Product name | String per row | Proposed: required and nonblank; length and uniqueness pending client confirmation | Supplied by the authorized brand; displayed to participating consumers | Card |
+| Picture | Image content per product | Requiredness, formats, and size limits pending client confirmation; method of supplying images through CSV pending confirmation | Supplied by the authorized brand | Card |
+| Additional information | Content per row | Requiredness and supported text/media formats pending client confirmation | Supplied by the authorized brand; displayed in product details | Card |
+| Brand reference | Identifier | Required; derived from authorized session | Cannot be assigned to an unrelated brand through CSV input | Brand |
+
+Product validation and proposed per-product failure behavior match `UC-BRND-create-product`: save a complete accepted product or leave no usable partial product, do not expose incomplete uploads as created products, and reconcile uncertain saves on retry. This does not establish whether the entire batch saves atomically. Confirmation identifies row outcomes and saved product content. Importing creates products without enrolling them in a market. Existing-product matching and update behavior are not defined by this creation use case.
+
+**Related Use Cases:** `UC-BRND-create-product`: Create a product; `UC-BRND-create-products-via-api`: Create products through the API; `UC-PROD-view-product-details`: View product details (after market participation).
+**Assumptions:** Brands have authenticated product-creation access; exact roles are unconfirmed. Market joining is a separate goal. Product fields and their unresolved validation limits follow `UC-BRND-create-product`. The client's requested CSV onboarding is recorded from the team member's report on 2026-10-04; the CSV format remains unconfirmed.
+**Open Issues:** OI-2 (CSV structure, image handling, batch limits, invalid-row handling, existing products, and inherited product-creation decisions).
+
+---
+
+### UC-BRND-create-products-via-api: Create products through the API
+
+**UC ID and Name:** `UC-BRND-create-products-via-api`: Create products through the API
+**Created By:** Chris Ramirez
+**Date Created:** 2026-10-04
+**Primary Actor:** Brand
+**Secondary Actors:** Brand's external system
+**Trigger:** The brand's external system submits product content through the product-creation API.
+**Description:** The brand uses an external system to onboard multiple products programmatically instead of creating them individually through the user interface.
+
+**Preconditions:**
+
+- PRE-1. The external system has authenticated access authorized to create products for the brand.
+
+**Postconditions:**
+
+- POST-1. Each successfully created product contains its accepted content and is associated with the authenticated brand.
+- POST-2. The external system receives a response identifying the created products and the outcome of submitted product content.
+
+**Main Success Scenario:**
+
+1. The brand's external system submits product names, pictures, and additional information using the supported API contract.
+2. The system rechecks authorization, validates the request and product content, stores the accepted products under the authenticated brand, and returns confirmation identifying the created products and their saved content.
+
+**Extensions:**
+
+- **2a. The request does not match the supported API contract:**
+  - 2a1. The system returns an error identifying the request problem and creates no products. The external system corrects the request and returns to step 1.
+- **2b. Product content fails validation:**
+  - 2b1. The system identifies the affected products and fields and creates no product from invalid content. For multi-product requests, handling of valid products is pending confirmation (OI-3).
+  - 2b2. The external system corrects the content and returns to step 1, reconciling any previously completed saves.
+- **2c. Authentication is invalid or product-creation authorization has expired or been removed:**
+  - 2c1. The system rejects creation and returns an access error; the use case ends without newly created products.
+- **2d. Media transfer or saving fails, or the response is lost:**
+  - 2d1. The system reports failure when a response can be delivered. The external system treats an absent response as an uncertain outcome. On retry of the same submission, the system reconciles any completed saves before resuming step 2 without creating duplicates.
+
+**Priority:** High (provisional)
+**Frequency of Use:** Once per product-creation request; product volume and request frequency are unconfirmed.
+**Business Rules:** `BR-submit-product`
+
+**Associated Information:**
+
+| Property name | Data type | Validation rule | Security or access concerns | Glossary reference |
+|---|---|---|---|---|
+| Product content | One or more product records | Request structure and support for multi-product requests pending confirmation | Submitted by an authenticated external system authorized for the brand | Card |
+| Product name | String per product | Proposed: required and nonblank; length and uniqueness pending client confirmation | Supplied on behalf of the authorized brand; displayed to participating consumers | Card |
+| Picture | Image content per product | Requiredness, formats, and size limits pending client confirmation; API media-transfer method pending confirmation | Supplied on behalf of the authorized brand | Card |
+| Additional information | Content per product | Requiredness and supported text/media formats pending client confirmation | Supplied on behalf of the authorized brand; displayed in product details | Card |
+| Brand reference | Identifier | Required; derived from authenticated API access | Cannot be assigned to an unrelated brand through request input | Brand |
+
+Product validation and proposed per-product save and retry behavior match `UC-BRND-create-product`. No usable partial product is exposed. Creating products does not enroll them in a market. API authentication replaces the interactive session while preserving authorized brand ownership. The contract, credentials, response format, request limits, and retry mechanism remain to be specified. Bulk onboarding may use multiple single-product requests or a multi-product request; this draft does not select either design or prescribe batch atomicity. Updating existing products is not specified here.
+
+**Related Use Cases:** `UC-BRND-create-product`: Create a product; `UC-BRND-import-products`: Import products from CSV; `UC-PROD-view-product-details`: View product details (after market participation).
+**Assumptions:** Brands have authenticated product-creation access; exact roles are unconfirmed. Market joining is a separate goal. Product fields and their unresolved validation limits follow `UC-BRND-create-product`. The client's requested API onboarding is recorded from the team member's report on 2026-10-04. This product-onboarding goal does not define the wider enterprise survey API described by `BR-connect-api`.
+**Open Issues:** OI-3 (API contract, authentication, media transfer, request limits, batch handling, retry reconciliation, existing products, and inherited product-creation decisions).
 
 ---
 
