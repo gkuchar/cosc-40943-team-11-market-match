@@ -3,7 +3,7 @@
 **Project:** Market Match
 **Team:** 11
 **Client:** Demetrie King
-**Version:** 0.1
+**Version:** 0.2
 
 ---
 
@@ -83,6 +83,7 @@ _The Source column is the defense. Every rule traces to a document or a person, 
 | Date | Version | Description | Author |
 |---|---|---|---|
 | 2026-09-11 | 0.1 | Initial rules from the client brief and first client meeting | Griffin Kuchar |
+| 2026-10-12 | 0.2 | Added rules from the 09-07, 09-21, and 09-30 client meetings (organizations and roles, market setup, product approval, pricing, data collection, analytics definitions) | Griffin Kuchar |
 
 ---
 
@@ -95,7 +96,7 @@ This document collects the policies, regulations, standards, and formulas that g
 ### 1.2 Scope
 
 These rules cover the participation and data policies of the Market Match business as
-described in the client brief and first client meeting.
+described in the client brief and the client meetings through 09-30-2026.
 
 In scope:
 
@@ -107,7 +108,12 @@ In scope:
 - **White-label operation:** how partner organizations brand their own instance, keep
   their data isolated, and connect via API (2.4).
 - **Behavioral data capture:** what interaction data the platform records beyond explicit
-  ratings (2.5).
+  ratings, how its measures are defined, and who may see them (2.5).
+- **Organizations and roles:** who creates organizations, which roles users hold, and
+  which markets an organization's users can see (2.6).
+- **Pricing:** what determines the price of a survey (2.7).
+- **Data collection and privacy:** what personal information is collected and how it must
+  be protected (2.8).
 
 Out of scope for this document:
 
@@ -147,6 +153,12 @@ Out of scope for this document:
   **Source:**  Market Match website.
 - **`BR-get-product-feedback`:** A brand can receieve feedback on their product based on the ratings submitted by consumers.
   **Source:**  Market Match website.
+- **`BR-product-media-limit`:** A product can have up to three pictures and one video, and the video is supplied as a YouTube link.
+  **Source:**  09-21-2026 Client Meeting.
+- **`BR-text-card`:** An item that needs no picture can be created as a text-only card.
+  **Source:**  09-21-2026 Client Meeting.
+- **`BR-approve-product`:** A product a brand submits (`BR-submit-product`), and any later update the brand makes to its images or details, must be approved by the Market Match admin before it is published.
+  **Source:**  09-21-2026 Client Meeting.
 
 ### 2.3 Markets
 
@@ -154,6 +166,22 @@ Out of scope for this document:
   **Source:**  Market Match website.
 - **`BR-get-market-feedback`:** A market can receieve feedback on its products' ratings submitted by consumers.
   **Source:**  Market Match website.
+- **`BR-market-code`:** Each market has an auto-generated code that is unique to that market.
+  **Source:**  09-21-2026 Client Meeting.
+- **`BR-market-type`:** A market is either a brand market or a standard market.
+  **Source:**  09-21-2026 Client Meeting.
+- **`BR-market-organization`:** Each market is assigned to an organization.
+  **Source:**  09-21-2026 Client Meeting.
+- **`BR-market-categories`:** A market is made up of one or more categories, each holding the items consumers swipe through. A category can be a product grouping or a survey question.
+  **Source:**  09-21-2026 Client Meeting.
+- **`BR-public-market`:** A market can be given public access, in which case a consumer can join it by QR code or link without signing in or giving an email. Its results are still reported to the organization it is assigned to.
+  **Source:**  09-21-2026 Client Meeting.
+- **`BR-code-requires-sign-in`:** A consumer must be signed in to join a market by entering its unique code.
+  **Source:**  09-30-2026 Client Meeting.
+- **`BR-select-category`:** A consumer who joins a market chooses which of that market's categories to swipe through.
+  **Source:**  09-30-2026 Client Meeting.
+- **`BR-create-market-admin-only`:** Only the Market Match admin can create categories and markets; brands and vendors cannot create their own. Expected to change after the current phase, once pricing for self-serve markets is set.
+  **Source:**  09-21-2026 Client Meeting.
 
 ### 2.4 White-Label-Architecture (Organizations)
 
@@ -168,3 +196,44 @@ Out of scope for this document:
 
 - **`BR-capture-feedback`:** Market Match captures behavioral data from consumer interactions beyond the explicit ratings consumers submit. This includes but is not limited to swipe direction, swipe speed, time spent viewing an item, and session activity.
 **Source:**  Client brief.
+- **`BR-decision-time`:** Decision time is the time from a card being shown to the consumer swiping left or right on it.
+  **Source:**  09-30-2026 Client Meeting.
+- **`BR-dwell-time`:** Dwell time is the time from a card being shown to the consumer flipping it over. It is zero if the consumer never flips the card, and it is reported as an average across consumers.
+  **Source:**  09-30-2026 Client Meeting.
+- **`BR-media-clicks`:** Market Match counts the clicks each of a product's pictures and its video receives. Video engagement is measured by clicks only, not watch time.
+  **Source:**  09-30-2026 Client Meeting.
+- **`BR-engagement-funnel`:** For each market, Market Match tracks consumers through three stages: viewing the market (which begins when the code is entered), starting to swipe, and completing it.
+  **Source:**  09-30-2026 Client Meeting.
+- **`BR-market-completion-time`:** A market's completion time is the average time consumers take to go through every item in all of its categories. It is reported for the market as a whole, not per item.
+  **Source:**  09-30-2026 Client Meeting.
+- **`BR-vendor-feedback-scope`:** A vendor can see, for its markets, only each item's right swipes, left swipes, and reach (ranked from most right-swiped to least, narrowable by category and top N) and the market's completion time. A vendor cannot see swipe-behavior data such as dwell time.
+  **Source:**  09-30-2026 Client Meeting.
+- **`BR-brand-feedback-scope`:** A brand can see swipe-behavior data for each of its products (swipes, like rate, flip rate, dwell time, media clicks), totaled across every market the product has appeared in rather than per market.
+  **Source:**  09-30-2026 Client Meeting.
+- **`BR-admin-feedback-scope`:** The Market Match admin can see swipe counts and users, but not an organization's detailed data points.
+  **Source:**  09-30-2026 Client Meeting.
+
+### 2.6 Organizations and Roles
+
+- **`BR-create-organization`:** Only the Market Match admin can create an organization and add users to it by email.
+  **Source:**  09-21-2026 Client Meeting.
+- **`BR-default-consumer-role`:** Every user holds the consumer role by default when they sign in.
+  **Source:**  09-21-2026 Client Meeting.
+- **`BR-admin-role`:** Only Market Match (Demetrie King) holds the admin role.
+  **Source:**  09-21-2026 Client Meeting.
+- **`BR-assign-role`:** Only the admin can assign a user the brand or vendor role. A user with assigned roles can switch between them; a user with none cannot see the dashboard.
+  **Source:**  09-21-2026 Client Meeting.
+- **`BR-view-org-markets`:** Only users whose email is assigned to an organization can see the markets assigned to that organization and their results. Departments of one institution that must not see each other's results are set up as separate organizations.
+  **Source:**  09-21-2026 Client Meeting.
+
+### 2.7 Pricing
+
+- **`BR-survey-pricing`:** The price of a survey depends on what must be built (the number of categories and line items), how long the survey runs, and how many people it goes to.
+  **Source:**  09-21-2026 Client Meeting.
+
+### 2.8 Data Collection and Privacy
+
+- **`BR-collect-email-only`:** The only personal information Market Match collects from an organization's users is their email address.
+  **Source:**  09-21-2026 Client Meeting.
+- **`BR-protect-pii`:** Personal data must be encrypted at rest and in transit and never stored in plaintext.
+  **Source:**  09-07-2026 Client Meeting.
