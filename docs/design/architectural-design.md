@@ -89,30 +89,88 @@ _This is your project's one context diagram. Section 4.1 of [vision and scope](.
 _arc42 divides context into a **business context** (who and what crosses the boundary) and a **technical context** (the channels and protocols). This diagram is the business context. The protocols go on the arrows of the container diagram in section 5.1._
 
 _The **trust boundary** is not drawn here. You name it in writing in section 8.1, as Project Pulse does._
-**System context diagram:**
+**System context diagram (C4):**
+
+The following is the authoritative system-context view. Relationship labels are intentionally short to reduce visual overlap in Mermaid's C4 renderer.
 
 ```mermaid
 C4Context
-    title System Context: Market Match
+    title Market Match - System Context
 
-    Person(consumer, "Consumer", "Views products and provides preference feedback")
-    Person(brand, "Brand", "Manages products and reviews consumer feedback and insights")
-    Person(vendor, "Vendor", "Participates in markets and accesses available information and insights")
-    Person(admin, "Administrator", "Manages platform information and accesses platform data")
-    Person(enterprise, "Enterprise Organization", "Uses API-based integrations and white-label capabilities")
+    Person(consumer, "Consumer", "Browses products and gives feedback")
+    Person(brand, "Brand", "Manages products and reviews insights")
+    Person(vendor, "Vendor", "Accesses market information")
+    Person(admin, "Administrator", "Manages users and platform data")
+    Person(enterprise, "Enterprise Organization", "Uses integrations and white-label services")
 
-    System(mm, "Market Match", "Connects consumers with products and provides consumer preference feedback and insights")
+    System(mm, "Market Match", "Product discovery and preference insights")
 
-    System_Ext(workos, "WorkOS", "Provides authentication and role management")
+    System_Ext(workos, "WorkOS", "Identity and roles")
+    System_Ext(gemini, "Google Gemini", "AI-assisted insights")
+    System_Ext(d1, "Cloudflare D1", "Production data storage")
+    System_Ext(postgres, "PostgreSQL", "Local development data storage")
 
-    Rel(consumer, mm, "Views products and provides feedback")
-    Rel(brand, mm, "Manages products and accesses feedback and insights")
-    Rel(vendor, mm, "Participates in markets and accesses information and insights")
-    Rel(admin, mm, "Manages platform information and accesses platform data")
-    Rel(enterprise, mm, "Uses authorized APIs and white-label services")
+    Rel(consumer, mm, "Products and feedback")
+    Rel(brand, mm, "Products and insights")
+    Rel(vendor, mm, "Markets and insights")
+    Rel(admin, mm, "Users and data")
+    Rel(enterprise, mm, "APIs and white-label")
 
-    Rel(mm, workos, "Uses for authentication and role management")
+    Rel(mm, workos, "Authentication and roles")
+    Rel(mm, gemini, "Feedback and AI insights")
+    Rel(mm, d1, "Read and write production data")
+    Rel(mm, postgres, "Read and write local data")
+
+    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
 ```
+
+**Readable presentation view (same context, spacious layout):**
+
+```mermaid
+%%{init: {"theme":"base","themeVariables":{"background":"#161B22","primaryTextColor":"#FFFFFF","lineColor":"#94A3B8","fontFamily":"Arial, sans-serif","fontSize":"16px"},"flowchart":{"nodeSpacing":110,"rankSpacing":160,"curve":"basis","htmlLabels":true,"padding":32}}}%%
+flowchart TB
+    subgraph ACTORS["PEOPLE & ORGANIZATIONS"]
+        direction LR
+        consumer["Consumer"]
+        brand["Brand"]
+        vendor["Vendor"]
+        admin["Administrator"]
+        enterprise["Enterprise Organization"]
+    end
+
+    mm["Market Match<br/>Product discovery and preference insights"]
+
+    subgraph SERVICES["EXTERNAL SYSTEMS & DATA STORES"]
+        direction LR
+        workos["WorkOS<br/>Authentication & roles"]
+        gemini["Google Gemini<br/>AI insights"]
+        d1["Cloudflare D1<br/>Production storage"]
+        postgres["PostgreSQL<br/>Local development"]
+    end
+
+    consumer -->|"Products / feedback"| mm
+    brand -->|"Products / insights"| mm
+    vendor -->|"Markets / insights"| mm
+    admin -->|"Users / data"| mm
+    enterprise -->|"APIs / white-label"| mm
+
+    mm -->|"Auth / roles"| workos
+    mm -->|"AI analysis"| gemini
+    mm -->|"Production data"| d1
+    mm -->|"Local data"| postgres
+
+    classDef actor fill:#173B5E,stroke:#62B5EF,stroke-width:1.5px,color:#FFFFFF
+    classDef main fill:#1364A5,stroke:#9EDBFF,stroke-width:3px,color:#FFFFFF
+    classDef external fill:#334155,stroke:#A3B2C7,stroke-width:1.5px,color:#FFFFFF
+    class consumer,brand,vendor,admin,enterprise actor
+    class mm main
+    class workos,gemini,d1,postgres external
+    style ACTORS fill:#1D2530,stroke:#43536A,color:#FFFFFF
+    style SERVICES fill:#1D2530,stroke:#43536A,color:#FFFFFF
+    linkStyle default stroke:#94A3B8,stroke-width:1.5px,color:#FFFFFF
+```
+
+**External interactions:** WorkOS supplies authentication and role management. Google Gemini is shown for the proposed AI-assisted feedback analysis integration; its implementation status should be confirmed with the team. The existing architecture specifies Cloudflare D1 for production persistence and PostgreSQL for local development, so both are labeled by environment rather than presenting PostgreSQL as the production database.
 
 ## 4. Solution Strategy
 
