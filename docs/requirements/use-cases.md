@@ -30,6 +30,8 @@ _Within one use case, `PRE-1`, `POST-1`, and the step numbers are local and may 
 | Date | Version | Description | Author |
 |---|---|---|---|
 | 2026-09-14 | 0.1 | Draft four use cases derived from the vision and scope feature list | Chris Ramirez |
+| 2026-10-04 | 0.1 | Add CSV and API product-onboarding drafts using existing product-creation assumptions | Chris Ramirez |
+| 2026-10-13 | 0.1 | Clarify spreadsheet onboarding; CSV or XLSX format remains undecided | Chris Ramirez |
 
 ---
 
@@ -46,6 +48,8 @@ This document describes how Market Match consumers enter a market, inspect produ
 _[Which feature areas from the vision and scope are covered here. Name the `FEAT-*` entries. If a feature has no use cases yet, say so rather than leaving the reader to notice.]_
 
 These initial use cases cover `FEAT-consumer-feedback`, `FEAT-product-information`, and `FEAT-feedback-data`, and partially cover `FEAT-market-participation` through consumer market entry and `FEAT-brand-participation` through product creation.
+
+Brand product creation includes individual entry, spreadsheet import (format pending confirmation; CSV or XLSX are candidates), and API onboarding. The product-creation API partially addresses `FEAT-enterprise-integration`; wider enterprise API workflows are not specified here.
 
 ---
 
@@ -107,6 +111,7 @@ _[Your area codes, then a table of every use case by area. Write this list first
 | MKT | Market participation: `FEAT-market-participation` | `UC-MKT-enter-market`: Enter a market |
 | PROD | Product information: `FEAT-product-information` | `UC-PROD-view-product-details`: View product details |
 | FDBK | Consumer feedback and data capture: `FEAT-consumer-feedback`, `FEAT-feedback-data` | `UC-FDBK-rate-product`: Rate a product |
+| BRND | Brand participation: `FEAT-brand-participation` | `UC-BRND-create-product`: Create a product; `UC-BRND-import-products`: Import products from a spreadsheet; `UC-BRND-create-products-via-api`: Create products through the API |
 | BRND | Brand participation: `FEAT-brand-participation` | `UC-BRND-create-product`: Create a product |
 
 ---
@@ -332,10 +337,295 @@ Proposed failure behavior: the rating and its accompanying captured measurements
 **Frequency of Use:** Once per new product; number of products per brand and creation rate are unconfirmed.
 **Business Rules:** `BR-submit-product`
 
+**Related Use Cases:** `UC-PROD-view-product-details`: View product details; `UC-FDBK-rate-product`: Rate a product.
+**Assumptions:** Email and one-time-code sign-in occurs before market entry, following vision and scope section 1.2. A market ID code is distinct from a sign-in code.
+**Open Issues:** Which use cases belong in the MVP, and in what priority order? Does a market mean a target group, a collection of products, or both? What code format, case sensitivity, access conditions, and product ordering apply?
+
+---
+
+## PROD: Product Information
+
+### UC-PROD-view-product-details: View product details
+
+**UC ID and Name:** `UC-PROD-view-product-details`: View product details
+**Created By:** Chris Ramirez
+**Date Created:** 2026-09-14
+**Primary Actor:** Consumer
+**Secondary Actors:** None
+**Trigger:** The consumer taps a displayed product.
+**Description:** The consumer inspects additional product information before deciding whether to express interest or disinterest.
+
+**Preconditions:**
+
+- PRE-1. The consumer has an authenticated session and a selected market.
+- PRE-2. The system displays a product belonging to that market.
+
+**Postconditions:**
+
+- POST-1. The system displays the selected product's available additional information.
+- POST-2. Viewing details alone creates no preference rating.
+
+**Main Success Scenario:**
+
+1. The consumer taps the displayed product.
+2. The system retrieves and displays the product's additional information.
+
+**Extensions:**
+
+- **2a. No additional information is supplied:**
+  - 2a1. The system indicates that no additional details are available and retains the product card; the use case ends.
+- **2b. Product details cannot be loaded:**
+  - 2b1. The system reports the failure and retains the product card. The consumer retries from step 1 or leaves the details view.
+- **2c. The product is no longer available in the market:**
+  - 2c1. The system reports its unavailability and refreshes the available products; the use case ends without recording a rating.
+
+**Priority:** High (provisional)
+**Frequency of Use:** As desired before rating a product; actual volume is unconfirmed.
+**Business Rules:** `BR-tap-product`, `BR-capture-feedback`
+
 **Associated Information:**
 
 | Property name | Data type | Validation rule | Security or access concerns | Glossary reference |
 |---|---|---|---|---|
+| Product name | String | Proposed: required and nonblank; length and uniqueness pending client confirmation | Supplied by the authorized brand; displayed to participating consumers | Card |
+| Picture | Image content | Requiredness, formats, and size limits pending client confirmation | Supplied by the authorized brand | Card |
+| Additional information | Content | Requiredness and supported text/media formats pending client confirmation | Supplied by the authorized brand; displayed in product details | Card |
+| Brand reference | Identifier | Required; derived from authorized session | Cannot be assigned to an unrelated brand through input | Brand |
+
+Confirmation displays the saved product name, picture, and available additional information. Proposed failure behavior: creation saves the complete accepted product or leaves no usable partial product; incomplete uploads are not exposed as created products. An uncertain save is reconciled on retry. Creating a product does not enroll it in a market in this draft; joining and publication need confirmation with the client.
+
+**Related Use Cases:** `UC-PROD-view-product-details`: View product details (after the product participates in a market).
+**Assumptions:** Brands have authenticated product-creation access; exact roles are unconfirmed. Market joining is a separate goal, following vision and scope section 1.2.
+**Open Issues:** Which product fields are required, and what name, format, and media limits apply? Who may create products for a brand? How does a created product join a market and become visible to consumers?
+
+---
+
+### UC-BRND-import-products: Import products from a spreadsheet
+
+**UC ID and Name:** `UC-BRND-import-products`: Import products from a spreadsheet
+**Created By:** Chris Ramirez
+**Date Created:** 2026-10-04
+**Primary Actor:** Brand
+**Secondary Actors:** None
+**Trigger:** The brand chooses to upload a spreadsheet containing multiple products.
+**Description:** The brand creates multiple products from a spreadsheet rather than entering each product individually. The required format is pending confirmation (OI-2); CSV and XLSX are candidates, and support for both is not established.
+
+**Preconditions:**
+
+- PRE-1. The brand has an authenticated session authorized to create products.
+
+**Postconditions:**
+
+- POST-1. Each successfully imported product contains its accepted content and is associated with the importing brand.
+- POST-2. The brand receives a result identifying the created products and the outcome of each submitted row.
+
+**Main Success Scenario:**
+
+1. The brand chooses to import products from a spreadsheet.
+2. The system presents the supported spreadsheet format and structure, once confirmed, and product fields: product name, picture, and additional information.
+3. The brand supplies a spreadsheet in the supported format and structure and submits it.
+4. The system rechecks authorization, validates the file and product content, stores the accepted products under the brand, and displays confirmation identifying each created product and its saved content.
+
+**Extensions:**
+
+- **3a. The brand cancels before submitting:**
+  - 3a1. The system ends the use case without creating products.
+- **4a. The file is empty, unreadable, or has an unsupported format or structure:**
+  - 4a1. The system identifies the file error and creates no products. The brand returns to step 3 with a corrected file or cancels.
+- **4b. A row contains invalid product content:**
+  - 4b1. The system identifies the affected row and fields and creates no product from that invalid row. Whether valid rows are saved or the entire import is rejected is pending client confirmation (OI-2).
+  - 4b2. The brand corrects the affected content and returns to step 3, following the retry behavior for any products already saved.
+- **4c. Authorization has expired or been removed:**
+  - 4c1. The system rejects the import and asks the brand to restore authorized access; the use case ends without newly created products.
+- **4d. Uploading or saving fails, or the outcome cannot be confirmed:**
+  - 4d1. The system reports the failure or uncertain outcome and retains the submitted content where possible. If the brand retries the same submission, the system reconciles completed saves before resuming step 4 without creating duplicates.
+
+**Priority:** High (provisional)
+**Frequency of Use:** Once per spreadsheet import; typical row count and import frequency are unconfirmed.
+**Business Rules:** `BR-submit-product`
+| Product reference | Identifier | Required; identifies the displayed product in the selected market | System checks product accessibility | Card |
+| Additional information | Content | Display supplied content; handle missing content explicitly; formats pending client confirmation | Consumer reads content supplied by the brand | Card |
+
+Keep the product identity visible with its details. Product data is read only in this use case. Viewing activity is captured under FEAT-feedback-data, with event and timing definitions pending client confirmation. A failed details load must not be represented as a successful view. The effect of activity-recording failures remains pending client confirmation.
+
+**Related Use Cases:** `UC-MKT-enter-market`: Enter a market; `UC-FDBK-rate-product`: Rate a product.
+**Assumptions:** Inspecting details is optional before rating, as described in vision and scope section 1.2.
+**Open Issues:** Which additional-information formats are supported? Which viewing events and timing boundaries are measured, and what happens if activity capture fails?
+
+---
+
+## FDBK: Consumer Feedback and Data Capture
+
+### UC-FDBK-rate-product: Rate a product
+
+**UC ID and Name:** `UC-FDBK-rate-product`: Rate a product
+**Created By:** Chris Ramirez
+**Date Created:** 2026-09-14
+**Primary Actor:** Consumer
+**Secondary Actors:** None
+**Trigger:** The consumer swipes a displayed product left or right.
+**Description:** The consumer indicates interest or disinterest, and Market Match stores the preference and associated interaction data.
+
+**Preconditions:**
+
+- PRE-1. The consumer has an authenticated session and a selected market.
+- PRE-2. The system displays a product currently available for rating in that market.
+
+**Postconditions:**
+
+- POST-1. The preference is stored against the correct product, market, and consumer interaction.
+- POST-2. The accompanying captured interaction measurements are stored with the submission.
+- POST-3. The system confirms the save and displays another product or states that no products remain.
+
+**Main Success Scenario:**
+
+1. The consumer swipes right to indicate interest or left to indicate disinterest.
+2. The system validates the submission, stores the preference and accompanying interaction data, confirms the save, and displays the next available product.
+
+**Extensions:**
+
+- **2a. The gesture does not resolve to left or right:**
+  - 2a1. The system retains the product and records no preference; the consumer may return to step 1.
+- **2b. The product is unavailable or the session is no longer valid:**
+  - 2b1. The system rejects the rating and asks the consumer to refresh the market or sign in again; the use case ends without a new rating.
+- **2c. Saving fails or its outcome cannot be confirmed:**
+  - 2c1. The system does not claim success and retains the submission for retry. When the consumer retries, the system checks whether that submission was already saved before resuming step 2, avoiding a duplicate rating from the retry.
+- **2d. No products remain after a successful save:**
+  - 2d1. The system confirms the saved rating and states that no products remain; the use case succeeds.
+
+**Priority:** High (provisional)
+**Frequency of Use:** Once per submitted swipe. Vision and scope reports approximately 3,600 swipes at the most recent I-Fest; peak rate and future load are unconfirmed.
+**Business Rules:** `BR-rate-product`, `BR-capture-feedback`
+
+**Associated Information:**
+
+| Property name | Data type | Validation rule | Security or access concerns | Glossary reference |
+|---|---|---|---|---|
+| Spreadsheet file | File containing product rows; format pending confirmation (CSV or XLSX candidates) | Must match the confirmed format, be readable, and contain product rows; headers and file/row limits pending confirmation; if CSV is selected, encoding/delimiter need confirmation; if XLSX is selected, sheet selection/formula handling need confirmation | Supplied by the authorized brand; file content cannot grant access to another brand | No current glossary entry |
+| Product name | String per row | Proposed: required and nonblank; length and uniqueness pending client confirmation | Supplied by the authorized brand; displayed to participating consumers | Card |
+| Picture | Image content per product | Requiredness, formats, and size limits pending client confirmation; method of supplying images through the selected spreadsheet format pending confirmation | Supplied by the authorized brand | Card |
+| Additional information | Content per row | Requiredness and supported text/media formats pending client confirmation | Supplied by the authorized brand; displayed in product details | Card |
+| Brand reference | Identifier | Required; derived from authorized session | Cannot be assigned to an unrelated brand through spreadsheet input | Brand |
+
+Product validation and proposed per-product failure behavior match `UC-BRND-create-product`: save a complete accepted product or leave no usable partial product, do not expose incomplete uploads as created products, and reconcile uncertain saves on retry. This does not establish whether the entire batch saves atomically. Confirmation identifies row outcomes and saved product content. Importing creates products without enrolling them in a market. Existing-product matching and update behavior are not defined by this creation use case.
+
+**Related Use Cases:** `UC-BRND-create-product`: Create a product; `UC-BRND-create-products-via-api`: Create products through the API; `UC-PROD-view-product-details`: View product details (after market participation).
+**Assumptions:** Brands have authenticated product-creation access; exact roles are unconfirmed. Market joining is a separate goal. Product fields and their unresolved validation limits follow `UC-BRND-create-product`. The original CSV onboarding request is recorded from the team member's report on 2026-10-04; Team 11 clarified on 2026-10-13 that the format is undecided, with CSV or XLSX under consideration. This draft does not commit to supporting both.
+**Open Issues:** OI-2 (format selection, selected-format structure and handling, image handling, batch limits, invalid-row handling, existing products, and inherited product-creation decisions).
+
+---
+
+### UC-BRND-create-products-via-api: Create products through the API
+
+**UC ID and Name:** `UC-BRND-create-products-via-api`: Create products through the API
+**Created By:** Chris Ramirez
+**Date Created:** 2026-10-04
+**Primary Actor:** Brand
+**Secondary Actors:** Brand's external system
+**Trigger:** The brand's external system submits product content through the product-creation API.
+**Description:** The brand uses an external system to onboard multiple products programmatically instead of creating them individually through the user interface.
+
+**Preconditions:**
+
+- PRE-1. The external system has authenticated access authorized to create products for the brand.
+
+**Postconditions:**
+
+- POST-1. Each successfully created product contains its accepted content and is associated with the authenticated brand.
+- POST-2. The external system receives a response identifying the created products and the outcome of submitted product content.
+
+**Main Success Scenario:**
+
+1. The brand's external system submits product names, pictures, and additional information using the supported API contract.
+2. The system rechecks authorization, validates the request and product content, stores the accepted products under the authenticated brand, and returns confirmation identifying the created products and their saved content.
+
+**Extensions:**
+
+- **2a. The request does not match the supported API contract:**
+  - 2a1. The system returns an error identifying the request problem and creates no products. The external system corrects the request and returns to step 1.
+- **2b. Product content fails validation:**
+  - 2b1. The system identifies the affected products and fields and creates no product from invalid content. For multi-product requests, handling of valid products is pending confirmation (OI-3).
+  - 2b2. The external system corrects the content and returns to step 1, reconciling any previously completed saves.
+- **2c. Authentication is invalid or product-creation authorization has expired or been removed:**
+  - 2c1. The system rejects creation and returns an access error; the use case ends without newly created products.
+- **2d. Media transfer or saving fails, or the response is lost:**
+  - 2d1. The system reports failure when a response can be delivered. The external system treats an absent response as an uncertain outcome. On retry of the same submission, the system reconciles any completed saves before resuming step 2 without creating duplicates.
+
+**Priority:** High (provisional)
+**Frequency of Use:** Once per product-creation request; product volume and request frequency are unconfirmed.
+| Product and market references | Identifiers | Required; product belongs to the selected market and is available | System validates the association | Card; Market |
+| Swipe direction | Enumeration | Required; left or right | Consumer supplies through a swipe | Swipe Left / Swipe Right |
+| Consumer/session reference | Identifier | Derived from the authenticated interaction; association policy pending client confirmation | Do not accept another consumer's identity from submitted input | Consumer |
+| Swipe speed | Numeric measurement | Nonnegative when measurable; units and missing-value policy pending client confirmation | Captured by the system; access pending client confirmation | Swipe |
+| Time spent viewing | Duration | Nonnegative when measurable; timing boundaries pending client confirmation | Captured by the system | Time-to-Swipe (relationship pending client confirmation) |
+| Session activity | Event data | Events and required fields pending client confirmation | Capture, access, and retention pending client confirmation | Consumer |
+
+Proposed failure behavior: the rating and its accompanying captured measurements save as one complete submission; a failed save leaves no partial submission. A timeout can have an unknown outcome, so retrying must reconcile an existing save rather than count it twice. This does not decide whether a consumer may intentionally rate the same product again. Gesture thresholds, measurement completeness, and ordering remain open. The historical swipe total does not establish a response-time target.
+
+**Related Use Cases:** `UC-MKT-enter-market`: Enter a market; `UC-PROD-view-product-details`: View product details (optional before rating).
+**Assumptions:** This draft covers preference submission. Any connection to lottery entries in business-rules.md needs a separate release-scope decision with the client.
+**Open Issues:** Are lottery entries in the release scope? Can consumers intentionally rate a product more than once? What product ordering, gesture thresholds, measurement units, timing boundaries, and missing-data behavior apply? Confirm retry and all-or-nothing save behavior, data access and retention, and peak-load and response-time targets.
+
+---
+
+## BRND: Brand Participation
+
+### UC-BRND-create-product: Create a product
+
+**UC ID and Name:** `UC-BRND-create-product`: Create a product
+**Created By:** Chris Ramirez
+**Date Created:** 2026-09-14
+**Primary Actor:** Brand
+**Secondary Actors:** None
+**Trigger:** The brand chooses to create a product.
+**Description:** The brand supplies product content so the product can subsequently participate in a market and receive consumer feedback.
+
+**Preconditions:**
+
+- PRE-1. The brand has an authenticated session authorized to create products.
+
+**Postconditions:**
+
+- POST-1. A product containing the accepted content is stored and associated with the creating brand.
+- POST-2. The brand receives confirmation identifying the created product.
+
+**Main Success Scenario:**
+
+1. The brand chooses to create a product.
+2. The system requests the product name, picture, and additional information.
+3. The brand supplies the content and submits it.
+4. The system validates and stores the product under the brand, then displays confirmation with the saved content.
+
+**Extensions:**
+
+- **3a. The brand cancels before submitting:**
+  - 3a1. The system ends the use case without creating a product.
+- **4a. Content fails validation:**
+  - 4a1. The system identifies affected fields, retains entered content where possible, and creates no product. The brand corrects the content and returns to step 3 or cancels.
+- **4b. Authorization has expired or been removed:**
+  - 4b1. The system rejects creation and asks the brand to restore authorized access; the use case ends without a new product.
+- **4c. Content upload or saving fails:**
+  - 4c1. The system reports that creation has not been confirmed and retains entered content where possible. If the brand retries the same submission, the system reconciles any completed save before resuming step 4 without creating a duplicate.
+
+**Priority:** High (provisional)
+**Frequency of Use:** Once per new product; number of products per brand and creation rate are unconfirmed.
+**Business Rules:** `BR-submit-product`
+
+**Associated Information:**
+
+| Property name | Data type | Validation rule | Security or access concerns | Glossary reference |
+|---|---|---|---|---|
+| Product content | One or more product records | Request structure and support for multi-product requests pending confirmation | Submitted by an authenticated external system authorized for the brand | Card |
+| Product name | String per product | Proposed: required and nonblank; length and uniqueness pending client confirmation | Supplied on behalf of the authorized brand; displayed to participating consumers | Card |
+| Picture | Image content per product | Requiredness, formats, and size limits pending client confirmation; API media-transfer method pending confirmation | Supplied on behalf of the authorized brand | Card |
+| Additional information | Content per product | Requiredness and supported text/media formats pending client confirmation | Supplied on behalf of the authorized brand; displayed in product details | Card |
+| Brand reference | Identifier | Required; derived from authenticated API access | Cannot be assigned to an unrelated brand through request input | Brand |
+
+Product validation and proposed per-product save and retry behavior match `UC-BRND-create-product`. No usable partial product is exposed. Creating products does not enroll them in a market. API authentication replaces the interactive session while preserving authorized brand ownership. The contract, credentials, response format, request limits, and retry mechanism remain to be specified. Bulk onboarding may use multiple single-product requests or a multi-product request; this draft does not select either design or prescribe batch atomicity. Updating existing products is not specified here.
+
+**Related Use Cases:** `UC-BRND-create-product`: Create a product; `UC-BRND-import-products`: Import products from a spreadsheet; `UC-PROD-view-product-details`: View product details (after market participation).
+**Assumptions:** Brands have authenticated product-creation access; exact roles are unconfirmed. Market joining is a separate goal. Product fields and their unresolved validation limits follow `UC-BRND-create-product`. The client's requested API onboarding is recorded from the team member's report on 2026-10-04. This product-onboarding goal does not define the wider enterprise survey API described by `BR-connect-api`.
+**Open Issues:** OI-3 (API contract, authentication, media transfer, request limits, batch handling, retry reconciliation, existing products, and inherited product-creation decisions).
 | Product name | String | Proposed: required and nonblank; length and uniqueness pending client confirmation | Supplied by the authorized brand; displayed to participating consumers | Card |
 | Picture | Image content | Requiredness, formats, and size limits pending client confirmation | Supplied by the authorized brand | Card |
 | Additional information | Content | Requiredness and supported text/media formats pending client confirmation | Supplied by the authorized brand; displayed in product details | Card |
