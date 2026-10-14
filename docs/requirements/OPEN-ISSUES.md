@@ -29,10 +29,34 @@ _[Send the shortlist to your client the day before. A client who has seen the qu
 
 | ID | Question | Why it matters | Who can answer | Raised |
 |---|---|---|---|---|
-| OI-1 | _[The question, phrased so it has a definite answer. Not "tell us about reporting" but "who is allowed to see another student's evaluation scores?"]_ | _[What we get wrong if we guess. Name the artifact or decision it blocks.]_ | _[Client, instructor, a specific user, or the team itself]_ | _[YYYY-MM-DD]_ |
+| OI-1 | Which use cases belong in the MVP, and in what priority order? | Every use case is marked High (provisional). Blocks vision and scope section 4.3 (MVP Scope) and sprint planning. | Client | 2026-09-14 |
+| OI-3 | What format and case sensitivity does a Market Code have? | Blocks code validation in `UC-MKT-enter-market`. | Client; the generator is also readable in the client's repository | 2026-09-14 |
+| OI-4 | Which Consumers may enter which Markets (access conditions)? | Blocks the access check in `UC-MKT-enter-market`; a wrong guess leaks one Organization's Market to another. | Client | 2026-09-14 |
+| OI-5 | In what order are a Market's products shown to a Consumer? | Affects `UC-MKT-enter-market` and `UC-FDBK-rate-product`, and can bias which products get swiped. | Client | 2026-09-14 |
+| OI-6 | Which additional-information formats can the back of a Card hold? | Blocks what `UC-PROD-view-product-details` must display. | Client | 2026-09-14 |
+| OI-8 | What happens if activity capture fails while a Consumer views product details? | Decides whether a lost data point blocks the Consumer in `UC-PROD-view-product-details`. | Team, confirmed with the client | 2026-09-14 |
+| OI-9 | Does Reach count every time a Card is shown, or once per Consumer per Card? | Sets the denominator of Reach and Approval Percentage in `UC-FDBK-rate-product`. | Client | 2026-09-14 |
+| OI-10 | Are lottery entries (`BR-earn-entry`, `BR-entry-expiration`) in this release's scope? | Decides whether `UC-FDBK-rate-product` must count swipes toward entries. | Client | 2026-09-14 |
+| OI-11 | What gesture thresholds turn a drag into a left or right swipe? | Blocks extension 2b of `UC-FDBK-rate-product`. | Team, confirmed with the client | 2026-09-14 |
+| OI-12 | What retention policy applies to Demographic answers stored with each swipe? | Privacy exposure of `UC-FDBK-rate-product`; the business rules note that no demographic policy has been sourced. | Client | 2026-09-14 |
+| OI-13 | Is flip rate the share of Card impressions that were flipped, or the share of swipes whose Card was flipped? | Sets the flip rate formula fed by `UC-FDBK-flip-card`. | Client | 2026-10-13 |
+| OI-14 | Should the existing cumulative front and back time on a Card be kept, now that dwell time ends at the first Flip? | Decides whether `UC-FDBK-flip-card` keeps or drops the client's existing `front_dwell_ms` and `back_dwell_ms`. | Client | 2026-10-13 |
+| OI-15 | Does moving through the photo carousel count as a Click, or only tapping to enlarge a photo? | Defines what `UC-FDBK-open-card-media` counts. | Client | 2026-10-13 |
+| OI-16 | Should reports count every Click, or one Click per Consumer per photo or video? | Sets the Clicks figure a Brand sees from `UC-FDBK-open-card-media`. | Client | 2026-10-13 |
+| OI-17 | Should per-media display time (`media_views`) be kept now that the client wants Clicks? | Decides whether `UC-FDBK-open-card-media` replaces or adds to existing capture. | Client | 2026-10-13 |
+| OI-18 | Does Completion Time include time away from a Market the Consumer stopped and later resumed, or only active time? | Sets the Completion Time formula in `UC-FDBK-complete-market`; timestamps are stored either way. | Client | 2026-10-13 |
+| OI-19 | Does the Engagement Funnel clock start at Market Code entry or when the first Card is viewed? | The client described it both ways; sets the start of Completion Time in `UC-FDBK-complete-market`. | Client | 2026-10-13 |
+| OI-20 | If a Consumer chooses more Categories after completing the ones they chose, how does that affect completion? | Blocks extension 8a of `UC-FDBK-complete-market`. | Client | 2026-10-13 |
+| OI-21 | Should Vendors see the full Engagement Funnel, or only Completion Time? | Sets Vendor access to data from `UC-FDBK-complete-market`. | Client | 2026-10-13 |
+| OI-22 | Is the Engagement Funnel reported for Brand Markets only, or for Standard Markets too? | Sets the scope of `UC-FDBK-complete-market` reporting. | Client | 2026-10-13 |
+| OI-23 | Which product fields are required when a product is created? | Blocks validation in `UC-BRND-create-product`. | Client | 2026-09-14 |
+| OI-24 | What name length, image format, and media size limits apply to a product? | Blocks validation in `UC-BRND-create-product`. | Client | 2026-09-14 |
 
 ## Resolved
 
 | ID | Question | Answer | Answered by | Date | Filed in |
 |---|---|---|---|---|---|
-| OI-0 | _[Example row, delete it]_ | _[What we were told]_ | _[Name]_ | _[YYYY-MM-DD]_ | _[`BO-grading-time`, or the glossary term, or the section]_ |
+| OI-2 | Does a Market mean a target group, a collection of products, or both? | A Market is the collection of Cards, grouped into Categories, that Consumers swipe through. The target group is a separate concept, the Demographic. | Demetrie King, second client meeting | 2026-09-23 | [Market](project-glossary.md#market), [Demographic](project-glossary.md#demographic) (glossary v0.3) |
+| OI-7 | Which viewing events and timing boundaries are measured when a Consumer views product details? | The timings measured on a Card are dwell time (from the Card appearing to the first Flip, zero if never flipped) and decision time (from the Card appearing to the swipe). Capture is specified in `UC-FDBK-flip-card` and `UC-FDBK-rate-product`. | Demetrie King, third client meeting | 2026-10-13 | [Average Dwell Time](project-glossary.md#average-dwell-time), [Average Decision Time](project-glossary.md#average-decision-time), [Flip](project-glossary.md#flip) (glossary v0.4) |
+| OI-25 | Who may create products for a Brand? | The Admin creates Inventory items today. A Brand may also submit items, but every Brand-created item, and every update to one, needs the Admin's Approval before it goes live. | Demetrie King, second client meeting | 2026-09-23 | [Admin](project-glossary.md#admin), [Approval](project-glossary.md#approval), [Inventory](project-glossary.md#inventory) (glossary v0.3) |
+| OI-26 | How does a created product join a Market and become visible to Consumers? | An Inventory item, once approved, is attached to a Category. The Admin assembles a Market by selecting its Categories, assigns it to an Organization, and launches it, and only then can Consumers reach it. | Demetrie King, second client meeting | 2026-09-23 | [Inventory](project-glossary.md#inventory), [Category](project-glossary.md#category), [Approval](project-glossary.md#approval), [Launch](project-glossary.md#launch) (glossary v0.3) |

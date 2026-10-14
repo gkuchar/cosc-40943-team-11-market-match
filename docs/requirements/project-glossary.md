@@ -3,7 +3,7 @@
 **Project:** Market Match
 **Team:** \_11
 **Client:** Demetrie King
-**Version:** 0.3
+**Version:** 0.4
 
 ---
 
@@ -53,6 +53,7 @@ _Rules:_
 | 2026-09-14 | 0.1     | Initial terms from the client brief and first client meeting                                                                                                                                                              | Matthew Stafford |
 | 2026-09-21 | 0.2     | Dashboard, metric, and card terms from the brand dashboard walkthrough                                                                                                                                                    | Matthew Stafford |
 | 2026-09-23 | 0.3     | Tenancy, role, market assembly, and environment terms from the second client meeting. Renamed Skew to SKU, split Code into One-Time Code and Market Code, merged Survey into Market, and corrected Brand and Demographic. | Matthew Stafford |
+| 2026-10-13 | 0.4     | Data point terms from the third client meeting: Brand Market, Standard Market, Clicks, Completion Time, Engagement Funnel, Join Market, Like Rate, Swipe Behavior, Trends. Corrected Average Dwell Time (to the flip) and Average Decision Time (to the swipe), and superseded Brand Card - Market. | Matthew Stafford |
 
 ---
 
@@ -92,15 +93,21 @@ _On a Market the approval percentage is the number of Likes divided by the Reach
 
 ### Average Decision Time
 
-_The amount of time it takes a Consumer to make a decision to swipe left or right. This would be populated when the user is hovering near the call to action buttons._
+_The average time Consumers take to swipe a Card left or right, measured from the moment the Card appears to the moment of the swipe. Reported per SKU on the Brand Dashboard._
 
-**Not to be confused with:** Time-to-Swipe, the raw per-swipe measurement this figure averages, and Average Dwell Time, which counts all time on the Card rather than time spent deciding.
+**Not to be confused with:** Time-to-Swipe, the raw per-swipe measurement this figure averages, and Average Dwell Time, which stops at the flip rather than at the swipe.
+
+**Source:** third client meeting with Demetrie King, which replaced the version 0.2 reading that decision time was time spent near the call to action buttons
 
 ### Average Dwell Time
 
-_The amount of time the Consumer stays on a SKU Card._
+_The average time Consumers take to flip a Card over, measured from the moment the Card appears to the moment of the flip. A Consumer who swipes without ever flipping the Card has a dwell time of zero. Reported per SKU on the Brand Dashboard and compared across all Consumers who saw the same Card._
 
-**Not to be confused with:** Average Decision Time, which counts only the deciding portion, near the call to action buttons.
+_**Example.** A Card sits for 3 seconds before the Consumer flips it: dwell time is 3 seconds. A Consumer who swipes left after 1 second without flipping: dwell time 0, decision time 1 second._
+
+**Not to be confused with:** Average Decision Time, which runs to the swipe rather than to the flip. Also not the total time spent on the Card, which is what version 0.2 of this glossary said and the client corrected.
+
+**Source:** third client meeting with Demetrie King
 
 ### Brand
 
@@ -120,11 +127,9 @@ _The Brand's profile within Market Match: its overview, address and location, an
 
 ### Brand Card - Market
 
-_One of the two Card types the Admin chooses between when creating a Market, the other being a standard market card. A brand card presents a Brand rather than a single product._
+_Superseded in version 0.4: see Brand Market. The "brand card or standard market card" choice the client makes at Market creation is the choice of Market type, Brand Market or Standard Market, not a type of Card._
 
-**Not to be confused with:** Brand Card - Brand Dashboard, which is the Brand's own profile page and a different thing entirely. The exact difference in behavior between a brand card and a standard market card has not been confirmed with the client.
-
-**Source:** second client meeting with Demetrie King
+**Source:** second client meeting with Demetrie King, reinterpreted after the third
 
 ### Brand Dashboard
 
@@ -137,6 +142,16 @@ _The brand engagement score is the percentage of Consumers that swiped right, or
 **Synonyms:** impact score
 
 **Not to be confused with:** Approval Percentage, which is the same ratio computed for one SKU on one Market. The engagement score is the Brand-level figure.
+
+### Brand Market
+
+_A Market run for a Brand, so the Brand can test its own products with an audience the client hands a Market Code to. On top of the Likes and Passes every Market produces, a Brand Market is where the client wants the Engagement Funnel and Completion Time reported. The client chooses Brand Market or Standard Market when he creates the Market._
+
+**Synonyms:** brand market survey, brand card (the client's label for the choice at Market creation)
+
+**Not to be confused with:** a Standard Market, which is run for a Vendor. Also not Brand Card - Brand Dashboard, which is a Brand's profile.
+
+**Source:** second and third client meetings with Demetrie King
 
 ### Card
 
@@ -154,11 +169,29 @@ _**Example.** "What type of music do y'all want?" is a Category; each music genr
 
 **Source:** second client meeting with Demetrie King
 
+### Clicks
+
+_The number of times Consumers open each individual piece of media on a Card: each of its up to three photos, and its video link. A Brand reads Clicks per photo and per video so it can see which media draws attention and swap out what does not, for example by promoting the most-clicked photo to be the front photo. Clicks are the only measure taken on the video. How long a Consumer watches is left to YouTube, which the Brand can read for itself._
+
+**Not to be confused with:** a Flip, which turns the Card over rather than opening one piece of media on it.
+
+**Source:** third client meeting with Demetrie King
+
 ### Cloudflare
 
 _Where Market Match is hosted. The application runs as two Cloudflare Workers, one serving Production from the main branch and one serving the Preview Link, and Cloudflare also stores the platform's image files._
 
 **Source:** second client meeting with Demetrie King
+
+### Completion Time
+
+_How long a Consumer takes to go through a whole Market, start to finish, meaning every Line Item in every Category the Consumer chose to go through. The client wants the average Completion Time across all Consumers who completed a Market, on both Brand Markets and Standard Markets. "It took 100 students, on average, this amount of time to go through this survey." This is an overall figure for the Market, not a product-by-product one._
+
+**Synonyms:** time to complete, market completion time
+
+**Not to be confused with:** Average Decision Time and Average Dwell Time, which are per-Card. Whether a Consumer's time away from a Market they stopped and came back to counts toward Completion Time has not been decided.
+
+**Source:** third client meeting with Demetrie King
 
 ### Consumer
 
@@ -179,6 +212,14 @@ _Attributes of the Markets and Consumers, describing who the Consumers are for t
 _**Examples.** College students at TCU; people attending football games; students in the College of Science and Engineering._
 
 **Not to be confused with:** a Market, which is the survey itself rather than the population it is aimed at.
+
+### Engagement Funnel
+
+_The stages a Consumer passes through in one Market, and how many Consumers reach each stage: they enter the Market Code, view the Market, start swiping, and complete it, along with the Completion Time it took. The funnel starts when the Market Code is entered, or when a Public Access link is opened. Sign-in comes before it and is not a stage the Brand sees. The client wants it for Brand Markets first and possibly Standard Markets too._
+
+**Not to be confused with:** the "Engagement Funnel" panel already on the Admin Dashboard, whose Login, View Market, Start Swiping, Complete 10, and Complete All figures are placeholders rather than measured values.
+
+**Source:** third client meeting with Demetrie King
 
 ### Feedback
 
@@ -208,11 +249,27 @@ _The inventory page on the brand dashboard includes all the products from Brands
 
 **Not to be confused with:** Inventory, which is the collection of Line Items itself rather than this reporting page.
 
+### Join Market
+
+_The section of the Consumer app where a signed-in Consumer types a Market Code to open a Market. In a Brand Market, entering the code here is the first stage of the Engagement Funnel._
+
+**Not to be confused with:** Public Access, where a Consumer reaches a Market by QR Code or link without signing in and without passing through Join Market.
+
+**Source:** third client meeting with Demetrie King
+
 ### Launch
 
 _The Admin action that makes a Market live. A Market is created, assigned to an Organization, given its Categories, and those Categories applied, all before launch; launching is what makes its QR Code, link, and Market Code actually reach the survey._
 
 **Source:** second client meeting with Demetrie King
+
+### Like Rate
+
+_The share of all swipes on one SKU that were right swipes, across every Market the SKU has appeared in. It is what the Brand Dashboard shows for each product; that dashboard reports overall figures, not figures per Market._
+
+**Not to be confused with:** Approval Percentage, which is the same ratio for one SKU on one Market, and Brand Engagement Score, which covers a whole Brand.
+
+**Source:** third client meeting with Demetrie King; the Brand Dashboard's "Like Rate" label in the client's repository
 
 ### Likes
 
@@ -348,9 +405,27 @@ _A single product a Brand wants feedback on, and the unit that Reach, Likes, Pas
 
 **Not to be confused with:** its meaning in retail generally, where a SKU is the identifier code for a stockable item rather than the item itself. Here the word means the product. Also not a Line Item, which may be a Text Card with no product behind it.
 
+### Standard Market
+
+_A Market run for a Vendor, such as the TCU and UTD Markets. A Vendor sees each Line Item's Likes and Passes, ranked from most liked to least, narrowed by Category or to the top ten or top five, and the Market's average Completion Time. Unlike a Brand, it does not see per-Card measures such as dwell time or decision time._
+
+**Synonyms:** vendor market
+
+**Not to be confused with:** a Brand Market, which is run for a Brand.
+
+**Source:** second and third client meetings with Demetrie King
+
 ### Swipe
 
 _The action the user takes on a Card, which is a swipe left or right. Brands manufacture different Cards that Consumers swipe on._
+
+### Swipe Behavior
+
+_The client's name for everything a Consumer does on a Card besides the swipe itself: how long it takes them to flip the Card, how long it takes them to decide, and which photos and video they open. The client's patent covers using swipe behavior to forecast demand and to guide marketing materials, which is why he treats these measures as the product's core data rather than as extras._
+
+**Not to be confused with:** a Swipe, which is only the left-or-right decision. Swipe behavior is the activity around that decision.
+
+**Source:** third client meeting with Demetrie King
 
 ### Swipe Left / Swipe Right
 
@@ -381,6 +456,12 @@ _A Line Item that is text only, with no product photo and no video. Used when th
 _A metric that measures how long it takes a user to swipe left or right on a product._
 
 **Not to be confused with:** Average Decision Time, which is this same measure averaged across Consumers and reported on the Brand Dashboard. Time-to-Swipe is the raw per-swipe measurement.
+
+### Trends
+
+_Patterns the Admin would see across many Markets without seeing any one Organization's specific results. The client's example: if he knows from earlier Markets what Consumers of a given age range, ethnicity, and gender liked, he can put those items into a new Market aimed at the same Demographic. Today the Admin sees swipe counts and users but not Brand or Vendor data points. Trends are deferred to a later phase and are out of scope for Version 3's first phase._
+
+**Source:** third client meeting with Demetrie King
 
 ### Vendor
 
