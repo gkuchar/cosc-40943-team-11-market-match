@@ -3,7 +3,7 @@
 **Project:** Market Match
 **Team:** 11
 **Client:** Demetrie King
-**Version:** 0.2
+**Version:** 0.3
 
 ---
 
@@ -84,6 +84,7 @@ _The Source column is the defense. Every rule traces to a document or a person, 
 |---|---|---|---|
 | 2026-09-11 | 0.1 | Initial rules from the client brief and first client meeting | Griffin Kuchar |
 | 2026-10-12 | 0.2 | Added rules from the 09-07, 09-21, and 09-30 client meetings (organizations and roles, market setup, product approval, pricing, data collection, analytics definitions) | Griffin Kuchar |
+| 2026-10-14 | 0.3 | Addressed review: added `BR-dashboard-access`, folded decision and dwell time into `BR-capture-feedback` by glossary reference, flagged the demographic data gap | Griffin Kuchar |
 
 ---
 
@@ -126,7 +127,11 @@ Out of scope for this document:
   belong in the specification, not here, since the client did not dictate them as policy.
 - **Demographic data handling.** The client noted demographic collection "where
   appropriate," but the consent and legal-appropriateness policy governing it has not yet
-  been sourced, so no rule captures it. To be revisited once the client confirms the policy.
+  been sourced, so no rule captures it. The sources also conflict: on 09-21 the client said
+  only an email is collected (`BR-collect-email-only`), yet the first client meeting lists
+  "who the demographic is" as a tracked data point and the brand dashboard reports gender,
+  age, and ethnicity. Whether demographics are collected at sign-in, and where they are
+  stored, is flagged for the next client meeting. To be revisited once the client confirms.
 
 ---
 
@@ -134,7 +139,7 @@ Out of scope for this document:
 
 ### 2.1 Consumers
 
-- **`BR-sign-in`:** A consumer can ssign into the app via email + one-time code sent to email.
+- **`BR-sign-in`:** A consumer can sign into the app via email + one-time code sent to email.
 - **`BR-rate-product`:** A consumer can swipe right on a product to signal interest or swipe left on a product to signal disinterest.
 - **`BR-tap-product`:** A consumer can tap on a product to reveal more information about a product.
   **Source:**  Market Match website.
@@ -151,7 +156,7 @@ Out of scope for this document:
   **Source:**  Market Match website.
 - **`BR-join-market`:** A brand can join a market to have their product rated by consumers who select that market.
   **Source:**  Market Match website.
-- **`BR-get-product-feedback`:** A brand can receieve feedback on their product based on the ratings submitted by consumers.
+- **`BR-get-product-feedback`:** A brand can receive feedback on their product based on the ratings submitted by consumers.
   **Source:**  Market Match website.
 - **`BR-product-media-limit`:** A product can have up to three pictures and one video, and the video is supplied as a YouTube link.
   **Source:**  09-21-2026 Client Meeting.
@@ -164,7 +169,7 @@ Out of scope for this document:
 
 - **`BR-submit-market`:** An entity can create a market with a name.
   **Source:**  Market Match website.
-- **`BR-get-market-feedback`:** A market can receieve feedback on its products' ratings submitted by consumers.
+- **`BR-get-market-feedback`:** A market can receive feedback on its products' ratings submitted by consumers.
   **Source:**  Market Match website.
 - **`BR-market-code`:** Each market has an auto-generated code that is unique to that market.
   **Source:**  09-21-2026 Client Meeting.
@@ -194,12 +199,16 @@ Out of scope for this document:
 
 ### 2.5 Feedback
 
-- **`BR-capture-feedback`:** Market Match captures behavioral data from consumer interactions beyond the explicit ratings consumers submit. This includes but is not limited to swipe direction, swipe speed, time spent viewing an item, and session activity.
-**Source:**  Client brief.
-- **`BR-decision-time`:** Decision time is the time from a card being shown to the consumer swiping left or right on it.
-  **Source:**  09-30-2026 Client Meeting.
-- **`BR-dwell-time`:** Dwell time is the time from a card being shown to the consumer flipping it over. It is zero if the consumer never flips the card, and it is reported as an average across consumers.
-  **Source:**  09-30-2026 Client Meeting.
+- **`BR-capture-feedback`:** Market Match captures behavioral data from consumer interactions beyond the explicit ratings consumers submit. The data points recorded are:
+  - **Swipe Left / Swipe Right** (swipe direction)
+  - **Time-to-Swipe**, averaged across consumers as **Average Decision Time**
+  - **Average Dwell Time**
+  - **Flip** (reported as flip rate)
+  - media clicks (`BR-media-clicks`)
+  - session activity
+
+  Terms in bold are as defined in the [project glossary](project-glossary.md).
+  **Source:**  Client brief; 09-30-2026 Client Meeting.
 - **`BR-media-clicks`:** Market Match counts the clicks each of a product's pictures and its video receives. Video engagement is measured by clicks only, not watch time.
   **Source:**  09-30-2026 Client Meeting.
 - **`BR-engagement-funnel`:** For each market, Market Match tracks consumers through three stages: viewing the market (which begins when the code is entered), starting to swipe, and completing it.
@@ -222,6 +231,8 @@ Out of scope for this document:
 - **`BR-admin-role`:** Only Market Match (Demetrie King) holds the admin role.
   **Source:**  09-21-2026 Client Meeting.
 - **`BR-assign-role`:** Only the admin can assign a user the brand or vendor role. A user with assigned roles can switch between them; a user with none cannot see the dashboard.
+  **Source:**  09-21-2026 Client Meeting.
+- **`BR-dashboard-access`:** Brand and vendor users get dashboard access only through **WorkOS**. The admin creates the user by email, adds them to an **Organization**, and assigns their **Role** there (`BR-create-organization`, `BR-assign-role`). The user then signs in at login.marketmatch.app with a **One-Time Code** or a security key and sees only what their Organization and Role allow. Terms in bold are as defined in the [project glossary](project-glossary.md).
   **Source:**  09-21-2026 Client Meeting.
 - **`BR-view-org-markets`:** Only users whose email is assigned to an organization can see the markets assigned to that organization and their results. Departments of one institution that must not see each other's results are set up as separate organizations.
   **Source:**  09-21-2026 Client Meeting.
