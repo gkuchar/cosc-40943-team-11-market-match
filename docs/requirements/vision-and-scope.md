@@ -34,6 +34,7 @@ _Why this matters more with an agent than it used to: ask an agent to insert a n
 | Date | Version | Description | Author |
 |---|---|---|---|
 | _[2026-09-11]_ | 0.1 | Initial draft from the client brief and first client meeting | _[Kritika Karanjit]_ |
+| _[2026-10-10]_| 0.2 | Updated business requirements, success metrics, process flows, and MVP scope based on client discussions and team use cases | _[Kritika Karanjit]_ |
 
 ---
 
@@ -100,23 +101,37 @@ Market Match has an opportunity to provide companies and organizations with a mo
 
 As Market Match expands to additional colleges and organizations, the existing platform needs to support increasing numbers of users, products, markets, and collected feedback while maintaining a reliable user experience. The client's longer-term vision also includes expanding Market Match to enterprise organizations through white-label instances and API-based integrations.
 
+To support this growth, Market Match needs to improve how brands add and manage products, including individual product creation and bulk importing. The platform also needs to capture meaningful consumer engagement measurements, such as decision time, dwell time, media clicks, and market completion. These improvements will help participating organizations better understand consumer interests while maintaining appropriate access controls and protecting consumer information.
+
 ### 2.2 Business Objectives
 
 _[Summarize the business benefits the product will provide, **quantitatively and measurably**. Platitudes ("become recognized as a world-class provider") and vague improvements ("provide a more rewarding customer experience") are neither helpful nor verifiable.]_
 
-- `BO-platform-scalability`: Support growth in Market Match users, products, markets, and collected feedback while maintaining application stability. A specific capacity and performance target has not yet been provided by the client.
+- `BO-platform-scalability`: Support growth in Market Match users, products, markets, and collected feedback while maintaining application stability. Measure this through successful operation as user activity and data volume increase.
 
-- `BO-user-engagement`: Improve the Market Match experience so consumers can easily interact with products and provide useful preference feedback. A specific engagement or completion target has not yet been provided by the client.
+- `BO-user-engagement`: Improve consumer participation through swipe-based feedback and product interactions. Measure engagement using swipe activity, Reach, decision time, dwell time, media clicks, and market Completion Time.
 
-- `BO-enterprise-expansion`: Support Market Match's longer-term expansion to enterprise organizations through white-label instances and API-based integrations. A target number of enterprise organizations and completion date have not yet been provided.
+- `BO-enterprise-expansion`: Support Market Match's longer-term expansion to enterprise organizations through white-label instances and API-based integrations. Measure progress through the implementation and verification of approved enterprise capabilities.
+
+- `BO-product-onboarding`: Improve how brands add products to Market Match through individual product creation, bulk spreadsheet importing, and API-based product creation. Measure success through successful product submissions and compliance with product approval requirements.
+
+- `BO-feedback-visibility`: Provide authorized brands and vendors with access to consumer feedback and engagement measurements relevant to their products and markets. Measure success by verifying that users can access the information permitted for their roles.
+
+- `BO-data-privacy`: Protect consumer information and organizational data through appropriate access controls and encryption. Measure success through security testing of role-based access and personal-data protection.
 
 ### 2.3 Success Metrics
 
-- `SM-platform-stability`: Measure whether Market Match remains stable and usable as the number of users, products, markets, and collected interactions increases. The current baseline capacity and acceptable performance target have not yet been provided by the client.
+- `SM-platform-stability`: Measure Market Match's ability to handle increasing numbers of users, products, markets, and feedback records without application failures. Track system availability, response times, and errors during testing.
 
-- `SM-user-engagement`: Measure consumer participation through interactions such as completed swipes and continued use of the product feedback experience. A baseline and target level of consumer engagement have not yet been provided by the client.
+- `SM-user-engagement`: Measure consumer participation using swipe activity, Reach, decision time, dwell time, photo and video clicks, and market Completion Time.
 
-- `SM-enterprise-readiness`: Measure whether Market Match supports the capabilities needed for future enterprise use, including white-label and API-based integration capabilities identified by the client. Specific acceptance criteria and a target date have not yet been confirmed.
+- `SM-enterprise-readiness`: Evaluate progress toward enterprise support by verifying the API integration and white-label capabilities included in the approved project scope.
+
+- `SM-product-onboarding`: Measure successful product creation through individual entry, bulk spreadsheet importing, and API-based onboarding. Verify that products follow the required approval process before publication.
+
+- `SM-feedback-visibility`: Verify that authorized brands and vendors can access feedback and engagement measurements according to their assigned roles and permissions.
+
+- `SM-data-protection`: Verify that personal information is protected through encryption at rest and in transit and that users cannot access information outside their permitted scope.
 
 ### 2.4 Vision Statement
 
@@ -161,11 +176,9 @@ _[Draw the improved process, with your software in it, as a second mermaid flowc
 
 _The point of drawing both is the comparison. If the two diagrams look alike, either you have not understood the current process or the software is not worth building._
 
-### 2.5 Proposed Process Flows (To-Be Process Flows)
-
 ```mermaid
 flowchart TD
-    subgraph Consumer
+    subgraph Consumer["Consumer"]
         A[Sign in to Market Match]
         B[Join a market]
         C[View products and product information]
@@ -173,7 +186,7 @@ flowchart TD
         A --> B --> C --> D
     end
 
-    subgraph MarketMatch[Market Match]
+    subgraph MarketMatch["Market Match"]
         E[Capture consumer feedback and interactions]
         F[Store and organize collected feedback]
         G[Provide feedback and insights]
@@ -182,14 +195,14 @@ flowchart TD
         F --> H
     end
 
-    subgraph Organization[Participating Organization]
+    subgraph Organization["Participating Organization"]
         I[Provide products]
         J[Participate in markets]
         K[Review consumer feedback and insights]
         I --> J --> K
     end
 
-    subgraph Enterprise[Enterprise Organization]
+    subgraph Enterprise["Enterprise Organization"]
         L[Connect through Market Match API]
         M[Use Market Match through a white-label experience]
         N[Access permitted Market Match capabilities and data]
@@ -200,7 +213,8 @@ flowchart TD
     D --> E
     G --> K
     H --> L
-```
+    ```
+
 
 The proposed process builds on Market Match's existing swipe-based consumer feedback experience. Consumers will continue to join markets, view products, and provide preference feedback through swipes. Market Match will capture and organize these interactions so participating organizations can review feedback and better understand consumer interests.
 
@@ -208,7 +222,7 @@ The proposed process also expands Market Match for enterprise use. Enterprise or
 
 The core consumer feedback process remains in place because swiping on products is a central part of Market Match. The proposed changes focus on expanding how organizations can use the platform and improving its ability to support broader adoption.
 
-#### 2.6 Risks
+### 2.6 Risks
 
 - `RI-low-user-engagement`: Consumers may not provide enough product interactions and feedback for participating organizations to gain useful insights from Market Match. Low participation could reduce the value of the platform to organizations. (Probability 0.4, Impact 8) Mitigation: Continue gathering user feedback and improve the consumer experience to encourage participation.
 
@@ -270,10 +284,6 @@ Future enterprise use may also introduce additional operating requirements throu
 
 _[Identify the alternatives your stakeholders see as available: buying a competitor's product, building something in-house, or keeping the status quo. Give the major strengths and weaknesses of each **as the stakeholder perceives them**, not as you do.]_
 
-| Alternative | Strengths | Weaknesses for this client |
-|---|---|---|
-| _[Tool, or "the current manual process"]_ | | |
-
 _Always include the status quo as a row. It is the alternative that wins most often, and the one your product actually has to beat._
 
 | Alternative | Strengths | Weaknesses for this client |
@@ -289,13 +299,6 @@ _[The section you will cite most often. Scope is what keeps a friendly client's 
 
 _[Put the product in context relative to other systems and the user's environment. If it is independent and self-contained, say so. If it is one component of something larger, describe how they interact and identify the interfaces between them. A context diagram shows this most clearly: your system as one box, every external actor and system around it, and a labeled arrow for each thing that crosses the boundary.]_
 
-    ```mermaid
-    flowchart LR
-      Student[Student] --> PP[Project Pulse]
-      Instructor[Instructor] --> PP
-      PP --> Gmail[(Gmail)]
-      PP --> LMS[(Learning management system)]
-    ```
 Market Match is an existing web-based platform that connects consumers with products and allows participating organizations to collect and review consumer preference feedback. Consumers interact with products through markets, while brands, vendors, and administrators use different platform capabilities based on their roles.
 
 The platform is also intended to support broader enterprise use through white-label deployments and API-based integrations. These capabilities allow enterprise organizations to interact with Market Match beyond the standard user-facing platform.
@@ -321,21 +324,24 @@ Market Match serves as the central system connecting these users and organizatio
 
 ### 4.2 Major Features and Scope
 
-- `FEAT-consumer-feedback`: Allow consumers to join markets, view products, and provide preference feedback through Market Match's swipe-based experience.
+- `FEAT-consumer-feedback`: Allow consumers to join markets, view products, and provide preference feedback through Market Match's swipe-based experience. Support product card interactions, including card flips, photo and video clicks, and market completion.
 
-- `FEAT-product-information`: Allow consumers to view relevant product information before providing feedback.
+- `FEAT-product-information`: Allow consumers to view additional product information, including descriptions, images, and available media, before providing feedback.
 
-- `FEAT-product-management`: Allow authorized organizational users to add and manage products that participate in Market Match.
+- `FEAT-product-management`: Allow authorized brands and organizational users to create, add, and manage products that participate in Market Match.
 
-- `FEAT-market-management`: Allow authorized users to create and manage markets that organize products and consumer participation.
+- `FEAT-bulk-product-import`: Allow authorized brands to import multiple products using spreadsheet files. Supported formats, required fields, image handling, and validation rules will be confirmed with the client.
 
-- `FEAT-feedback-insights`: Capture and organize consumer feedback and interaction data so authorized users can review consumer interests and product performance.
+- `FEAT-market-management`: Allow authorized users to create and manage markets that organize products and consumer participation. Allow consumers to enter participating markets using a market ID code.
+
+- `FEAT-feedback-insights`: Capture and organize consumer feedback and engagement data, including swipes, Reach, decision time, dwell time, card flips, photo and video clicks, and market completion information. Support analysis of the Engagement Funnel and Completion Time for authorized users.
 
 - `FEAT-user-administration`: Allow administrators to manage users, organizations, markets, products, and other platform information according to their permissions.
 
-- `FEAT-api-integration`: Provide API-based connectivity that allows enterprise organizations to integrate approved Market Match capabilities and data with their own systems.
+- `FEAT-api-integration`: Support API-based connectivity for approved Market Match capabilities, including product creation through an API. Authentication, data access, validation, and integration requirements will be confirmed with the client.
 
-- `FEAT-white-label`: Support white-label use of Market Match so enterprise organizations can provide a Market Match experience aligned with their own branding.
+- `FEAT-white-label`: Support the longer-term goal of allowing enterprise organizations to use Market Match with organization-specific branding and configuration. Detailed requirements and implementation timelines have not yet been confirmed.
+
 
 ### 4.3 MVP Scope
 
@@ -347,6 +353,11 @@ _**Explicitly out of scope:** `FEAT-...` (reason), `FEAT-...` (reason)_
 
 _Ask your client the question directly: "If we can deliver only one of these in December, which one is it?" The answer is worth more than the rest of the meeting. A client who cannot choose has not thought about it yet, which is itself something you need to know now rather than in November._
 
+### 4.3 MVP Scope
+
+**In scope for the MVP:** *`FEAT-product-management`*, *`FEAT-bulk-product-import`*, *`FEAT-api-integration`*, *`FEAT-feedback-insights`*
+
+**Explicitly out of scope:** *`FEAT-white-label`* (enterprise-specific branding and white-label deployment).
 
 
 ### 4.4 Deployment Considerations
