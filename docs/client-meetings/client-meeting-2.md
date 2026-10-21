@@ -10,7 +10,7 @@
 
 _**What this file is.** The unedited automatic transcript of the second client meeting. It has no speaker labels and no timestamps, and the transcription mangles some words — "lineums" is line items, "EMV"/"EDB" is `.env`, "Cloud"/"CloudCode" is Claude Code, "Bob" is a mishearing, "two-state" is likely a school name. Read it as raw source, not as notes._
 
-_**Why it is in the repository.** Every term added to [project-glossary.md](requirements/project-glossary.md) in version 0.3 cites this meeting. Without the transcript in the repo those citations do not resolve, and an agent reading the glossary later has no way to check a definition against what the client actually said._
+_**Why it is in the repository.** Every term added to [project-glossary.md](../requirements/project-glossary.md) in version 0.3 cites this meeting. Without the transcript in the repo those citations do not resolve, and an agent reading the glossary later has no way to check a definition against what the client actually said._
 
 _**What it covers.** WorkOS organizations and roles; how the client assembles a market from categories and inventory items; market codes, QR codes, and public access; the approval workflow he wants over brand-submitted products; how he prices a market; hosting on Cloudflare with Workers, Wrangler, and preview deploys; what data Market Match holds about vendors and consumers; and the agreement that Team 11 works on a separate branch with its own staging preview._
 

@@ -82,7 +82,7 @@ _[Every document this specification refers to, with a link. At minimum, the four
 | [Use cases](use-cases.md) | Specifies user workflows, system responses, alternative flows, and exceptions. |
 | [Business rules](business-rules.md) | Records the business policies and rules that the software must enforce, with their sources. |
 | [Open issues](OPEN-ISSUES.md) | Tracks unanswered questions and unresolved requirements decisions. |
-| [First client meeting notes](../client-meeting-1.md) | Provides initial client context, the existing consumer workflow, user types, and expansion goals. |
+| [First client meeting notes](../client-meetings/client-meeting-1.md) | Provides initial client context, the existing consumer workflow, user types, and expansion goals. |
 | [Napkin Round 0](../napkin-round-0.md) | Records the team's initial technical assessment, proposed direction, and project risks; proposals are not client-approved requirements. |
 | [The Easy Approach to Requirements Syntax (EARS)](https://alistairmavin.com/ears/) | Provides the requirement-writing approach used for non-use-case functional requirements in section 5.2. |
 
