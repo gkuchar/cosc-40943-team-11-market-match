@@ -3,7 +3,7 @@
 **Project:** Market Match
 **Team:** 11
 **Client:** Demetrie King
-**Version:** 0.2
+**Version:** 0.3
 
 ---
 
@@ -31,6 +31,8 @@ _Within one use case, `PRE-1`, `POST-1`, and the step numbers are local and may 
 |---|---|---|---|
 | 2026-09-14 | 0.1 | Draft four use cases derived from the vision and scope feature list | Chris Ramirez |
 | 2026-10-13 | 0.2 | Rewrote `UC-FDBK-rate-product` and added `UC-FDBK-flip-card`, `UC-FDBK-open-card-media`, and `UC-FDBK-complete-market` to capture the data points from the third client meeting, checked against the client's repository | Matthew Stafford |
+| 2026-10-18 | 0.3 | Add CSV and API product-onboarding drafts using existing product-creation assumptions | Chris Ramirez |
+| 2026-10-18 | 0.3 | Clarify spreadsheet onboarding; CSV or XLSX format remains undecided | Chris Ramirez |
 
 ---
 
@@ -47,6 +49,8 @@ This document describes how Market Match consumers enter a market, inspect produ
 _[Which feature areas from the vision and scope are covered here. Name the `FEAT-*` entries. If a feature has no use cases yet, say so rather than leaving the reader to notice.]_
 
 These use cases cover `FEAT-consumer-feedback`, `FEAT-product-information`, and the data capture half of `FEAT-feedback-insights`, and partially cover `FEAT-market-participation` through consumer market entry and `FEAT-brand-participation` through product creation.
+
+Brand product creation includes individual entry, spreadsheet import (format pending confirmation; CSV or XLSX are candidates), and API onboarding. The product-creation API partially addresses `FEAT-enterprise-integration`; wider enterprise API workflows are not specified here.
 
 ---
 
@@ -108,7 +112,7 @@ _[Your area codes, then a table of every use case by area. Write this list first
 | MKT | Market participation: `FEAT-market-participation` | `UC-MKT-enter-market`: Enter a market |
 | PROD | Product information: `FEAT-product-information` | `UC-PROD-view-product-details`: View product details |
 | FDBK | Consumer feedback and data capture: `FEAT-consumer-feedback`, `FEAT-feedback-insights` | `UC-FDBK-rate-product`: Rate a product; `UC-FDBK-flip-card`: Flip a card; `UC-FDBK-open-card-media`: Open a card photo or video; `UC-FDBK-complete-market`: Complete a market |
-| BRND | Brand participation: `FEAT-brand-participation` | `UC-BRND-create-product`: Create a product |
+| BRND | Brand participation: `FEAT-brand-participation` | `UC-BRND-create-product`: Create a product; `UC-BRND-import-products`: Import products from a spreadsheet; `UC-BRND-create-products-via-api`: Create products through the API |
 
 ---
 
@@ -655,6 +659,123 @@ Confirmation displays the saved product name, picture, and available additional 
 - [OI-24](OPEN-ISSUES.md#open): What name length, image format, and media size limits apply?
 - [OI-25](OPEN-ISSUES.md#resolved) (resolved): Who may create products for a brand? The Admin today; a Brand may submit items, each needing the Admin's Approval. See [Admin](project-glossary.md#admin), [Approval](project-glossary.md#approval), and [Inventory](project-glossary.md#inventory).
 - [OI-26](OPEN-ISSUES.md#resolved) (resolved): How does a created product join a market? Once approved it is attached to a Category, the Admin assembles the Market from Categories and launches it. See [Inventory](project-glossary.md#inventory), [Category](project-glossary.md#category), [Approval](project-glossary.md#approval), and [Launch](project-glossary.md#launch).
+
+### UC-BRND-import-products: Import products from a spreadsheet
+
+**UC ID and Name:** `UC-BRND-import-products`: Import products from a spreadsheet
+**Created By:** Chris Ramirez
+**Date Created:** 2026-10-04
+**Primary Actor:** Brand
+**Secondary Actors:** None
+**Trigger:** The brand chooses to upload a spreadsheet containing multiple products.
+**Description:** The brand creates multiple products from a spreadsheet rather than entering each product individually. The required format is pending confirmation (OI-27); CSV and XLSX are candidates, and support for both is not established.
+
+**Preconditions:**
+
+- PRE-1. The brand has an authenticated session authorized to create products.
+
+**Postconditions:**
+
+- POST-1. Each successfully imported product contains its accepted content and is associated with the importing brand. Each product requires Admin Approval before going live; creation alone does not publish it to a Market. The approved product follows the Category assignment and Admin market-launch workflow resolved in [OI-25 and OI-26](OPEN-ISSUES.md#resolved).
+- POST-2. The brand receives a result identifying the created products and the outcome of each submitted row.
+
+**Main Success Scenario:**
+
+1. The brand chooses to import products from a spreadsheet.
+2. The system presents the supported spreadsheet format and structure, once confirmed, and product fields: product name, picture, and additional information.
+3. The brand supplies a spreadsheet in the supported format and structure and submits it.
+4. The system rechecks authorization, validates the file and product content, stores the accepted products under the brand, and displays confirmation identifying each created product and its saved content.
+
+**Extensions:**
+
+- **3a. The brand cancels before submitting:**
+  - 3a1. The system ends the use case without creating products.
+- **4a. The file is empty, unreadable, or has an unsupported format or structure:**
+  - 4a1. The system identifies the file error and creates no products. The brand returns to step 3 with a corrected file or cancels.
+- **4b. A row contains invalid product content:**
+  - 4b1. The system identifies the affected row and fields and creates no product from that invalid row. Whether valid rows are saved or the entire import is rejected is pending client confirmation (OI-27).
+  - 4b2. The brand corrects the affected content and returns to step 3, following the retry behavior for any products already saved.
+- **4c. Authorization has expired or been removed:**
+  - 4c1. The system rejects the import and asks the brand to restore authorized access; the use case ends without newly created products.
+- **4d. Uploading or saving fails, or the outcome cannot be confirmed:**
+  - 4d1. The system reports the failure or uncertain outcome and retains the submitted content where possible. If the brand retries the same submission, the system reconciles completed saves before resuming step 4 without creating duplicates.
+
+**Priority:** High (provisional)
+**Frequency of Use:** Once per spreadsheet import; typical row count and import frequency are unconfirmed.
+**Business Rules:** `BR-submit-product`
+
+**Associated Information:**
+
+| Property name | Data type | Validation rule | Security or access concerns | Glossary reference |
+|---|---|---|---|---|
+| Spreadsheet file | File | Format, headers, image-supply method, file/row limits, and format-specific handling pending confirmation in OI-27 | Supplied by an authorized Brand; file content cannot grant access to another Brand | No current glossary entry |
+| Product name | String per row | Proposed: required and nonblank; required fields and limits follow OI-23 and OI-24 | Supplied by the authorized Brand | Card |
+| Picture | Image content per product | Requiredness and media limits follow OI-23 and OI-24; supply method pending OI-27 | Supplied by the authorized Brand | Card |
+| Additional information | Content per row | Requiredness follows OI-23; supported formats follow OI-6 | Supplied by the authorized Brand | Card |
+| Brand reference | Identifier | Derived from the authorized session | Cannot be assigned to an unrelated Brand through spreadsheet input | Brand |
+
+Each accepted product follows the complete-product save and retry behavior of `UC-BRND-create-product`. This does not decide whether the whole import is atomic; handling valid rows alongside invalid rows remains open in OI-27. Confirmation identifies each row's outcome and the products created. Existing-product matching and update behavior remain open in OI-27.
+
+**Related Use Cases:** `UC-BRND-create-product`: Create a product; `UC-BRND-create-products-via-api`: Create products through the API.
+**Assumptions:** Importing creates products for the authorized Brand and preserves the Admin Approval and market-publication workflow resolved in OI-25 and OI-26. CSV and XLSX are candidates; support for either or both is not confirmed.
+**Open Issues:** [OI-27](OPEN-ISSUES.md#open): Spreadsheet format, structure, media supply, limits, invalid-row handling, existing-product handling, and any additional onboarding rules. Shared field requirements and limits remain tracked in OI-23 and OI-24; additional-information formats remain tracked in OI-6.
+
+### UC-BRND-create-products-via-api: Create products through the API
+
+**UC ID and Name:** `UC-BRND-create-products-via-api`: Create products through the API
+**Created By:** Chris Ramirez
+**Date Created:** 2026-10-04
+**Primary Actor:** Brand
+**Secondary Actors:** Brand's external system
+**Trigger:** The brand's external system submits product content through the product-creation API.
+**Description:** The brand uses an external system to onboard multiple products programmatically instead of creating them individually through the user interface.
+
+**Preconditions:**
+
+- PRE-1. The external system has authenticated access authorized to create products for the brand.
+
+**Postconditions:**
+
+- POST-1. Each successfully created product contains its accepted content and is associated with the authenticated brand. Each product requires Admin Approval before going live; creation alone does not publish it to a Market. The approved product follows the Category assignment and Admin market-launch workflow resolved in [OI-25 and OI-26](OPEN-ISSUES.md#resolved).
+- POST-2. The external system receives a response identifying the created products and the outcome of submitted product content.
+
+**Main Success Scenario:**
+
+1. The brand's external system submits product names, pictures, and additional information using the supported API contract.
+2. The system rechecks authorization, validates the request and product content, stores the accepted products under the authenticated brand, and returns confirmation identifying the created products and their saved content.
+
+**Extensions:**
+
+- **2a. The request does not match the supported API contract:**
+  - 2a1. The system returns an error identifying the request problem and creates no products. The external system corrects the request and returns to step 1.
+- **2b. Product content fails validation:**
+  - 2b1. The system identifies the affected products and fields and creates no product from invalid content. For multi-product requests, handling of valid products is pending confirmation (OI-28).
+  - 2b2. The external system corrects the content and returns to step 1, reconciling any previously completed saves.
+- **2c. Authentication is invalid or product-creation authorization has expired or been removed:**
+  - 2c1. The system rejects creation and returns an access error; the use case ends without newly created products.
+- **2d. Media transfer or saving fails, or the response is lost:**
+  - 2d1. The system reports failure when a response can be delivered. The external system treats an absent response as an uncertain outcome. On retry of the same submission, the system reconciles any completed saves before resuming step 2 without creating duplicates.
+
+**Priority:** High (provisional)
+**Frequency of Use:** Once per product-creation request; product volume and request frequency are unconfirmed.
+
+**Business Rules:** `BR-submit-product`
+
+**Associated Information:**
+
+| Property name | Data type | Validation rule | Security or access concerns | Glossary reference |
+|---|---|---|---|---|
+| Product content | Product record or records | Contract and support for multi-product requests pending OI-28 | Submitted by an external system authorized for the Brand | Card |
+| Product name | String per product | Proposed: required and nonblank; required fields and limits follow OI-23 and OI-24 | Supplied on behalf of the authorized Brand | Card |
+| Picture | Image content per product | Requiredness and media limits follow OI-23 and OI-24; transfer method pending OI-28 | Supplied on behalf of the authorized Brand | Card |
+| Additional information | Content per product | Requiredness follows OI-23; supported formats follow OI-6 | Supplied on behalf of the authorized Brand | Card |
+| Brand reference | Identifier | Derived from authenticated API access | Cannot be assigned to an unrelated Brand through request input | Brand |
+
+Each accepted product follows the complete-product save and retry behavior of `UC-BRND-create-product`. The response identifies created products and submission outcomes. Authentication, media transfer, request limits, and the retry mechanism remain open in OI-28. Onboarding may use repeated single-product requests or multi-product requests; this draft does not select either design or establish batch atomicity. Existing-product matching and update behavior also remain open in OI-28.
+
+**Related Use Cases:** `UC-BRND-create-product`: Create a product; `UC-BRND-import-products`: Import products from a spreadsheet.
+**Assumptions:** API access preserves authorized Brand ownership and the Admin Approval and market-publication workflow resolved in OI-25 and OI-26. This use case covers product onboarding; wider enterprise API workflows are outside its scope.
+**Open Issues:** [OI-28](OPEN-ISSUES.md#open): API contract, authentication, media transfer, request limits, batch handling, retry mechanism, existing-product handling, and any additional onboarding rules. Shared field requirements and limits remain tracked in OI-23 and OI-24; additional-information formats remain tracked in OI-6.
 
 ---
 
