@@ -51,6 +51,10 @@ _[Send the shortlist to your client the day before. A client who has seen the qu
 | OI-22 | Is the Engagement Funnel reported for Brand Markets only, or for Standard Markets too? | Sets the scope of `UC-FDBK-complete-market` reporting. | Client | 2026-10-13 |
 | OI-23 | Which product fields are required when a product is created? | Blocks validation in `UC-BRND-create-product`. | Client | 2026-09-14 |
 | OI-24 | What name length, image format, and media size limits apply to a product? | Blocks validation in `UC-BRND-create-product`. | Client | 2026-09-14 |
+| OI-27 | In what time window do the 10,000 Consumers of the QR Code growth scenario arrive (all within minutes, or across an event), and how long does the event last? | Sets the load target for `SCA-qr-event-burst` and its load test. | Client | 2026-10-16 |
+| OI-28 | Is there a response-time target for showing the next Card after a swipe, or for loading a dashboard? | `PER-not-yet-specified`; without a number no performance requirement can be tested. | Client | 2026-10-16 |
+| OI-29 | Is there an availability target, for example during a live event? | `AVL-not-yet-specified`; decides whether event-time outages need a design response. | Client | 2026-10-16 |
+| OI-30 | Must the consumer views meet an accessibility standard such as WCAG 2.1 AA, and on which devices and browsers? | `USE-not-yet-specified`; affects every user-facing view. | Client | 2026-10-16 |
 
 ## Resolved
 

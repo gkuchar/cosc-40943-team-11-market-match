@@ -3,7 +3,7 @@
 **Project:** Market Match
 **Team:** Team 11
 **Client:** Demetrie King, Market Match
-**Version:** 0.1
+**Version:** 0.2
 
 ---
 
@@ -23,18 +23,19 @@ _[The new identifiers this document creates. Everything else it cites keeps the 
 
 | Space         | For                                               | Example                          |
 | ------------- | ------------------------------------------------- | -------------------------------- |
-| `KD-<slug>`   | Key architectural decisions                       | `KD-single-deployable`           |
-| `QS-<slug>`   | Quality scenarios                                 | `QS-cross-employee-order-denied` |
-| `RISK-<slug>` | Technical risks                                   | `RISK-payroll-api-unavailable`   |
-| `TD-<slug>`   | Technical debt the architecture knowingly carries | `TD-no-rate-limiting`            |
+| `KD-<slug>`   | Key architectural decisions                       | `KD-deployment-shape`            |
+| `QS-<slug>`   | Quality scenarios                                 | `QS-cross-org-market-denied`     |
+| `RISK-<slug>` | Technical risks                                   | `RISK-d1-postgres-drift`         |
+| `TD-<slug>`   | Technical debt the architecture knowingly carries | `TD-swallowed-analytics-errors`  |
 
 _[These are slugs, like every other identifier in your project, so an inserted decision renumbers nothing and a citation says what it points at. Project Pulse uses the same form: `KD-modular-monolith`, `QS-cross-team-denial`.]_
 
 ## Revision History
 
-| Version | Date | Author | Change                         |
-| ------- | ---- | ------ | ------------------------------ |
-| 0.1     |   2026-10-02    |   Team 11     | Initial draft for Checkpoint 1 |
+| Version | Date       | Author  | Change                                                                                                     |
+| ------- | ---------- | ------- | ---------------------------------------------------------------------------------------------------------- |
+| 0.1     | 2026-10-02 | Team 11 | Initial draft for Checkpoint 1                                                                             |
+| 0.2     | 2026-10-16 | Team 11 | Checkpoint 1 feedback: quality goals, constraints, external systems, component table, 8.1, 8.2, 9.1, 9.2 |
 
 ---
 
@@ -52,15 +53,13 @@ See the [Software Requirements Specification](../requirements/software-requireme
 
 _[The **three** quality attributes that most shape your system, in priority order. Pick them from section 9 of your [specification](../requirements/software-requirements-specification.md) and cite their identifiers. If you cannot rank them, ask your client which one they would give up first; that answer is the ranking._
 
-_These are usually the top rows of the table in section 9.1, and the two do different jobs. Here, say why each goal matters to your client. There, say which decision it forces._
+_These are usually the top rows of the table in section 9.1, and the two do different jobs. Here, say why each goal matters to your client. There, say which decision it forces.]_
 
-_Example, from the Cafeteria Ordering System:]_
-
-| Priority | Quality goal                              | Specification handles                            | Why it shapes the architecture                                                                                                      |
-| -------- | ----------------------------------------- | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| 1        | _Payroll data stays confidential_         | _`SEC-payroll-auth`, `SEC-employee-own-orders`_  | _Orders are paid by payroll deduction, so an order record carries an employee's pay account. A leak is a legal problem, not a bug._ |
-| 2        | _Orders placed before 10:00 are not lost_ | _`ROB-order-persisted`, `AVL-lunch-window`_      | _The lunch rush is the only load that matters, and a lost order is a hungry employee with a payroll charge._                        |
-| 3        | _Cafeteria staff can run it without IT_   | _`CO-no-dedicated-ops`, `MNT-menu-self-service`_ | _Nobody on the cafeteria side can deploy, restart, or patch anything._                                                              |
+| Priority | Quality goal                                                  | Specification handles                                                       | Why it matters to the client                                                                                                                                                                                                                             |
+| -------- | ------------------------------------------------------------- | --------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1        | One Organization's data never reaches another, or a wrong Role | `SEC-org-data-isolation`, `SEC-role-data-scope`, `SEC-pii-encrypted`        | Brands, colleges, and departments of one institution share one platform, and the client sets departments up as separate Organizations precisely so they cannot see each other's results (`BR-view-org-markets`). A leak ends the trust the business sells. |
+| 2        | A 10,000-person QR Code event does not crash it               | `SCA-qr-event-burst`                                                        | The client's growth pitch is a large event where everyone scans one QR Code at once; "I just want to make sure that it doesn't crash" is the one performance statement he has made.                                                                       |
+| 3        | Every swipe is counted once, and the client can keep it running | `ROB-swipe-exactly-once`, `MNT-client-maintainable`                         | The swipe data is the product Brands pay for, so a lost or doubled swipe is a wrong number on a Brand Dashboard. The client maintains the platform himself through Claude Code after the team leaves.                                                   |
 
 ### 1.3 Stakeholders
 
@@ -76,6 +75,14 @@ _[The constraints the architecture has to honor. They are already written as `CO
 
 _Your technology stack is a constraint only if something external fixes it: the client's IT department, an existing system, or the person who maintains this after you graduate. A stack your team chose is a decision, and it goes in section 9 with the alternative you rejected.]_
 
+- `CO-cloudflare-hosting`: this fixes the back end as Cloudflare Workers and makes Cloudflare D1, reached through a Worker binding, the production database. A long-running server process or an always-on database server is not available.
+- `CO-workos-identity`: Market Match stores no credentials, and the Role and Organization records it authorizes against live in WorkOS, not in D1.
+- `CO-existing-codebase`: the containers in section 5.1 are the ones the client's repository already has. This project changes what runs inside them, not how many there are.
+- `CO-client-maintains`
+- `CO-preview-before-production`: every environment-specific value must exist twice, once for Production and once for the Preview Link (section 8.2.6).
+
+No `OE-*` operating-environment requirements have been confirmed yet ([OI-30](../requirements/OPEN-ISSUES.md#open)).
+
 ## 3. Context and Scope
 
 _Due: Checkpoint 1._
@@ -88,89 +95,55 @@ _This is your project's one context diagram. Section 4.1 of [vision and scope](.
 
 _arc42 divides context into a **business context** (who and what crosses the boundary) and a **technical context** (the channels and protocols). This diagram is the business context. The protocols go on the arrows of the container diagram in section 5.1._
 
-_The **trust boundary** is not drawn here. You name it in writing in section 8.1, as Project Pulse does._
-**System context diagram (C4):**
+_The **trust boundary** is not drawn here. You name it in writing in section 8.1, as Project Pulse does.]_
 
-The following is the authoritative system-context view. Relationship labels are intentionally short to reduce visual overlap in Mermaid's C4 renderer.
+**System context diagram (C4):**
 
 ```mermaid
 C4Context
     title Market Match - System Context
 
-    Person(consumer, "Consumer", "Browses products and gives feedback")
-    Person(brand, "Brand", "Manages products and reviews insights")
-    Person(vendor, "Vendor", "Accesses market information")
-    Person(admin, "Administrator", "Manages users and platform data")
-    Person(enterprise, "Enterprise Organization", "Uses integrations and white-label services")
+    Person(consumer, "Consumer", "Enters Markets and swipes Cards, signed in or through Public Access")
+    Person(brand, "Brand", "Submits products and reads its own SKUs' feedback")
+    Person(vendor, "Vendor", "Reads Likes, Passes, and Completion Time for its Markets")
+    Person(admin, "Administrator", "Builds and launches Markets, approves products, manages Organizations")
+    Person(enterprise, "Enterprise Organization", "Connects through the API")
 
-    System(mm, "Market Match", "Product discovery and preference insights")
+    System(mm, "Market Match", "Swipe-based product feedback and insights")
 
-    System_Ext(workos, "WorkOS", "Identity and roles")
-    System_Ext(gemini, "Google Gemini", "AI-assisted insights")
-    System_Ext(d1, "Cloudflare D1", "Production data storage")
-    System_Ext(postgres, "PostgreSQL", "Local development data storage")
+    System_Ext(workos, "WorkOS", "Users, Organizations, Roles, sign-in")
+    System_Ext(d1, "Cloudflare D1", "Production database")
+    System_Ext(images, "Cloudflare image storage", "Card photos")
+    System_Ext(youtube, "YouTube", "Card videos")
+    System_Ext(postgres, "PostgreSQL", "Local development database")
+    System_Ext(gemini, "Google Gemini", "AI insights (planned, not MVP)")
 
-    Rel(consumer, mm, "Products and feedback")
-    Rel(brand, mm, "Products and insights")
-    Rel(vendor, mm, "Markets and insights")
-    Rel(admin, mm, "Users and data")
-    Rel(enterprise, mm, "APIs and white-label")
+    Rel(consumer, mm, "Enters Markets, swipes")
+    Rel(brand, mm, "Products, feedback")
+    Rel(vendor, mm, "Market results")
+    Rel(admin, mm, "Markets, approvals")
+    Rel(enterprise, mm, "API calls")
 
-    Rel(mm, workos, "Authentication and roles")
-    Rel(mm, gemini, "Feedback and AI insights")
-    Rel(mm, d1, "Read and write production data")
-    Rel(mm, postgres, "Read and write local data")
+    Rel(mm, workos, "Sign-in, roles")
+    Rel(mm, d1, "Reads, writes")
+    Rel(mm, images, "Stores, serves photos")
+    Rel(consumer, youtube, "Plays Card video")
+    Rel(mm, postgres, "Reads, writes (dev only)")
+    Rel(mm, gemini, "Aggregates for insights (planned)")
 
     UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
 ```
 
-**Readable presentation view (same context, spacious layout):**
+| External system          | What crosses the boundary                                         | Specification                       |
+| ------------------------ | ----------------------------------------------------------------- | ----------------------------------- |
+| WorkOS                   | Sign-in, and each user's identity, Organization, and Role         | `SI-workos-auth`, `DE-workos`       |
+| Cloudflare D1            | All production Market Match data                                  | `SI-d1-storage`, `DE-cloudflare`    |
+| Cloudflare image storage | Card photos                                                       | `SI-cloudflare-images`, `DE-cloudflare` |
+| YouTube                  | Card videos, loaded by the browser directly                       | `SI-youtube-video`, `DE-youtube`    |
+| PostgreSQL               | The same data as D1, on a developer's machine only                | `SI-postgres-local`                 |
+| Google Gemini            | Aggregated, de-identified figures out, insights back. **Planned, not in the MVP.** | `SI-gemini-insights`, `DE-gemini` |
 
-```mermaid
-%%{init: {"theme":"base","themeVariables":{"background":"#161B22","primaryTextColor":"#FFFFFF","lineColor":"#94A3B8","fontFamily":"Arial, sans-serif","fontSize":"16px"},"flowchart":{"nodeSpacing":110,"rankSpacing":160,"curve":"basis","htmlLabels":true,"padding":32}}}%%
-flowchart TB
-    subgraph ACTORS["PEOPLE & ORGANIZATIONS"]
-        direction LR
-        consumer["Consumer"]
-        brand["Brand"]
-        vendor["Vendor"]
-        admin["Administrator"]
-        enterprise["Enterprise Organization"]
-    end
-
-    mm["Market Match<br/>Product discovery and preference insights"]
-
-    subgraph SERVICES["EXTERNAL SYSTEMS & DATA STORES"]
-        direction LR
-        workos["WorkOS<br/>Authentication & roles"]
-        gemini["Google Gemini<br/>AI insights"]
-        d1["Cloudflare D1<br/>Production storage"]
-        postgres["PostgreSQL<br/>Local development"]
-    end
-
-    consumer -->|"Products / feedback"| mm
-    brand -->|"Products / insights"| mm
-    vendor -->|"Markets / insights"| mm
-    admin -->|"Users / data"| mm
-    enterprise -->|"APIs / white-label"| mm
-
-    mm -->|"Auth / roles"| workos
-    mm -->|"AI analysis"| gemini
-    mm -->|"Production data"| d1
-    mm -->|"Local data"| postgres
-
-    classDef actor fill:#173B5E,stroke:#62B5EF,stroke-width:1.5px,color:#FFFFFF
-    classDef main fill:#1364A5,stroke:#9EDBFF,stroke-width:3px,color:#FFFFFF
-    classDef external fill:#334155,stroke:#A3B2C7,stroke-width:1.5px,color:#FFFFFF
-    class consumer,brand,vendor,admin,enterprise actor
-    class mm main
-    class workos,gemini,d1,postgres external
-    style ACTORS fill:#1D2530,stroke:#43536A,color:#FFFFFF
-    style SERVICES fill:#1D2530,stroke:#43536A,color:#FFFFFF
-    linkStyle default stroke:#94A3B8,stroke-width:1.5px,color:#FFFFFF
-```
-
-**External interactions:** WorkOS supplies authentication and role management. Google Gemini is shown for the proposed AI-assisted feedback analysis integration; its implementation status should be confirmed with the team. The existing architecture specifies Cloudflare D1 for production persistence and PostgreSQL for local development, so both are labeled by environment rather than presenting PostgreSQL as the production database.
+D1 and PostgreSQL are drawn as boxes here because they are managed by others (Cloudflare) or exist only outside Production (PostgreSQL). Section 5.1 shows them as the system's database container, by environment.
 
 ## 4. Solution Strategy
 
@@ -178,11 +151,12 @@ _Due: Checkpoint 1._
 
 _[Three to five bullets: the few moves that shape everything else. arc42 suggests four kinds: the technology you build on, how the system is divided at the top level, how the quality goals in section 1.2 are met, and any organizational choice that shapes the code (who maintains what, what you buy instead of build)._
 
-_Each bullet is one sentence, and it cites what explains it: the key decision in section 9.2 where one exists, and otherwise the quality goal and the building block in section 5 it shapes. Keep it short; the reasoning lives in section 9. A bullet that cites nothing is either not load-bearing, or it is a decision you have not written down yet._
+_Each bullet is one sentence, and it cites what explains it: the key decision in section 9.2 where one exists, and otherwise the quality goal and the building block in section 5 it shapes. Keep it short; the reasoning lives in section 9. A bullet that cites nothing is either not load-bearing, or it is a decision you have not written down yet.]_
 
-- **Preserve the existing Market Match production deployment shape** (`KD-deployment-shape`): the React front end and Cloudflare Worker API are deployed together, with Cloudflare D1 providing production data storage.
-- **Separate the browser interface, application API, and persistent data into three architectural containers** (section 5.1), keeping user interaction, server-side application behavior, and production data storage separated by responsibility.
-- **Use WorkOS as the external authentication service** (sections 3 and 5.1), with authentication handled through the application API rather than implementing a separate authentication system within Market Match.
+- **Keep the client's single Cloudflare Worker deployment** (`KD-deployment-shape`): the React front end and the Hono API ship together as one Worker per environment, over Cloudflare D1, because that is what the client can operate (`CO-client-maintains`) and Workers scale out per request for the QR Code burst (`SCA-qr-event-burst`).
+- **Make the Application API the only trust boundary** (section 8.1): every Organization and Role check happens in the API, never in the browser, to meet quality goal 1 (`SEC-org-data-isolation`, `SEC-role-data-scope`).
+- **Buy identity rather than build it**: WorkOS owns sign-in, Organizations, and Roles, and the Identity component (section 5.2) is the only code that talks to it (`CO-workos-identity`, `SEC-dashboard-auth`).
+- **Make every feedback write idempotent**: each swipe, Flip, Click, and funnel stage carries a client-generated submission key that the Persistence component deduplicates, to meet quality goal 3 (`ROB-swipe-exactly-once`).
 
 ## 5. Building Block View
 
@@ -196,7 +170,7 @@ _Label every arrow with what it does and the protocol it uses ("Sends confirmati
 
 _Under the diagram, one or two sentences on **why the system is divided this way**, citing `KD-deployment-shape`. A reader who sees three containers should not have to guess why there are not seven._
 
-_Three containers is a normal answer. If you have more than five, check each one against section 9: which decision, driven by which quality attribute, requires it to run separately?_
+_Three containers is a normal answer. If you have more than five, check each one against section 9: which decision, driven by which quality attribute, requires it to run separately?]_
 
 **Container diagram:**
 
@@ -204,32 +178,34 @@ _Three containers is a normal answer. If you have more than five, check each one
 C4Container
     title Container Diagram: Market Match
 
-    Person(consumer, "Consumer", "Views products and provides preference feedback")
-    Person(brand, "Brand", "Manages products and reviews feedback and insights")
-    Person(vendor, "Vendor", "Accesses market information and insights")
-    Person(admin, "Administrator", "Manages platform information")
-    Person(enterprise, "Enterprise Organization", "Uses API-based integrations and white-label capabilities")
+    Person(consumer, "Consumer", "Enters Markets and swipes Cards")
+    Person(staff, "Brand, Vendor, Administrator", "Dashboards, products, Markets")
+    Person(enterprise, "Enterprise Organization", "API client")
 
     System_Boundary(mm, "Market Match") {
-        Container(web, "Web Front End", "React 19 / Vite", "Provides the browser-based Market Match user interface")
-        Container(api, "Application API", "Cloudflare Worker / Hono", "Handles API requests, authentication, business logic, and data access")
-        ContainerDb(db, "Production Database", "Cloudflare D1", "Stores Market Match production data")
+        Container(web, "Web Front End", "React 19 / Vite, static assets", "Swipe experience and dashboards in the browser")
+        Container(api, "Application API", "Cloudflare Worker / Hono / TypeScript", "Authentication, authorization, business rules, data access")
+        ContainerDb(db, "Database", "Cloudflare D1 (Production, Preview) / PostgreSQL (local dev)", "Markets, Categories, Inventory, sessions, swipes, Flips, Clicks")
     }
 
-    System_Ext(workos, "WorkOS", "Provides authentication and role management")
+    System_Ext(workos, "WorkOS", "Identity, Organizations, Roles")
+    System_Ext(images, "Cloudflare image storage", "Card photos")
+    System_Ext(youtube, "YouTube", "Card videos")
+    System_Ext(gemini, "Google Gemini", "AI insights (planned, not MVP)")
 
-    Rel(consumer, web, "Uses Market Match", "HTTPS")
-    Rel(brand, web, "Uses Market Match", "HTTPS")
-    Rel(vendor, web, "Uses Market Match", "HTTPS")
-    Rel(admin, web, "Uses Market Match", "HTTPS")
-    Rel(enterprise, api, "Uses authorized API services", "HTTPS/JSON")
-
-    Rel(web, api, "Calls API", "HTTPS/JSON")
-    Rel(api, db, "Reads and writes application data", "D1 binding")
-    Rel(api, workos, "Authenticates users and obtains identity information", "HTTPS")
+    Rel(consumer, web, "Swipes, flips, opens media", "HTTPS")
+    Rel(staff, web, "Uses dashboards", "HTTPS")
+    Rel(enterprise, api, "Calls API", "HTTPS/JSON")
+    Rel(web, api, "Calls /api/*", "HTTPS/JSON")
+    Rel(web, youtube, "Embeds video", "HTTPS iframe")
+    Rel(web, images, "Loads photos", "HTTPS")
+    Rel(api, db, "Reads, writes", "D1 binding / SQL over TCP in dev")
+    Rel(api, workos, "Signs users in, reads Roles", "HTTPS/OAuth")
+    Rel(api, images, "Uploads photos", "Cloudflare binding")
+    Rel(api, gemini, "Sends aggregates (planned)", "HTTPS/JSON")
 ```
 
-The system uses a browser-based React front end, a Cloudflare Worker API, and Cloudflare D1 for production data storage. The front end and API are deployed together under the existing production deployment model described in `KD-deployment-shape`.
+There are three containers because the client already runs exactly these three, as one Worker serving the built front end and `/api/*` over one D1 database (`KD-deployment-shape`, `CO-existing-codebase`). Nothing in section 9.1 needs a piece that runs or scales separately: Workers already scale per request for `SCA-qr-event-burst`, and a fourth container would be one more thing the client has to deploy and keep alive (`CO-client-maintains`).
 
 ### 5.2 Use case areas and components
 
@@ -237,20 +213,22 @@ _[One row per use case area in your [use cases](../requirements/use-cases.md), t
 
 _**Responsibility** is one sentence, what the component owns, not how it works. **Depends on** names other components and external systems, never classes. **Status** is `provisional` until the component has been built through at least one use case, and `proven` after that. At Checkpoint 1 every row is `provisional`; Checkpoint 2 turns at least one to `proven`._
 
-_Project Pulse's component tables also name each component's package. They can because its code exists; yours does not yet, so a row here is a name and a responsibility, and packages come with the design-of-record in week 7._
+_Project Pulse's component tables also name each component's package. They can because its code exists; yours does not yet, so a row here is a name and a responsibility, and packages come with the design-of-record in week 7.]_
 
-_Example:]_
-
-| Use case area     | Component      | Responsibility                                                        | Depends on                | Status        |
-| ----------------- | -------------- | --------------------------------------------------------------------- | ------------------------- | ------------- |
-| _`ORD`_           | _Ordering_     | _Owns an order from placement to cancellation, and the cut-off rules_ | _Menu, Payment, Identity_ | _provisional_ |
-| _`MNU`_           | _Menu_         | _Owns daily menus and item availability_                              | _Identity_                | _provisional_ |
-| _`DEL`_           | _Delivery_     | _Owns delivery slots and the staff's fulfilment queue_                | _Ordering, Notification_  | _provisional_ |
-| _(cross-cutting)_ | _Payment_      | _The only component that talks to the Payroll System_                 | _Payroll System_          | _provisional_ |
-| _(cross-cutting)_ | _Identity_     | _Maps a signed-on employee to a role_                                 | _Corporate Sign-On_       | _provisional_ |
-| _(cross-cutting)_ | _Notification_ | _Sends every email the system sends_                                  | _Corporate Email_         | _provisional_ |
+| Use case area     | Component        | Responsibility                                                                                                                  | Depends on                                       | Status      |
+| ----------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ | ----------- |
+| `MKT`             | Market Access    | Owns entry into a launched Market by Market Code or Public Access link, and the Market session that every capture belongs to    | Identity, Persistence                            | provisional |
+| `PROD`            | Product Catalog  | Owns the approved Cards a Market shows, by Category, and each Card's front and back content                                     | Persistence, Media                               | provisional |
+| `FDBK`            | Feedback Capture | Owns recording each impression, swipe, Flip, Click, and Engagement Funnel stage exactly once against its Market session         | Market Access, Product Catalog, Persistence      | provisional |
+| `BRND`            | Brand Products   | Owns a Brand's product submissions and updates, and the Admin's Approval before they are published                              | Identity, Product Catalog, Media                 | provisional |
+| _(cross-cutting)_ | Identity         | The only component that talks to WorkOS; maps a session to a user, Organization, and Role, and answers every access check      | WorkOS                                           | provisional |
+| _(cross-cutting)_ | Persistence      | The only component that touches the database; owns the schema in both engines and deduplicates writes by submission key        | Cloudflare D1, PostgreSQL                        | provisional |
+| _(cross-cutting)_ | Media            | Stores and serves Card photos and holds Card video links                                                                        | Cloudflare image storage, YouTube                | provisional |
+| _(cross-cutting)_ | Insights         | **Planned, not in the MVP.** The only component that talks to Gemini; sends one Organization's aggregated figures, returns text | Persistence, Identity, Google Gemini             | provisional |
 
 _[Check before Checkpoint 1: every area in your use case file appears in the first column, and every external system in section 3 appears in some Depends on cell.]_
+
+Check: `MKT`, `PROD`, `FDBK`, and `BRND` are every area in section 3 of the use cases. WorkOS, Cloudflare D1, PostgreSQL, Cloudflare image storage, YouTube, and Google Gemini each appear in a Depends on cell.
 
 ## 6. Runtime View
 
@@ -285,7 +263,13 @@ _[Four short paragraphs. The last three each cite the `SEC-*` requirement they a
 
 _Secrets (passwords, API keys, connection strings) never appear in this document or in the repository. Say where they will live, not what they are.]_
 
-**Trust boundary:** The Application API running in the Cloudflare Worker is the server-side trust boundary for Market Match. Requests from the browser and interactions with external systems such as WorkOS cross this boundary. Authentication and authorization are enforced by the application API before protected application data or functionality is accessed.
+**Trust boundary.** The Application API, the Cloudflare Worker, is the trust boundary. The browser and everything in it (the Web Front End's code, the timings it measures, any Role or Organization it displays) sit outside it, as do WorkOS, YouTube, Cloudflare image storage, Gemini, and every Enterprise API client. Every request the Worker answers, including static asset routes and any framework or debug endpoint, is authenticated and authorized in the API before data is read. The only unauthenticated routes are Public Access Market entry and its capture (`BR-public-market`), and those can reach only the one Public Access Market they name.
+
+**Authentication** (`SEC-dashboard-auth`). WorkOS issues every credential: a user signs in at login.marketmatch.app with a One-Time Code or a security key, and the API exchanges the result for a session. Market Match never sees or stores a password (`CO-workos-identity`). Production and the Preview Link use separate WorkOS sides, so a Preview session is never valid in Production. A Public Access Consumer is identified only by an anonymous Market session that the server generates.
+
+**Authorization** (`SEC-org-data-isolation`, `SEC-role-data-scope`). The Roles are Consumer (every user by default), Brand, Vendor, and Admin, assigned in WorkOS only by the Admin (`BR-assign-role`, `BR-admin-role`). Beyond the Role, every query for a Market or its results is scoped by the requesting user's Organization, read from the session and never from request input. A Brand additionally sees only its own SKUs, a Vendor never receives swipe-behavior fields, and the Admin never receives an Organization's detailed data points. These scopes are applied in the API, so that the response omits forbidden fields; hiding them in the front end does not count.
+
+**Sensitive data** (`SEC-pii-encrypted`). The personal data is users' email addresses (`BR-collect-email-only`), which live in WorkOS and are referenced from the Database, and the Demographic snapshot stored with each signed-in swipe in the Database. Both are encrypted at rest and travel only over TLS (`BR-protect-pii`). No external system other than WorkOS receives personal data. Gemini, when built, receives only aggregated, de-identified figures (`SI-gemini-insights`). Retention of Demographic snapshots is not yet decided ([OI-12](../requirements/OPEN-ISSUES.md#open)), and section 7.4 of the specification will cite the answer. Secrets (the WorkOS API key, binding names) live in Cloudflare Worker secrets for Production and the Preview Link and in an untracked `.dev.vars` locally, never in the repository.
 
 ### 8.2 Other concepts
 
@@ -306,49 +290,45 @@ _One short subsection each: the rule in one sentence, why, and the file that sho
 | _Auditing_                    | _Who changed what, and when?_                                                                                          | _The first "who did this?"_              |
 | _Testing_                     | _Which kinds of test, at which layer, with what data?_                                                                 | _The first pull request_                 |
 
-_Example, from the Cafeteria Ordering System:_
-
-**8.2.1 Error handling.** _Every endpoint returns `{ "ok": false, "error": { "code", "message" } }` on failure, produced by one exception handler; no controller builds its own error body, and no response carries an exception's own message. Why: the ordering screen and the menu screen share one error display, and an exception's message can reveal the database behind it. Shown in: `ApiExceptionHandler`._
-
 #### 8.2.1 Error handling
 
-Frontend API calls are centralized through `services/apiService.ts`; non-successful HTTP responses are treated as errors using the error information returned by the API. This keeps API failure handling consistent across frontend features.
+**Rule:** every API failure returns a non-2xx status with `{ "error": { "code", "message" } }` from one Hono error handler, no route builds its own error body, and no `catch` block may swallow an error without logging it and returning a failure. **Why:** the client's repository silently drops failed analytics writes in empty `catch` blocks (`UC-FDBK-rate-product`, current state), which breaks `ROB-swipe-exactly-once`, and an exception's own message can reveal the database behind it. The front end handles every failure in one place, `services/apiService.ts`. **Shown in:** to be added with the first slice.
 
 #### 8.2.2 Time and time zones
 
-No project-wide time-zone convention is documented in the existing Market Match architecture. This remains to be defined if requirements introduce deadlines or other time-sensitive behavior.
+**Rule:** timestamps are stored in UTC as epoch milliseconds, durations (Time-to-Swipe, dwell time) are stored in milliseconds, and the server's clock stamps every stored record while the browser's clock is used only to measure a duration on one device. **Why:** Completion Time and the Engagement Funnel are derived by subtracting stored timestamps (`UC-FDBK-complete-market`), so every stage must come from one clock. Time zones matter only when a dashboard displays a date, which is converted in the browser. **Shown in:** to be added.
 
 #### 8.2.3 API conventions
 
-Frontend-to-backend communication uses `/api/*` endpoints with JSON over HTTPS. Frontend API access is centralized through `services/apiService.ts`.
+**Rule:** every endpoint lives under `/api/*` and speaks JSON over HTTPS; public, unauthenticated endpoints live under `/api/public/*` and nowhere else, and every write that can be retried accepts a submission key. **Why:** one prefix for public routes makes the sweep that verifies `SEC-dashboard-auth` mechanical, and submission keys are how `ROB-swipe-exactly-once` is met. The client's repository already uses `/api/responses` and `/api/public/responses`. **Shown in:** `worker/src/index.ts` (existing routes).
 
 #### 8.2.4 Code conventions
 
-No architecture-level project-wide code convention beyond the existing technology and repository structure is currently documented. Existing conventions should be preserved unless the team records a new decision.
+**Rule:** TypeScript everywhere, with React function components in the front end and Hono routes in the Worker; access checks go through the Identity component and database access goes through the Persistence component, never inline in a route. **Why:** `CO-existing-codebase` fixes the language and frameworks, and a single place for each check is what lets the client's Claude Code sessions change one without missing the others (`MNT-client-maintainable`). **Shown in:** to be added.
 
 #### 8.2.5 Validation
 
-Input validation is performed before invalid data is persisted. Existing product CSV processing classifies rows as `VALID`, `WARNING`, or `ERROR`, and critical validation errors prevent those rows from being imported.
+**Rule:** the API validates every input, and that check is the one that counts; front-end validation is only for the user's convenience. Enumerations are rejected when unknown, never coerced. **Why:** the browser is outside the trust boundary (section 8.1), and the client's public route today coerces unknown swipe directions to `LEFT` (`UC-FDBK-rate-product`, current state). Existing CSV product import already classifies rows as `VALID`, `WARNING`, or `ERROR`, and `ERROR` rows are not imported. **Shown in:** to be added.
 
 #### 8.2.6 Configuration and secrets
 
-Environment-specific configuration and secrets are kept outside source code. Local development uses environment files such as `.env.local` and `.dev.vars`, while production Worker secrets are managed through Cloudflare; secrets must not be committed to the repository.
+**Rule:** every environment-specific value and secret exists separately for Production, the Preview Link, and local development: Cloudflare Worker secrets and bindings for the first two, untracked `.env.local` and `.dev.vars` locally, and a committed `.env.example` that lists every name with no values. **Why:** `CO-preview-before-production` requires two deployed environments with separate WorkOS sides, and the second client meeting showed secrets had no documented home. **Shown in:** `.env.example` (requested from the client).
 
 #### 8.2.7 Logging
 
-No project-wide logging convention is documented in the existing architecture. A common logging policy remains to be defined as implementation work requires it.
+**Rule:** the Worker logs every failed write and every refused access check with the route, the error code, and the Market session or user identifier, and it never logs an email address, a Demographic answer, a token, or a request body. **Why:** a failed capture must be logged rather than silently dropped (`UC-FDBK-open-card-media` extension 2a), and `SEC-pii-encrypted` forbids plaintext personal data, which includes logs. **Shown in:** to be added.
 
 #### 8.2.8 Persistence and concurrency
 
-Production persistence uses Cloudflare D1, while local development uses PostgreSQL. Schema changes that affect both environments must be kept synchronized. No project-wide concurrency policy is currently documented.
+**Rule:** a swipe, its measures, and its Demographic snapshot are written in one transaction, a unique constraint on the submission key makes a retried write a no-op, and every schema change is a migration applied to both D1 and PostgreSQL in the same pull request. **Why:** `ROB-swipe-exactly-once` and `UC-FDBK-rate-product` require one stored swipe and no partial one. Most records are append-only captures, so concurrent edits matter only for Inventory and Markets, where the last Admin save wins. **Shown in:** to be added.
 
 #### 8.2.9 Auditing
 
-No project-wide auditing convention is documented in the existing Market Match architecture. Auditing requirements should be defined before implementing features that require tracking who changed data and when.
+**Rule:** every Approval or rejection of a Brand's product or update records who decided, when, and on which version; captured feedback records are never updated or deleted by application code. **Why:** `BR-approve-product` makes the Admin's Approval the gate to publication, so "who approved this?" is the first audit question the client will ask. **Shown in:** to be added.
 
 #### 8.2.10 Testing
 
-Existing testing includes functional checks for authentication, role-based authorization, and API access. New implementation work should preserve these checks and add tests for changed behavior.
+**Rule:** every pull request carries automated tests for the behavior it changes: unit tests for derived figures (Like Rate, Completion Time), API integration tests against local PostgreSQL for every access check and every write, and the change is checked on the Preview Link before it reaches Production. **Why:** the access-check tests are the oracles of `SEC-org-data-isolation` and `SEC-role-data-scope`, and `MNT-client-maintainable` requires a test with every change. The client's existing checks for authentication, Role-based authorization, and API access are kept. **Shown in:** to be added.
 
 ## 9. Architecture Decisions
 
@@ -362,9 +342,14 @@ _Your quality goals from section 1.2 are usually the top rows; cite them by iden
 
 _List three to six, ranked by importance to your client times difficulty to achieve. Reuse the specification's identifiers, never new ones. **At least one row is a `SEC-*` attribute.** Every system your team builds this year holds some personal data, and if no security requirement appears here, that data's protection was never designed; it will be added later, which is where security bugs come from.]_
 
-| Rank | Requirement                 | Specification handles | Importance × difficulty | Drives                  |
-| ---- | --------------------------- | --------------------- | ----------------------- | ----------------------- |
-| 1    | _Payroll data confidential_ | _`SEC-payroll-auth`_  | _High × Medium_         | _`KD-payment-isolated`_ |
+| Rank | Requirement                                       | Specification handles                                 | Importance × difficulty | Drives                                                                                     |
+| ---- | ------------------------------------------------- | ----------------------------------------------------- | ----------------------- | ------------------------------------------------------------------------------------------ |
+| 1    | One Organization's data never reaches another     | `SEC-org-data-isolation`                              | High × High             | API as the only trust boundary (8.1); Identity component answers every scope check         |
+| 2    | Each Role receives only its own data points       | `SEC-role-data-scope`                                 | High × Medium           | Field filtering in the API, not the front end (8.1); Identity component                     |
+| 3    | 10,000-Consumer QR Code event without crashing    | `SCA-qr-event-burst`                                  | High × High             | `KD-deployment-shape` (per-request Worker scaling over D1)                                  |
+| 4    | Each swipe stored exactly once                    | `ROB-swipe-exactly-once`                              | High × Medium           | Submission keys and the unique constraint (8.2.3, 8.2.8); Persistence component            |
+| 5    | Personal data encrypted, sent only to WorkOS      | `SEC-pii-encrypted`, `SEC-dashboard-auth`             | High × Low              | WorkOS as identity provider (`CO-workos-identity`); Insights gets aggregates only           |
+| 6    | The client can operate and change it himself      | `CO-client-maintains`, `MNT-client-maintainable`      | High × Medium           | `KD-deployment-shape`; written conventions in 8.2                                           |
 
 ### 9.2 Key decisions
 
@@ -372,21 +357,23 @@ _[One entry per key decision (`KD-*`), in the form below; it is what the wider i
 
 _A decision without a **rejected alternative** is not a decision, it is a description. Name what you did not do and why not, so the next person does not redo the argument._
 
-_A decision that turns out wrong is not deleted or rewritten. Mark it **Superseded by `KD-<new-slug>`** and write the new decision as its own entry, so the reasoning behind both stays readable._
+_A decision that turns out wrong is not deleted or rewritten. Mark it **Superseded by `KD-<new-slug>`** and write the new decision as its own entry, so the reasoning behind both stays readable.]_
 
-**`KD-deployment-shape`: one application deployment.** _Accepted._
+**`KD-deployment-shape`: one Cloudflare Worker per environment.** _Accepted._
 
-- **Driving requirements:** Existing Market Match production architecture and deployment environment.
-- **Context:** Market Match already has a production deployment in which the React frontend is built as static assets, `/api/*` requests are handled by a Cloudflare Worker, and production data is stored in Cloudflare D1.
-- **Decision:** Continue the existing production deployment shape: deploy the built React frontend and the API together through the Cloudflare Worker deployment, with Cloudflare D1 as the production database.
-- **Rejected:** Split the frontend and API into independently deployed services. This would change the existing production deployment model and introduce additional deployment and integration complexity without a documented requirement for that separation.
-- **Trade-off:** The frontend and API remain coupled at deployment time, while local development differs from production because local development uses PostgreSQL and production uses D1.
+- **Driving requirements:** `CO-cloudflare-hosting`, `CO-existing-codebase`, `CO-client-maintains`, `CO-preview-before-production`, `SCA-qr-event-burst`.
+- **Context:** The client already runs Market Match as two Cloudflare Workers, one for Production and one for the Preview Link. Each serves the built React front end as static assets and answers `/api/*` with a Hono API over a Cloudflare D1 database. The client deploys it himself through Claude Code and Wrangler and has no one to run additional infrastructure. His one load concern is a 10,000-person QR Code event.
+- **Decision:** Ship Market Match as one deployable: a single Worker per environment containing the front end and the Application API, over one D1 database per environment. Local development runs the same Worker code against PostgreSQL. Use case areas are separated as components inside the Worker (section 5.2), not as separate services.
+- **Rejected:** (a) Splitting the API into separate services per area (capture, catalog, identity), or adding a queue in front of swipe writes. Workers already scale per request, so nothing in section 9.1 requires a separate scaling unit, and each extra service is another deployment, set of secrets, and failure point the client would have to run alone. (b) Moving the API to a long-running Node.js server with a hosted PostgreSQL in production. This would make development and production identical, but it violates `CO-cloudflare-hosting` and gives the client a server to patch and keep alive.
+- **Trade-off:** The front end and API are released together, so a front-end-only change redeploys the API. Production (D1) and local development (PostgreSQL) run different database engines, so a query or migration can behave differently between them; section 8.2.8 requires every migration to land in both, and the Preview Link, which runs D1, is the test that counts. If the 10,000-Consumer burst ([OI-27](../requirements/OPEN-ISSUES.md#open)) turns out to exceed D1's write capacity, this decision is revisited with a load-test result rather than a guess.
 
 ## 10. Quality Requirements
 
 ### 10.1 Quality requirements overview
 
 _[Section 9 of your [specification](../requirements/software-requirements-specification.md) is the overview. Link it here; do not copy it.]_
+
+See [Software Requirements Specification, Section 9 — Quality Attributes](../requirements/software-requirements-specification.md#9-quality-attributes).
 
 ### 10.2 Quality scenarios
 
@@ -417,6 +404,8 @@ _A risk written as a category ("security", "performance") is not a risk. Write t
 ## 12. Glossary
 
 _[Domain terms live in your [project glossary](../requirements/project-glossary.md). Link it and add nothing here unless you need an architecture term your team uses in a special sense.]_
+
+See the [project glossary](../requirements/project-glossary.md).
 
 ---
 

@@ -303,22 +303,7 @@ Market Match is an existing web-based platform that connects consumers with prod
 
 The platform is also intended to support broader enterprise use through white-label deployments and API-based integrations. These capabilities allow enterprise organizations to interact with Market Match beyond the standard user-facing platform.
 
-```mermaid
-flowchart LR
-    Consumer[Consumer] -->|Views products and provides feedback| MM[Market Match]
-
-    Brand[Brand] -->|Products and market participation| MM
-    MM -->|Feedback and insights| Brand
-
-    Vendor[Vendor] -->|Product and market participation| MM
-    MM -->|Available information and insights| Vendor
-
-    Admin[Administrator] -->|Manages platform information| MM
-    MM -->|Platform data and insights| Admin
-
-    Enterprise[Enterprise Organization] -->|API requests and white-label use| MM
-    MM -->|Authorized data and services| Enterprise
-```
+The context diagram, with every external system Market Match depends on, is maintained in one place: [Architectural Design, Section 3 — Context and Scope](../design/architectural-design.md#3-context-and-scope).
 
 Market Match serves as the central system connecting these users and organizations. Consumers provide the feedback that drives the platform, while authorized organizational users access the information and capabilities appropriate to their roles. Enterprise integrations extend the platform through API and white-label capabilities.
 

@@ -39,6 +39,7 @@ _Requirements cited from elsewhere keep their own identifiers: `UC-*` from [use-
 | Date       | Version | Description | Author      |
 |------------|---|---|-------------|
 | 09/14/2026 | 0.1 | Initial draft | Vinh Nguyen |
+| 10/16/2026 | 0.2 | Added constraints (2.4), dependencies (2.5), software interfaces (8.3), and quality attributes (9) for Checkpoint 1 feedback | Griffin Kuchar |
 
 ---
 
@@ -114,22 +115,21 @@ _Examples:_
 
 _[Anything that limits the developers' options: corporate or regulatory policy, hardware limits, required languages or databases, coding standards, interfaces to other applications.]_
 
-_Examples:_
-
-- _`CO-database-engine`: The system shall use the corporate standard database engine._
-- _`CO-language-version`: The backend shall be written in Java 21._
-- _`CO-coding-standard`: Design, code, and maintenance documentation shall conform to the client's development standard._
-
 _The constraint students forget: **who maintains this after you graduate, and what do they already know how to run?** If the answer is one person who knows Python, a Spring Boot service is a constraint violation nobody wrote down._
+
+- `CO-cloudflare-hosting`: The system shall run on the client's existing Cloudflare hosting: two Cloudflare Workers, one serving Production from the main branch and one serving the Preview Link, with Cloudflare storing the platform's image files. **Source:** second client meeting; [Cloudflare](project-glossary.md#cloudflare).
+- `CO-workos-identity`: The system shall use WorkOS for users, Organizations, Roles, and sign-in, and shall not implement its own credential store. **Source:** second client meeting; `BR-dashboard-access`; [WorkOS](project-glossary.md#workos).
+- `CO-existing-codebase`: Changes shall extend the client's existing Market Match repository and its TypeScript stack (React front end, Node.js-compatible Worker back end) rather than replace it, and shall remain compatible with existing data. **Source:** second client meeting; vision and scope section 4.4; `AS-existing-platform`.
+- `CO-client-maintains`: The system shall remain maintainable by the client, who has no technical background and maintains the platform himself by prompting Claude Code. **Source:** first and second client meetings; vision and scope section 4.4.
+- `CO-preview-before-production`: No change shall reach Production without first being deployed to and tested on the Preview Link. **Source:** second client meeting; [Preview Link](project-glossary.md#preview-link).
 
 ### 2.5 Assumptions and dependencies
 
 _[An assumption is a factor you believe true without proof, which would change these requirements if it turned out false. A dependency is something outside your control that the project relies on: an external API, a third-party library, a change someone else has to make.]_
 
-_Examples:_
-
-- _`AS-supported-browser`: Users access the system with a browser that supports the ECMAScript version the frontend targets._
-- _`DE-payroll-integration`: Operation depends on changes being made in the Payroll System to accept payment requests for meals ordered through this system._
+- `DE-workos`: Sign-in, Organization membership, and Role assignment depend on WorkOS being available. WorkOS has its own production and staging sides, matching Production and the Preview Link. See `SI-workos-auth`.
+- `DE-cloudflare`: Hosting, the production database (Cloudflare D1), and image storage depend on Cloudflare. See `SI-d1-storage`, `SI-cloudflare-images`.
+- `DE-youtube`: A Card's video is supplied as a YouTube link (`BR-product-media-limit`), so video playback depends on YouTube. See `SI-youtube-video`.
 
 ---
 
@@ -218,6 +218,12 @@ _[Any hardware the system talks to, or "none".]_
 
 _[Other software systems yours connects to: what crosses the boundary, in which direction, in what format, and what happens when the other side is unavailable.]_
 
+- `SI-workos-auth`: **WorkOS.** The Application API redirects users to WorkOS sign-in (login.marketmatch.app, One-Time Code or security key) and receives back the user's identity, Organization, and Role over HTTPS. No password passes through Market Match. If WorkOS is unavailable, the system shall refuse sign-in and every authenticated request rather than fall back to any other authentication; Public Access Markets (`BR-public-market`) need no sign-in and are unaffected.
+- `SI-d1-storage`: **Cloudflare D1 (Production database).** The Application API reads and writes all Market Match data (Markets, Categories, Inventory, Market sessions, impressions, swipes, Flips, Clicks) through the Worker's D1 binding. If a write fails or its outcome is unknown, the system shall not report success; behavior per use case is in the extensions of `UC-FDBK-rate-product` (4b), `UC-FDBK-complete-market` (2b), and `UC-BRND-create-product` (4c).
+- `SI-postgres-local`: **PostgreSQL (local development database).** Developers run the Application API against a local PostgreSQL database holding the same schema as D1. It never holds Production data and is never reachable from Production.
+- `SI-cloudflare-images`: **Cloudflare image storage.** The Application API stores Card photos uploaded through `UC-BRND-create-product` and the front end loads them over HTTPS. If an image cannot be loaded, the Card still displays its remaining content.
+- `SI-youtube-video`: **YouTube.** A Card's video is a YouTube link stored with the Card (`BR-product-media-limit`); the browser loads it from YouTube directly and Market Match sends YouTube nothing. If the video cannot be loaded, `UC-FDBK-open-card-media` extension 3a applies.
+
 ### 8.4 API document
 
 _[Link to your API documentation. It is generated from the code, so link it rather than transcribing endpoints that will be stale within a week.]_
@@ -236,33 +242,40 @@ _The rule for every entry: an adjective is not a requirement. "Fast", "easy", "s
 
 _Write one subsection per attribute your project actually has, and say "not applicable" with a reason for the ones it does not. An explicit "not applicable" is information; silence is not._
 
+_Every number below came from the client or from a business rule. Thresholds the client has not given are left unspecified and tracked in [OPEN-ISSUES.md](OPEN-ISSUES.md), rather than filled with a plausible guess._
+
 ### 9.1 Usability
 
-_Example: `USE-wcag-aa`: All user-facing views shall conform to WCAG 2.1 level AA._
+- `USE-not-yet-specified`: No usability or accessibility standard has been confirmed with the client. Tracked as [OI-30](OPEN-ISSUES.md#open).
 
 ### 9.2 Performance
 
-_Example: `PER-report-load`: A peer evaluation report for a section of 80 students shall render within 2 seconds at the 95th percentile._
+- `PER-not-yet-specified`: The client has given no response-time target. Tracked as [OI-28](OPEN-ISSUES.md#open). The load the system must survive is specified in `SCA-qr-event-burst`.
 
 ### 9.3 Security
 
-_Example: `SEC-authentication`: The system shall authenticate every request to a non-public endpoint, and shall reject unauthenticated requests without disclosing whether the requested resource exists._
+- `SEC-org-data-isolation`: The system shall return a Market, its results, or any data collected in it only to users whose email is assigned to the Organization that Market is assigned to. 100% of requests for another Organization's data shall be refused, and the refusal shall not reveal whether the data exists. **Source:** `BR-access-own-data`, `BR-view-org-markets`, `BR-market-organization`. **Oracle:** an integration test that signs in as a user of one Organization and requests every Market and result endpoint for another Organization's Market.
+- `SEC-role-data-scope`: The system shall return to each Role only the data points that Role may see: a Vendor receives no dwell time, decision time, flip rate, or Clicks; the Admin receives no Organization's detailed data points; a Brand receives figures only for its own SKUs. 0 responses to a Vendor or Admin request shall contain a Brand-only field. **Source:** `BR-vendor-feedback-scope`, `BR-brand-feedback-scope`, `BR-admin-feedback-scope`, `BR-assign-role`. **Oracle:** a test per Role that inspects every dashboard response for forbidden fields.
+- `SEC-pii-encrypted`: The system shall store personal data (email addresses and Demographic answers) encrypted at rest and transmit it only over TLS. 0 personal-data fields shall be stored or logged in plaintext. **Source:** `BR-protect-pii`, `BR-collect-email-only`. **Oracle:** inspection of the schema, the logs, and every external request.
+- `SEC-dashboard-auth`: The system shall authenticate every request to a non-public endpoint through a WorkOS-issued session, and shall reject 100% of unauthenticated requests. Only Public Access Market entry and its swipes (`BR-public-market`) are public. **Source:** `BR-dashboard-access`, `BR-code-requires-sign-in`, `CO-workos-identity`. **Oracle:** an automated sweep of every route the Worker answers, without a session.
 
 ### 9.4 Safety
 
-_[Conditions under which the system could contribute to harm, and what prevents it. For most projects in this course the honest answer is `SAF-not-applicable`, with a sentence saying why.]_
+- `SAF-not-applicable`: Market Match records product preferences and controls no physical process, money transfer, or health decision, so no failure of the software can contribute to physical harm. Harm to people through their data is covered by the `SEC-*` attributes.
 
 ### 9.5 Availability
 
-_Example: `AVL-uptime`: The system shall be available 99% of the time during the academic term, excluding announced maintenance windows._
+- `AVL-not-yet-specified`: The client has given no availability target. Tracked as [OI-29](OPEN-ISSUES.md#open).
 
 ### 9.6 Robustness
 
-_Example: `ROB-edit-loss-bound`: On an unexpected client disconnect, the system shall lose no more than 30 seconds of a student's in-progress edits._
+- `ROB-swipe-exactly-once`: Each swipe shall be stored exactly once, including when the Consumer's device retries a submission whose outcome was unknown: 0 duplicate swipes and 0 swipes reported to the Consumer as saved but not stored. **Source:** `UC-FDBK-rate-product` POST-2 and extension 4b; the repository gaps listed there (no retry detection, swallowed errors). **Oracle:** a test that submits the same swipe twice with one submission key and checks one stored row, and a test that forces a failed write and checks the Consumer is not advanced.
 
 ### 9.7 Scalability, interoperability, maintainability
 
-_[Add the ones that apply, with `SCA-`, `INT-`, and `MNT-` identifiers. Maintainability is the one this course cares about most, because someone inherits your code in January.]_
+- `SCA-qr-event-burst`: The system shall accept Market sessions and swipes from 10,000 Consumers who scan the same Public Access QR Code at one event without crashing or losing a stored swipe. **Source:** the client's growth scenario, second client meeting ("I get 10,000 people wanting to scan that QR code ... I just want to make sure that it doesn't crash"). The time window in which they arrive is not yet known; tracked as [OI-27](OPEN-ISSUES.md#open). **Oracle:** a load test replaying 10,000 Market sessions against the Preview Link.
+- `MNT-client-maintainable`: Every change the team delivers shall be documented well enough for the client to maintain it by prompting Claude Code: every cross-cutting rule is written in section 8.2 of the [architectural design](../design/architectural-design.md), and every changed behavior has an automated test. **Source:** `CO-client-maintains`. **Oracle:** pull request review checks both for every merged change.
+- Interoperability: `BR-connect-api` (`FEAT-api-integration`) will introduce `INT-*` attributes once the API's consumers and their needs are confirmed with the client (`AS-enterprise-requirements`).
 
 ---
 
