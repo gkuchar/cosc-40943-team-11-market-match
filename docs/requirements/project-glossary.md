@@ -54,6 +54,7 @@ _Rules:_
 | 2026-09-21 | 0.2     | Dashboard, metric, and card terms from the brand dashboard walkthrough                                                                                                                                                    | Matthew Stafford |
 | 2026-09-23 | 0.3     | Tenancy, role, market assembly, and environment terms from the second client meeting. Renamed Skew to SKU, split Code into One-Time Code and Market Code, merged Survey into Market, and corrected Brand and Demographic. | Matthew Stafford |
 | 2026-10-13 | 0.4     | Data point terms from the third client meeting: Brand Market, Standard Market, Clicks, Completion Time, Engagement Funnel, Join Market, Like Rate, Swipe Behavior, Trends. Corrected Average Dwell Time (to the flip) and Average Decision Time (to the swipe), and superseded Brand Card - Market. | Matthew Stafford |
+| 2026-10-23 | 0.5     | Data point answers from the fourth client meeting: added Average Swipes and Photo View Time; Clicks count once per photo; Completion Time start, resume, and incomplete rules; Engagement Funnel covers Standard Markets. | Matthew Stafford |
 
 ---
 
@@ -108,6 +109,14 @@ _**Example.** A Card sits for 3 seconds before the Consumer flips it: dwell time
 **Not to be confused with:** Average Decision Time, which runs to the swipe rather than to the flip. Also not the total time spent on the Card, which is what version 0.2 of this glossary said and the client corrected.
 
 **Source:** third client meeting with Demetrie King
+
+### Average Swipes
+
+_A Market-level figure the client asked to add alongside Completion Time. He did not define it; the team's reading is the average number of Cards a Consumer swipes in a Market, and that reading is open until he confirms it (`OI-34`)._
+
+**Not to be confused with:** Like Rate, which is the share of swipes that went right.
+
+**Source:** fourth client meeting with Demetrie King
 
 ### Brand
 
@@ -171,11 +180,11 @@ _**Example.** "What type of music do y'all want?" is a Category; each music genr
 
 ### Clicks
 
-_The number of times Consumers open each individual piece of media on a Card: each of its up to three photos, and its video link. A Brand reads Clicks per photo and per video so it can see which media draws attention and swap out what does not, for example by promoting the most-clicked photo to be the front photo. Clicks are the only measure taken on the video. How long a Consumer watches is left to YouTube, which the Brand can read for itself._
+_The number of times Consumers open each individual piece of media on a Card: each of its up to three photos, and its video link. A Brand reads Clicks per photo and per video so it can see which media draws attention and swap out what does not, for example by promoting the most-clicked photo to be the front photo. A Consumer who taps the same photo more than once counts as one Click on it. Clicks are the only measure taken on the video. How long a Consumer watches is left to YouTube, which the Brand can read for itself._
 
-**Not to be confused with:** a Flip, which turns the Card over rather than opening one piece of media on it.
+**Not to be confused with:** a Flip, which turns the Card over rather than opening one piece of media on it; and Photo View Time, which is how long a photo is looked at rather than whether it was opened.
 
-**Source:** third client meeting with Demetrie King
+**Source:** third and fourth client meetings with Demetrie King
 
 ### Cloudflare
 
@@ -185,13 +194,13 @@ _Where Market Match is hosted. The application runs as two Cloudflare Workers, o
 
 ### Completion Time
 
-_How long a Consumer takes to go through a whole Market, start to finish, meaning every Line Item in every Category the Consumer chose to go through. The client wants the average Completion Time across all Consumers who completed a Market, on both Brand Markets and Standard Markets. "It took 100 students, on average, this amount of time to go through this survey." This is an overall figure for the Market, not a product-by-product one._
+_How long a Consumer takes to go through a whole Market, start to finish, meaning every Line Item in every Category the Consumer chose to go through, including Categories added partway through. For a Consumer who joins with a Market Code, the time starts when the code is entered, not at sign-in; for a Public Access Consumer, it starts when the first Card appears. Time away from a Market the Consumer left and came back to counts, so it is one continuous span. A Consumer who never finishes has a Completion Time of zero, and whether those zeros count toward the average is open (`OI-33`). The client wants the average Completion Time on both Brand Markets and Standard Markets. "It took 100 students, on average, this amount of time to go through this survey." This is an overall figure for the Market, not a product-by-product one._
 
 **Synonyms:** time to complete, market completion time
 
-**Not to be confused with:** Average Decision Time and Average Dwell Time, which are per-Card. Whether a Consumer's time away from a Market they stopped and came back to counts toward Completion Time has not been decided.
+**Not to be confused with:** Average Decision Time and Average Dwell Time, which are per-Card.
 
-**Source:** third client meeting with Demetrie King
+**Source:** third and fourth client meetings with Demetrie King
 
 ### Consumer
 
@@ -215,11 +224,11 @@ _**Examples.** College students at TCU; people attending football games; student
 
 ### Engagement Funnel
 
-_The stages a Consumer passes through in one Market, and how many Consumers reach each stage: they enter the Market Code, view the Market, start swiping, and complete it, along with the Completion Time it took. The funnel starts when the Market Code is entered, or when a Public Access link is opened. Sign-in comes before it and is not a stage the Brand sees. The client wants it for Brand Markets first and possibly Standard Markets too._
+_The stages a Consumer passes through in one Market, and how many Consumers reach each stage: they enter the Market Code, view the Market, start swiping, and complete it, along with the Completion Time it took. The funnel starts when the Market Code is entered, or when a Public Access link is opened. Sign-in comes before it and is not a stage the Brand sees. The client wants it for both Brand Markets and Standard Markets._
 
 **Not to be confused with:** the "Engagement Funnel" panel already on the Admin Dashboard, whose Login, View Market, Start Swiping, Complete 10, and Complete All figures are placeholders rather than measured values.
 
-**Source:** third client meeting with Demetrie King
+**Source:** third and fourth client meetings with Demetrie King
 
 ### Feedback
 
@@ -342,6 +351,14 @@ _**Example.** TCU is not one Organization. TCU Director of Student Activities is
 ### Passes
 
 _On a Market the passes is the number of the people that did not like the product, also corresponds to a user swiping left on a SKU._
+
+### Photo View Time
+
+_How long a Consumer looks at one specific photo on a Card after opening it, so a Brand can see which of its photos holds attention, for example one design Consumers zoom in on and study longer than another. Measured per photo, not per Card, and not for the video, whose viewing is left to YouTube._
+
+**Not to be confused with:** Average Dwell Time, which is the time before the Card is flipped; and Clicks, which count whether a photo was opened.
+
+**Source:** fourth client meeting with Demetrie King
 
 ### Preview Link
 
