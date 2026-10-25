@@ -85,6 +85,7 @@ _The Source column is the defense. Every rule traces to a document or a person, 
 | 2026-09-11 | 0.1 | Initial rules from the client brief and first client meeting | Griffin Kuchar |
 | 2026-10-12 | 0.2 | Added rules from the 09-07, 09-21, and 09-30 client meetings (organizations and roles, market setup, product approval, pricing, data collection, analytics definitions) | Griffin Kuchar |
 | 2026-10-14 | 0.3 | Addressed review: added `BR-dashboard-access`, folded decision and dwell time into `BR-capture-feedback` by glossary reference, flagged the demographic data gap | Griffin Kuchar |
+| 2026-10-25 | 0.4 | Product import rules from the 10-21-2026 client meeting and the client's 10-23-2026 text: widened `BR-approve-product` to every way a brand submits products; added `BR-products-brand-only`, `BR-connect-product-system`, `BR-multiple-categories`, and `BR-photo-size` | Matthew Stafford |
 
 ---
 
@@ -97,14 +98,15 @@ This document collects the policies, regulations, standards, and formulas that g
 ### 1.2 Scope
 
 These rules cover the participation and data policies of the Market Match business as
-described in the client brief and the client meetings through 09-30-2026.
+described in the client brief, the client meetings through 10-21-2026, and the client's
+10-23-2026 text message.
 
 In scope:
 
 - **Consumer participation:** how consumers sign in, rate and inspect products, select
   markets, and accrue and forfeit lottery entries (2.1).
-- **Brand participation:** how brands create products, join markets, and receive feedback
-  (2.2).
+- **Brand participation:** how brands create and import products, how those products are
+  approved, join markets, and receive feedback (2.2).
 - **Market lifecycle:** how markets are created and how they receive feedback (2.3).
 - **White-label operation:** how partner organizations brand their own instance, keep
   their data isolated, and connect via API (2.4).
@@ -123,7 +125,7 @@ Out of scope for this document:
   or gambling regulations governing them) are business processes our system does not touch
   as currently defined.
 - **API engineering constraints.** Authentication schemes, authorization, rate limiting,
-  versioning, and documentation for `BR-connect-api` are our team's design decisions and
+  versioning, and documentation for `BR-connect-api` and `BR-connect-product-system` are our team's design decisions and
   belong in the specification, not here, since the client did not dictate them as policy.
 - **Demographic data handling.** The client noted demographic collection "where
   appropriate," but the consent and legal-appropriateness policy governing it has not yet
@@ -162,8 +164,16 @@ Out of scope for this document:
   **Source:**  09-21-2026 Client Meeting.
 - **`BR-text-card`:** An item that needs no picture can be created as a text-only card.
   **Source:**  09-21-2026 Client Meeting.
-- **`BR-approve-product`:** A product a brand submits (`BR-submit-product`), and any later update the brand makes to its images or details, must be approved by the Market Match admin before it is published.
-  **Source:**  09-21-2026 Client Meeting.
+- **`BR-approve-product`:** Every product a brand submits (`BR-submit-product`), whether one at a time, by spreadsheet, or straight from its own system (`BR-connect-product-system`), and any later update the brand makes to its images or details, must be approved by the Market Match admin before it is published.
+  **Source:**  09-21-2026 Client Meeting; 10-21-2026 Client Meeting (approval extends to imported products).
+- **`BR-products-brand-only`:** Only brands upload products to Market Match. Vendors do not upload products; they select categories.
+  **Source:**  Demetrie King, text message, 10-23-2026.
+- **`BR-connect-product-system`:** A brand the client is working with can send its products to Market Match straight from the system where it already keeps them, instead of the client entering each product by hand. Only brands the client is working with can connect this way.
+  **Source:**  10-21-2026 Client Meeting.
+- **`BR-multiple-categories`:** A product can belong to more than one category, so the client does not have to rebuild it for each category it fits. Expected to apply later rather than now; today a product belongs to one category.
+  **Source:**  10-21-2026 Client Meeting.
+- **`BR-photo-size`:** Brands supply product photos under 3 MB. The client is sending his full list of image requirements, which is still open (`OI-24`).
+  **Source:**  10-21-2026 Client Meeting.
 
 ### 2.3 Markets
 

@@ -4,7 +4,7 @@
 **Team:** Team 11
 **Client:** Demetrie King
 **Attendees:** Demetrie King, Matt Stafford, Griffin Kuchar, Kevin Doan, Chris Ramirez, Vinh Nguyen
-**Date:** _[unconfirmed — held on or before 2026-10-21, in the evening]_
+**Date:** 2026-10-21, evening
 **Format:** The team walked the client through its plan for the data points and for bringing in Brands' products, with screen shares of the admin side, followed by Q&A
 
 ---
