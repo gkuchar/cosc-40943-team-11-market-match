@@ -142,7 +142,9 @@ Out of scope for this document:
 ### 2.1 Consumers
 
 - **`BR-sign-in`:** A consumer can sign into the app via email + one-time code sent to email.
+  **Source:**  Product demo by Demetrie King (meeting and date not recorded).
 - **`BR-rate-product`:** A consumer can swipe right on a product to signal interest or swipe left on a product to signal disinterest.
+  **Source:**  Product demo by Demetrie King (meeting and date not recorded).
 - **`BR-tap-product`:** A consumer can tap on a product to reveal more information about a product.
   **Source:**  Market Match website.
 - **`BR-select-market`:** A consumer can select a category of products (a market) from a catalog to begin rating products from by entering a market's ID code.
