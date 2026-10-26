@@ -193,6 +193,10 @@ Out of scope for this document:
   **Source:**  09-21-2026 Client Meeting.
 - **`BR-public-market`:** A market can be given public access, in which case a consumer can join it by QR code or link without signing in or giving an email. Its results are still reported to the organization it is assigned to.
   **Source:**  09-21-2026 Client Meeting.
+- **`BR-anonymous-consumer`:** Each person who reaches a public access market without signing in is counted as a separate consumer, not as one shared user. The same person returning on the same device to an unfinished market resumes where they left off and is not counted again.
+  **Source:**  10-21-2026 Client Meeting.
+- **`BR-anonymous-consumer-expiry`:** A consumer who reached a public access market without signing in is kept only for a limited time (about 30 days was suggested; the period is open, `OI-47`). The market's consumer count stays after they are removed.
+  **Source:**  10-21-2026 Client Meeting.
 - **`BR-code-requires-sign-in`:** A consumer must be signed in to join a market by entering its unique code.
   **Source:**  09-30-2026 Client Meeting.
 - **`BR-select-category`:** A consumer who joins a market chooses which of that market's categories to swipe through.
