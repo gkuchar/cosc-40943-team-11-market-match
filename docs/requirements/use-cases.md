@@ -3,7 +3,7 @@
 **Project:** Market Match
 **Team:** 11
 **Client:** Demetrie King
-**Version:** 0.2
+**Version:** 0.3
 
 ---
 
@@ -31,6 +31,7 @@ _Within one use case, `PRE-1`, `POST-1`, and the step numbers are local and may 
 |---|---|---|---|
 | 2026-09-14 | 0.1 | Draft four use cases derived from the vision and scope feature list | Chris Ramirez |
 | 2026-10-13 | 0.2 | Rewrote `UC-FDBK-rate-product` and added `UC-FDBK-flip-card`, `UC-FDBK-open-card-media`, and `UC-FDBK-complete-market` to capture the data points from the third client meeting, checked against the client's repository | Matthew Stafford |
+| 2026-10-26 | 0.3 | Expanded `UC-PROD-view-product-details` with public access, published Card content, optional media, and failure paths; linked existing Flip and Click capture use cases | Vinh Nguyen |
 
 ---
 
@@ -183,56 +184,84 @@ Display the selected market name and its participating product cards. Product or
 ### UC-PROD-view-product-details: View product details
 
 **UC ID and Name:** `UC-PROD-view-product-details`: View product details
-**Created By:** Chris Ramirez
-**Date Created:** 2026-09-14
+**Created By:** Chris Ramirez; revised by Vinh Nguyen
+**Date Created:** 2026-09-14; revised 2026-10-26
 **Primary Actor:** Consumer
-**Secondary Actors:** None
-**Trigger:** The consumer taps a displayed product.
-**Description:** The consumer inspects additional product information before deciding whether to express interest or disinterest.
+**Secondary Actors:** YouTube, when the Consumer opens the optional video through `UC-FDBK-open-card-media`.
+**Trigger:** The Consumer taps the front of a displayed product Card.
+**Description:** The Consumer reads the back of a product Card and optionally opens its media before deciding whether to express interest or disinterest.
 
 **Preconditions:**
 
-- PRE-1. The consumer has an authenticated session and a selected market.
-- PRE-2. The system displays a product belonging to that market.
+- PRE-1. The Consumer has an active session for the selected Market, either signed in or through Public Access by QR Code or link.
+- PRE-2. The system displays an unswiped product Card belonging to that Market and a chosen Category, with a Card impression recorded.
+- PRE-3. The displayed product content is published; Brand-submitted content and later changes have received the Admin's Approval.
 
 **Postconditions:**
 
-- POST-1. The system displays the selected product's available additional information.
-- POST-2. Viewing details alone creates no preference rating.
+- POST-1. The system displays the selected product Card's back with its available description and media, or the no-additional-details message in extension 2a.
+- POST-2. Viewing details alone creates no preference rating and does not advance to another product.
+- POST-3. Flip and optional media Click capture follow `UC-FDBK-flip-card` and `UC-FDBK-open-card-media`, respectively; recording failures follow extension 2h and OI-8.
 
 **Main Success Scenario:**
 
-1. The consumer taps the displayed product.
-2. The system retrieves and displays the product's additional information.
+1. The Consumer taps the front of the displayed product Card.
+2. The system verifies that access and product availability remain valid, retrieves the published content, and displays the Card's back with its available description and media, keeping the product identity visible. The same action invokes `UC-FDBK-flip-card` for Flip and dwell-time capture.
 
 **Extensions:**
 
 - **2a. No additional information is supplied:**
-  - 2a1. The system indicates that no additional details are available and retains the product card; the use case ends.
+  - 2a1. The system displays the Card's back with its product identity and a message that no additional details are available. The Flip is still captured under `UC-FDBK-flip-card` extension 3b; this use case succeeds with the empty-back display.
 - **2b. Product details cannot be loaded:**
-  - 2b1. The system reports the failure and retains the product card. The consumer retries from step 1 or leaves the details view.
-- **2c. The product is no longer available in the market:**
+  - 2b1. The system reports the failure and retains the product Card. The Consumer retries from step 1 or leaves the details view. The failed load is not represented as a successful details view.
+- **2c. The product is no longer available in the Market:**
   - 2c1. The system reports its unavailability and refreshes the available products; the use case ends without recording a rating.
+- **2d. The Consumer chooses to return to the front:**
+  - 2d1. The system displays the front of the same Card without advancing or recording a preference. Later flips do not reset the first-Flip dwell time or count another first Flip, as specified in `UC-FDBK-flip-card` extension 3a. The use case ends.
+- **2e. The Consumer opens an available picture or video link:**
+  - 2e1. The system invokes `UC-FDBK-open-card-media` to open the selected media and capture a Click against that specific media item. That use case governs Click retries and failures, including an unavailable YouTube video.
+  - 2e2. The Consumer can return to the same product's details; the flow rejoins after step 2.
+- **2f. An individual media item cannot be displayed:**
+  - 2f1. The system identifies the unavailable media and preserves the readable description and other available media. The Consumer can continue viewing details or return to the front through extension 2d. A media failure alone creates no preference.
+- **2g. Access to a restricted Market has expired or been removed:**
+  - 2g1. The system denies the details request and directs the Consumer to restore authorized access; the use case ends without displaying newly requested restricted content or recording a rating. Public Access does not require sign-in while that access remains valid.
+- **2h. Flip or viewing-activity capture fails:**
+  - 2h1. The system does not claim that the activity was saved. Whether the Consumer may continue and how the activity is retried remain pending OI-8; no preference is submitted by this use case. Media Click failures follow `UC-FDBK-open-card-media` extension 2a.
 
 **Priority:** High (provisional)
-**Frequency of Use:** As desired before rating a product; actual volume is unconfirmed.
-**Business Rules:** `BR-tap-product`, `BR-capture-feedback`
+**Frequency of Use:** Optional before rating a product; the Consumer may return to its front and back. Actual volume is unconfirmed.
+**Business Rules:** `BR-tap-product`, `BR-capture-feedback`, `BR-public-market`, `BR-product-media-limit`, `BR-text-card`, `BR-approve-product`, `BR-media-clicks`
 
 **Associated Information:**
 
 | Property name | Data type | Validation rule | Security or access concerns | Glossary reference |
 |---|---|---|---|---|
-| Product reference | Identifier | Required; identifies the displayed product in the selected market | System checks product accessibility | Card |
-| Additional information | Content | Display supplied content; handle missing content explicitly; formats pending client confirmation | Consumer reads content supplied by the brand | Card |
+| Market session reference | Identifier | Required; active for the selected Market, signed in or anonymous Public Access | Derived from the session; anonymous access requires no email | Market; Public Access |
+| Product and Category references | Identifiers | Required; product belongs to the session's Market and a chosen Category | System checks accessibility before returning details | Card; Category; SKU |
+| Product identity | Display text | Keep the selected product's identity visible on the back | Display published content only | Card |
+| Description | Text | Display supplied published description; missing content follows extension 2a; additional supported formats remain OI-6 | Consumer reads approved Brand-supplied content | Card; Approval |
+| Pictures | Collection of image references | Up to three; display available published pictures; a Text Card has none | Read only; opening media follows `UC-FDBK-open-card-media` | Card; Text Card |
+| Video | Optional YouTube link | At most one; supplied as a YouTube link rather than an uploaded video; a Text Card has none | Opening media follows `UC-FDBK-open-card-media` | Card; Clicks |
+| Media item and slot | Identifier and enumeration | Identify the specific picture or video and its slot as defined in `UC-FDBK-open-card-media` | System associates Clicks with the correct product and media | Clicks |
 
-Keep the product identity visible with its details. Product data is read only in this use case. Viewing activity is captured under `FEAT-feedback-insights`; the Flip and its dwell time are specified in `UC-FDBK-flip-card`. A failed details load must not be represented as a successful view. The effect of activity-recording failures remains pending client confirmation.
+Product data is read only in this use case. A Text Card's lack of pictures or video is valid and is not a media-load failure. Details access exposes only published content, not pending Brand edits.
 
-**Related Use Cases:** `UC-MKT-enter-market`: Enter a market; `UC-FDBK-rate-product`: Rate a product.
-**Assumptions:** Inspecting details is optional before rating, as described in vision and scope section 1.2.
+Behavioral capture belongs to `FEAT-feedback-insights`. `UC-FDBK-flip-card` owns first-Flip capture and dwell time (Card appears to first Flip; zero if never flipped), including repeated flips and leaving without swiping. `UC-FDBK-rate-product` owns Time-to-Swipe (Card appears to swipe). Time spent reading the back is not the defined dwell time. `UC-FDBK-open-card-media` owns individual media Clicks and retry handling; video watch time is not measured. These are references to the existing capture contracts, not additional copies of the same events. An empty back can still be flipped, while a failed details load must not be counted as a successful details view. OI-8 remains open for Flip or viewing-activity recording failures.
+
+**Related Use Cases:**
+- `UC-MKT-enter-market`: Enter a market.
+- `UC-FDBK-rate-product`: Rate a product (optional after inspecting details).
+- `UC-FDBK-flip-card`: Flip a card (the same tap supplies Flip and dwell-time capture).
+- `UC-FDBK-open-card-media`: Open a card photo or video (optional from details).
+
+**Assumptions:** Inspecting details is optional before rating. Returning to the front preserves the current product and Market session. Exact access conditions remain tracked under OI-4; this use case does not grant access to a Market.
 **Open Issues:** Tracked in [OPEN-ISSUES.md](OPEN-ISSUES.md).
-- [OI-6](OPEN-ISSUES.md#open): Which additional-information formats can the back of a Card hold?
-- [OI-7](OPEN-ISSUES.md#resolved) (resolved): Which viewing events and timing boundaries are measured? Dwell time (Card appears to first Flip) and decision time (Card appears to swipe), captured in `UC-FDBK-flip-card` and `UC-FDBK-rate-product`. See [Average Dwell Time](project-glossary.md#average-dwell-time), [Average Decision Time](project-glossary.md#average-decision-time), and [Flip](project-glossary.md#flip).
-- [OI-8](OPEN-ISSUES.md#open): What happens if activity capture fails while a Consumer views product details?
+- [OI-4](OPEN-ISSUES.md#open): Which Consumers may enter which Markets?
+- [OI-6](OPEN-ISSUES.md#open): Which additional-information formats can the back of a Card hold beyond the description, pictures, and YouTube link already documented?
+- [OI-7](OPEN-ISSUES.md#resolved) (resolved): Viewing timings are dwell time (Card appears to first Flip) and decision time (Card appears to swipe), captured in `UC-FDBK-flip-card` and `UC-FDBK-rate-product`. See [Average Dwell Time](project-glossary.md#average-dwell-time), [Average Decision Time](project-glossary.md#average-decision-time), and [Flip](project-glossary.md#flip).
+- [OI-8](OPEN-ISSUES.md#open): What happens if activity capture fails while a Consumer views product details? Confirm whether viewing continues and how retries avoid duplicate activity.
+- [OI-15](OPEN-ISSUES.md#open): Does navigating the photo carousel count as a Click, or only tapping to enlarge? Governed by `UC-FDBK-open-card-media`.
+- [OI-16](OPEN-ISSUES.md#open): Should reports count every Click or one per Consumer per media item? Governed by `UC-FDBK-open-card-media`.
 
 ---
 
