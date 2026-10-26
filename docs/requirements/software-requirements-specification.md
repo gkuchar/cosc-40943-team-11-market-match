@@ -40,6 +40,7 @@ _Requirements cited from elsewhere keep their own identifiers: `UC-*` from [use-
 |------------|---|---|-------------|
 | 09/14/2026 | 0.1 | Initial draft | Vinh Nguyen |
 | 10/25/2026 | 0.2 | Product import requirements: §5.2 functional requirements for Brand-scoped storage, Approval, server-side checks, and the published product contract; §8.3 and §8.4 for Brands' own systems; §9.2, §9.3, §9.4, §9.6, and §9.7 attributes for import, API Keys, and privacy | Matthew Stafford |
+| 10/26/2026 | 0.3 | Added FDBK functional requirements, updated the business domain model and data dictionary, documented feedback reports, and added data management considerations covering privacy, integrity, and retention. | Kritika Karanjit |
 
 ---
 
@@ -178,6 +179,18 @@ These hold for every way a Brand's products come in: `UC-BRND-create-product`, `
 
 - **`FR-API-published-contract`** (ubiquitous): The system shall publish the product import contract (the fields, their formats, the 200-product batch limit, and the result returned for each product) where every Brand with an API Key can read it. *Oracle:* a batch built only from the published contract is accepted. Needed by `UC-BRND-send-products` and `UC-BRND-generate-api-key`.
 
+#### Consumer feedback and insights
+
+These requirements support `FEAT-consumer-feedback` and `FEAT-feedback-insights` across `UC-FDBK-rate-product`, `UC-FDBK-flip-card`, `UC-FDBK-open-card-media`, and `UC-FDBK-complete-market`.
+
+- **`FR-FDBK-session-association`** (ubiquitous): The system shall associate captured consumer feedback and interaction records with the relevant Market session and applicable Product, Line Item, or media item. *Oracle:* A stored swipe, flip, or media interaction can be traced to its Market session and the item involved.
+
+- **`FR-FDBK-public-identity`** (state driven): While a Public Access Consumer's temporary identity remains valid, the system shall associate that Consumer's return visits on the same device with the same identity. *Oracle:* A Public Access Consumer who leaves and returns before the identity expires is not counted as a new Consumer solely because of the return visit. The exact expiration period remains to be determined.
+
+- **`FR-FDBK-feedback-insights`** (event driven): When an authorized Brand requests feedback insights for its products, the system shall calculate the applicable metrics using the feedback and interaction data captured for those products. *Oracle:* The reported metrics can be reconciled with the underlying feedback records, and data from unrelated Brands is excluded.
+
+- **`FR-FDBK-market-funnel`** (ubiquitous): The system shall support Engagement Funnel reporting for both Brand Markets and Standard Markets using their recorded Market session stages. *Oracle:* Funnel counts can be derived from recorded session stages for either Market type. Vendor visibility remains unresolved under `OI-21`.
+
 ---
 
 ## 6. Business Rules
@@ -192,30 +205,97 @@ _[Link only, to [business-rules.md](business-rules.md). Business rules are a ric
 
 _[The entities in the problem domain and how they relate, as a mermaid class diagram. Model the **business**, not your database schema: this is what the client would recognize, before any decision about tables or persistence.]_
 
-    ```mermaid
-    classDiagram
-      class Team {
-        +String name
-      }
-      class Student {
-        +String email
-      }
-      Team "1" --> "*" Student : has
-    ```
+```mermaid
+classDiagram
+    class Consumer
+    class Market
+    class MarketSession
+    class Category
+    class Product
+    class Card
+    class Feedback
+    class CardFlip
+    class MediaItem
+    class MediaInteraction
+
+    Consumer "1" --> "0..*" MarketSession : participates in
+    Market "1" --> "0..*" MarketSession : has
+    Market "1" --> "0..*" Category : contains
+    Category "1" --> "0..*" Card : contains
+    Card "*" --> "1" Product : presents
+    MarketSession "1" --> "0..*" Feedback : records
+    MarketSession "1" --> "0..*" CardFlip : records
+    MarketSession "1" --> "0..*" MediaInteraction : records
+    Feedback "*" --> "1" Card : rates
+    CardFlip "*" --> "1" Card : flips
+    Card "1" --> "0..*" MediaItem : displays
+    MediaInteraction "*" --> "1" MediaItem : opens
+```
 
 ### 7.2 Data dictionary
 
 _[Each entity's fields, with data type, allowed values, defaults, and validation rules. Where a use case already specifies a field's validation in its Associated Information, cite the use case instead of repeating it.]_
 
+#### FDBK - Consumer Feedback and Data Capture
+
+The following fields support `UC-FDBK-rate-product`, `UC-FDBK-flip-card`, `UC-FDBK-open-card-media`, and `UC-FDBK-complete-market`. These are business-level data requirements, not database column definitions.
+
+| Entity | Field | Data type | Rules / Description |
+|---|---|---|---|
+| Consumer | Consumer reference | Identifier | Identifies a signed-in Consumer or a temporary Public Access Consumer. |
+| Market Session | Session reference | Identifier | Uniquely identifies a Consumer's participation in a Market. |
+| Market Session | Market reference | Identifier | Identifies the associated Market. |
+| Market Session | Session stages | Enumeration / timestamps | Records entered, viewed, started, and completed stages when applicable. |
+| Market Session | Completion Time | Duration | Calculated from the applicable start stage to completion; incomplete sessions have zero Completion Time. |
+| Market Session | Selected Categories | Collection of identifiers | Records Categories selected during the same Market session, including Categories added later. |
+| Feedback | Card / Line Item reference | Identifier | Identifies the rated item. |
+| Feedback | Swipe direction | Enumeration | Left or right, as specified in `UC-FDBK-rate-product`. |
+| Feedback | Swipe timestamp | Timestamp | Records when the Consumer rates the Card. |
+| Feedback | Decision Time | Duration | Refer to the calculation defined in `UC-FDBK-rate-product`. |
+| Feedback | Dwell Time | Duration | Refer to `UC-FDBK-rate-product` for the applicable measurement rules. |
+| Card Flip | Card reference | Identifier | Identifies the Card flipped by the Consumer. |
+| Card Flip | Flip interaction | Event / timestamp | Records the flip activity described in `UC-FDBK-flip-card`. |
+| Media Interaction | Media item reference | Identifier | Identifies the specific photo or video, not just its position in the Card. |
+| Media Interaction | Media slot | Enumeration | `PHOTO_1`, `PHOTO_2`, `PHOTO_3`, or `VIDEO`. |
+| Media Interaction | Clicked at | Timestamp | Records a deliberate media Click. Repeated taps on the same photo count as one Click per Consumer. |
+| Media Interaction | Photo View Time | Duration (milliseconds) | Photos only; nonnegative; summed across viewings within a Market session. Video watch time is not captured. |
+
+The exact expiration period for temporary Public Access Consumer identities remains undecided. Demographic data collection and retention must be reconciled with `BR-collect-email-only` and `OI-45`. Vendor access to funnel reporting remains open under `OI-21`.
+
 ### 7.3 Reports
 
 _[Any report the system generates: who reads it, what it contains, how often, and in what format. Reports are where clients discover late that a field they need was never captured, so specify them early.]_
+
+#### FDBK - Consumer Feedback Reports
+
+Market Match provides feedback insights to authorized Brands using data captured during Consumer interactions with Markets and Cards. The reports below describe the expected information. Exact metric calculations and access permissions remain subject to the linked use cases and open issues.
+
+| Report | Intended audience | Information included | Frequency / format |
+|---|---|---|---|
+| Product Feedback Insights | Owning Brand | Swipe counts, product reach, decision time, dwell time, and available demographic breakdowns | On request through the Brand Dashboard; exact refresh frequency not yet specified |
+| Card Interaction Insights | Owning Brand | Card flips, front/back interactions, and related engagement measurements | On request through the Brand Dashboard; exact refresh frequency not yet specified |
+| Media Engagement Insights | Owning Brand | Clicks for individual photos and videos and Photo View Time for photos | On request through the Brand Dashboard; exact refresh frequency not yet specified |
+| Engagement Funnel | Authorized Market stakeholders | Counts for entered, viewed, started, and completed stages, plus Completion Time | On request through a reporting interface; exact refresh frequency not yet specified |
+
+The Engagement Funnel applies to both Standard Markets and Brand Markets. Vendor visibility is unresolved (`OI-21`). The treatment of incomplete sessions in average Completion Time (`OI-33`), the Average Swipes formula (`OI-34`), and demographic collection and retention (`OI-45`) require confirmation. Metrics must follow the definitions in the FDBK use cases and project glossary.
 
 ### 7.4 Data acquisition, integrity, retention, and disposal
 
 _[Where the data comes from, how it is kept correct, how long it is kept, and how it is destroyed. If your system holds anything about students or other identifiable people, this section is not optional, and its content is usually a business rule you should cite rather than invent.]_
 
 ---
+
+#### FDBK - Data Acquisition, Integrity, Retention, and Disposal
+
+**Data acquisition:** Market Match collects feedback during Consumer participation in Markets. This includes product swipes, Card flips, photo and video clicks, Photo View Time, Decision Time, Dwell Time, and Market session stages. Records are associated with the relevant Market session and product or media item. Signed-in Consumers use their authenticated identity, while Public Access Consumers use a temporary identity.
+
+**Data integrity:** Each interaction must be associated with the correct Consumer, Market session, and item. Repeated clicks on the same photo count once per Consumer, while Photo View Time accumulates across repeat viewings. Retry handling must prevent duplicate feedback submissions. Market session records must remain consistent when Consumers leave, resume, or select additional Categories.
+
+**Privacy and access:** Feedback insights must be available only to authorized users. Brands must not access private feedback belonging to unrelated Brands. Demographic data collection and retention must be reconciled with `BR-collect-email-only`, `SEC-pii-protection`, and `OI-45`.
+
+**Retention and disposal:** Retention periods for feedback, Market sessions, and demographic information have not been finalized. A temporary Public Access Consumer identity expiration of approximately 30 days was discussed but not approved. The team must confirm retention periods, deletion procedures, and responsibility for disposal before implementation.
+
+**Open decisions:** Demographic retention (`OI-12`, `OI-45`), Vendor access to funnel reports (`OI-21`), incomplete session handling (`OI-33`), and Average Swipes calculation (`OI-34`) remain unresolved.
 
 ## 8. External Interface Requirements
 
