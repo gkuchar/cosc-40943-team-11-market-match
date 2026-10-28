@@ -3,7 +3,7 @@
 **Project:** Market Match
 **Team:** Team 11
 **Client:** Demetrie King, Market Match
-**Version:** 0.1
+**Version:** 0.2
 
 ---
 
@@ -35,6 +35,7 @@ _[These are slugs, like every other identifier in your project, so an inserted d
 | Version | Date | Author | Change                         |
 | ------- | ---- | ------ | ------------------------------ |
 | 0.1     |   2026-10-02    |   Team 11     | Initial draft for Checkpoint 1 |
+| 0.2     | 2026-10-28 | Matthew Stafford | Brand product import (BRND): quality goals and the §9.1 ranking for BRND; the Brand's product system and the R2 Media Store in the context and container diagrams, and PostgreSQL removed; the §5.2 component table; API Keys in §8.1; §8.2.5, §8.2.7, §8.2.8, §8.2.9, and §8.2.10 rewritten to match the code; `KD-api-key-storage`, `KD-import-in-request`, and `KD-photos-copied`; §11 risks and debt |
 
 ---
 
@@ -58,9 +59,11 @@ _Example, from the Cafeteria Ordering System:]_
 
 | Priority | Quality goal                              | Specification handles                            | Why it shapes the architecture                                                                                                      |
 | -------- | ----------------------------------------- | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| 1        | _Payroll data stays confidential_         | _`SEC-payroll-auth`, `SEC-employee-own-orders`_  | _Orders are paid by payroll deduction, so an order record carries an employee's pay account. A leak is a legal problem, not a bug._ |
-| 2        | _Orders placed before 10:00 are not lost_ | _`ROB-order-persisted`, `AVL-lunch-window`_      | _The lunch rush is the only load that matters, and a lost order is a hungry employee with a payroll charge._                        |
-| 3        | _Cafeteria staff can run it without IT_   | _`CO-no-dedicated-ops`, `MNT-menu-self-service`_ | _Nobody on the cafeteria side can deploy, restart, or patch anything._                                                              |
+| 1 | One Brand never reads or changes another Brand's products | `SEC-brand-isolation` | Brands are competing companies, and from phase 1 a Brand's own system writes into Market Match with no person signed in. Every product read and write is scoped by a Brand taken from the session or the API Key, never from the request. |
+| 2 | An API Key reaches one Brand and can be ended at once | `SEC-api-key-strength`, `SEC-api-key-ending` | The product API is Market Match's first entry point with no signed-in person; a leaked key would let anyone fill a Brand's catalog. Keys are hashed, belong to one Brand, and are checked on every request (`KD-api-key-storage`). |
+| 3 | A sending stopped partway can be sent again without duplicates | `ROB-import-resend` | A Brand's system retries when a sending fails. Matching every product by its SKU within the Brand makes any sending safe to repeat, which is what lets a sending run in one request (`KD-import-in-request`). |
+
+Ranked by Matthew Stafford on 2026-10-28 from the BRND requirements, the only area whose quality attributes are in the specification so far. The owners of MKT, PROD, and FDBK re-rank this table when their attributes are added.
 
 ### 1.3 Stakeholders
 
@@ -100,26 +103,26 @@ C4Context
     Person(consumer, "Consumer", "Browses products and gives feedback")
     Person(brand, "Brand", "Manages products and reviews insights")
     Person(vendor, "Vendor", "Accesses market information")
-    Person(admin, "Administrator", "Manages users and platform data")
+    Person(admin, "Administrator", "Approves products, issues API Keys, builds Markets")
     Person(enterprise, "Enterprise Organization", "Uses integrations and white-label services")
 
     System(mm, "Market Match", "Product discovery and preference insights")
 
+    System_Ext(brandsys, "Brand's product system", "Wherever a Brand keeps its products")
+    System_Ext(brandweb, "Brand's image hosting", "Where a Brand's photo links point")
     System_Ext(workos, "WorkOS", "Identity and roles")
     System_Ext(gemini, "Google Gemini", "AI-assisted insights")
-    System_Ext(d1, "Cloudflare D1", "Production data storage")
-    System_Ext(postgres, "PostgreSQL", "Local development data storage")
 
     Rel(consumer, mm, "Products and feedback")
     Rel(brand, mm, "Products and insights")
     Rel(vendor, mm, "Markets and insights")
-    Rel(admin, mm, "Users and data")
+    Rel(admin, mm, "Approvals, keys, data")
     Rel(enterprise, mm, "APIs and white-label")
+    Rel(brandsys, mm, "Sends products")
 
     Rel(mm, workos, "Authentication and roles")
     Rel(mm, gemini, "Feedback and AI insights")
-    Rel(mm, d1, "Read and write production data")
-    Rel(mm, postgres, "Read and write local data")
+    Rel(mm, brandweb, "Downloads linked photos")
 
     UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
 ```
@@ -136,6 +139,7 @@ flowchart TB
         vendor["Vendor"]
         admin["Administrator"]
         enterprise["Enterprise Organization"]
+        brandsys["Brand's product system"]
     end
 
     mm["Market Match<br/>Product discovery and preference insights"]
@@ -144,33 +148,32 @@ flowchart TB
         direction LR
         workos["WorkOS<br/>Authentication & roles"]
         gemini["Google Gemini<br/>AI insights"]
-        d1["Cloudflare D1<br/>Production storage"]
-        postgres["PostgreSQL<br/>Local development"]
+        brandweb["Brand's image hosting<br/>Photo links"]
     end
 
     consumer -->|"Products / feedback"| mm
     brand -->|"Products / insights"| mm
     vendor -->|"Markets / insights"| mm
-    admin -->|"Users / data"| mm
+    admin -->|"Approvals / keys / data"| mm
     enterprise -->|"APIs / white-label"| mm
+    brandsys -->|"Sends products"| mm
 
     mm -->|"Auth / roles"| workos
     mm -->|"AI analysis"| gemini
-    mm -->|"Production data"| d1
-    mm -->|"Local data"| postgres
+    mm -->|"Downloads linked photos"| brandweb
 
     classDef actor fill:#173B5E,stroke:#62B5EF,stroke-width:1.5px,color:#FFFFFF
     classDef main fill:#1364A5,stroke:#9EDBFF,stroke-width:3px,color:#FFFFFF
     classDef external fill:#334155,stroke:#A3B2C7,stroke-width:1.5px,color:#FFFFFF
-    class consumer,brand,vendor,admin,enterprise actor
+    class consumer,brand,vendor,admin,enterprise,brandsys actor
     class mm main
-    class workos,gemini,d1,postgres external
+    class workos,gemini,brandweb external
     style ACTORS fill:#1D2530,stroke:#43536A,color:#FFFFFF
     style SERVICES fill:#1D2530,stroke:#43536A,color:#FFFFFF
     linkStyle default stroke:#94A3B8,stroke-width:1.5px,color:#FFFFFF
 ```
 
-**External interactions:** WorkOS supplies authentication and role management. Google Gemini is shown for the proposed AI-assisted feedback analysis integration; its implementation status should be confirmed with the team. The existing architecture specifies Cloudflare D1 for production persistence and PostgreSQL for local development, so both are labeled by environment rather than presenting PostgreSQL as the production database.
+**External interactions:** WorkOS supplies authentication and role management. A Brand's product system sends products through Market Match's API with the API Key the Admin gave the Brand (`SI-brand-product-system`). Photo links in a sending point at the Brand's own image hosting; Market Match downloads each photo once, checks it, and keeps its own copy (`KD-photos-copied`). Google Gemini is shown for the proposed AI-assisted feedback analysis; the Worker declares a `GEMINI_API_KEY` but calls nothing with it, so its status is to be confirmed. Cloudflare D1 and R2 are Market Match's own storage, so they are containers in section 5.1, not external systems; local development uses a local D1 database, never PostgreSQL.
 
 ## 4. Solution Strategy
 
@@ -183,6 +186,8 @@ _Each bullet is one sentence, and it cites what explains it: the key decision in
 - **Preserve the existing Market Match production deployment shape** (`KD-deployment-shape`): the React front end and Cloudflare Worker API are deployed together, with Cloudflare D1 providing production data storage.
 - **Separate the browser interface, application API, and persistent data into three architectural containers** (section 5.1), keeping user interaction, server-side application behavior, and production data storage separated by responsibility.
 - **Use WorkOS as the external authentication service** (sections 3 and 5.1), with authentication handled through the application API rather than implementing a separate authentication system within Market Match.
+- **Authenticate a Brand's own system with an API Key that Market Match issues and checks itself** (`KD-api-key-storage`), so every product request has exactly one Brand from the session or the key (quality goals 1 and 2).
+- **Route every product submission, by hand, by spreadsheet, or through the API, through one Catalog component that checks, stores, and holds it for Approval** (section 5.2; `FR-PROD-server-checks`), handling each sending in one request (`KD-import-in-request`).
 
 ## 5. Building Block View
 
@@ -210,13 +215,17 @@ C4Container
     Person(admin, "Administrator", "Manages platform information")
     Person(enterprise, "Enterprise Organization", "Uses API-based integrations and white-label capabilities")
 
+    System_Ext(brandsys, "Brand's product system", "Sends a Brand's products")
+
     System_Boundary(mm, "Market Match") {
         Container(web, "Web Front End", "React 19 / Vite", "Provides the browser-based Market Match user interface")
         Container(api, "Application API", "Cloudflare Worker / Hono", "Handles API requests, authentication, business logic, and data access")
-        ContainerDb(db, "Production Database", "Cloudflare D1", "Stores Market Match production data")
+        ContainerDb(db, "Production Database", "Cloudflare D1", "Stores Market Match data, including API Key hashes")
+        ContainerDb(media, "Media Store", "Cloudflare R2", "Stores every product photo and uploaded video")
     }
 
     System_Ext(workos, "WorkOS", "Provides authentication and role management")
+    System_Ext(brandweb, "Brand's image hosting", "Serves the photos a Brand links to")
 
     Rel(consumer, web, "Uses Market Match", "HTTPS")
     Rel(brand, web, "Uses Market Match", "HTTPS")
@@ -227,9 +236,12 @@ C4Container
     Rel(web, api, "Calls API", "HTTPS/JSON")
     Rel(api, db, "Reads and writes application data", "D1 binding")
     Rel(api, workos, "Authenticates users and obtains identity information", "HTTPS")
+    Rel(brandsys, api, "Sends batches of products", "HTTPS/JSON, API Key")
+    Rel(api, media, "Stores and serves uploaded media", "R2 binding")
+    Rel(api, brandweb, "Downloads linked photos", "HTTPS")
 ```
 
-The system uses a browser-based React front end, a Cloudflare Worker API, and Cloudflare D1 for production data storage. The front end and API are deployed together under the existing production deployment model described in `KD-deployment-shape`.
+The system uses a browser-based React front end, a Cloudflare Worker API, Cloudflare D1 for data, and Cloudflare R2 for uploaded media, all on the client's existing Cloudflare deployment (`KD-deployment-shape`). R2 is separate from D1 because a database is the wrong place for multi-megabyte files; the client's app already stores uploads there, and imported photos are copied there too (`KD-photos-copied`). A Brand's product system calls the same Application API as the browser, so there is one place that enforces Brand isolation (quality goal 1), not a second service for integrations.
 
 ### 5.2 Use case areas and components
 
@@ -241,14 +253,16 @@ _Project Pulse's component tables also name each component's package. They can b
 
 _Example:]_
 
-| Use case area     | Component      | Responsibility                                                        | Depends on                | Status        |
-| ----------------- | -------------- | --------------------------------------------------------------------- | ------------------------- | ------------- |
-| _`ORD`_           | _Ordering_     | _Owns an order from placement to cancellation, and the cut-off rules_ | _Menu, Payment, Identity_ | _provisional_ |
-| _`MNU`_           | _Menu_         | _Owns daily menus and item availability_                              | _Identity_                | _provisional_ |
-| _`DEL`_           | _Delivery_     | _Owns delivery slots and the staff's fulfilment queue_                | _Ordering, Notification_  | _provisional_ |
-| _(cross-cutting)_ | _Payment_      | _The only component that talks to the Payroll System_                 | _Payroll System_          | _provisional_ |
-| _(cross-cutting)_ | _Identity_     | _Maps a signed-on employee to a role_                                 | _Corporate Sign-On_       | _provisional_ |
-| _(cross-cutting)_ | _Notification_ | _Sends every email the system sends_                                  | _Corporate Email_         | _provisional_ |
+| Use case area | Component | Responsibility | Depends on | Status |
+| --- | --- | --- | --- | --- |
+| `MKT` | Markets | Owns entering a Market by its Market Code and which Markets a Consumer may enter | Identity, Catalog | provisional |
+| `PROD` | Product Details | Shows a Consumer an approved product's Card and the details on its back | Catalog, Media | provisional |
+| `FDBK` | Feedback | Records swipes, Flips, Clicks, and Market completion, and reports them to each role | Markets, Catalog, Identity | provisional |
+| `BRND` | Catalog | Owns each Brand's Inventory, Categories, product submissions from all three routes, their checks, Approval, and removal | Identity, Media, Brand's image hosting | provisional |
+| (cross-cutting) | Identity | Turns a WorkOS session or an API Key into one user, role, and Brand for every request, and issues and ends API Keys | WorkOS | provisional |
+| (cross-cutting) | Media | The only component that writes to or serves from the Media Store | (Media Store) | provisional |
+
+The MKT, PROD, and FDBK rows name each area's component from its use case list; their owners refine them with their designs-of-record. Google Gemini has no component because nothing calls it yet (section 3).
 
 _[Check before Checkpoint 1: every area in your use case file appears in the first column, and every external system in section 3 appears in some Depends on cell.]_
 
@@ -285,7 +299,13 @@ _[Four short paragraphs. The last three each cite the `SEC-*` requirement they a
 
 _Secrets (passwords, API keys, connection strings) never appear in this document or in the repository. Say where they will live, not what they are.]_
 
-**Trust boundary:** The Application API running in the Cloudflare Worker is the server-side trust boundary for Market Match. Requests from the browser and interactions with external systems such as WorkOS cross this boundary. Authentication and authorization are enforced by the application API before protected application data or functionality is accessed.
+**Trust boundary:** The Application API running in the Cloudflare Worker is the server-side trust boundary for Market Match. Outside it sit the browser, a Brand's product system, the Brand's image hosting, and WorkOS. Every request that crosses it is authenticated and authorized by the Application API before any protected data is read, on every `/api/*` path, including the media and image routes.
+
+**Authentication:** People sign in through WorkOS, and the Application API keeps their session in the `mm_session` cookie. A Brand's product system has no person behind it: it sends the API Key the Admin generated for that Brand, which the Application API checks against a hash in D1 (`KD-api-key-storage`). A request carrying neither is refused (`SEC-authentication`); a replaced or revoked key, or one whose Brand lost access, is refused from the moment it ends (`SEC-api-key-ending`). Keys carry at least 256 bits of randomness and are shown once (`SEC-api-key-strength`).
+
+**Authorization:** Roles are Admin, Brand, Vendor, and Consumer, assigned in WorkOS. Beyond the role, a Brand acts only on its own Inventory and Categories: the Brand is taken from the session's Organization or from the API Key, never from the request body, and every product query filters by it (`SEC-brand-isolation`). Only the Admin approves products and generates or revokes API Keys.
+
+**Sensitive data:** D1 holds Consumers' emails and the demographic answers stored with each swipe (whether it may hold the latter is `OI-45`; `SEC-pii-protection`), and API Key hashes, never the keys. Retention and disposal are not yet written in section 7.4 of the specification. API Keys and WorkOS credentials are never logged. Secrets live in `.env.local` and `.dev.vars` locally and as Cloudflare Worker secrets in production.
 
 ### 8.2 Other concepts
 
@@ -328,7 +348,7 @@ No architecture-level project-wide code convention beyond the existing technolog
 
 #### 8.2.5 Validation
 
-Input validation is performed before invalid data is persisted. Existing product CSV processing classifies rows as `VALID`, `WARNING`, or `ERROR`, and critical validation errors prevent those rows from being imported.
+Every check that decides whether data is stored runs in the Application API, once, in one function per kind of data, and every route that stores that data calls it: a product is checked the same way whether it was entered by hand, imported by spreadsheet, or sent through the API (`FR-PROD-server-checks`). Checks in the browser are a convenience for the user and never the one that counts. Why: today `POST /api/products/bulk` stores whatever it receives, because its only checks run in the Brand's browser, and the Admin's CSV upload skips them. Shown in: not yet; the Catalog's product check is the first, in `UC-BRND-create-product`.
 
 #### 8.2.6 Configuration and secrets
 
@@ -336,19 +356,19 @@ Environment-specific configuration and secrets are kept outside source code. Loc
 
 #### 8.2.7 Logging
 
-No project-wide logging convention is documented in the existing architecture. A common logging policy remains to be defined as implementation work requires it.
+Log identifiers, never content: no secrets, session tokens, API Keys, or passwords, and for a person their ID, never their email or demographic answers; never log a whole object. Every `catch` that does not rethrow logs the exception, and no `catch` is empty. Why: Worker logs are readable by anyone with access to the Cloudflare account, and the Feedback data is personal. The same rule is in `AGENTS.md`.
 
 #### 8.2.8 Persistence and concurrency
 
-Production persistence uses Cloudflare D1, while local development uses PostgreSQL. Schema changes that affect both environments must be kept synchronized. No project-wide concurrency policy is currently documented.
+Cloudflare D1 is the only database: production and preview use their own D1 databases, and local development (`npm run dev`) uses a local D1 database, never PostgreSQL. Schema changes are Drizzle migrations in `worker/migrations/`, never renamed, because D1 records applied migrations by filename; new ones continue from `0008`. A change that writes several rows (a sending, approving many products at once) commits each product's rows together, so a product is never half-stored; a sending stopped partway is completed by sending it again, matched by SKU (`ROB-import-resend`). When two people act on one record, the later action is checked against the version it was based on and refused if that version changed (`UC-BRND-approve-product` extension 6a).
 
 #### 8.2.9 Auditing
 
-No project-wide auditing convention is documented in the existing Market Match architecture. Auditing requirements should be defined before implementing features that require tracking who changed data and when.
+Every change to a product's Approval, an API Key's status, or a product's removal records who made it (a user ID, or the API Key's ID for a sending) and when, in D1, and the record is never edited. Why: the BRND use cases require it (their POST conditions), and a refused sending with an ended key is recorded so the Admin can see it (`UC-BRND-send-products` extension 2a).
 
 #### 8.2.10 Testing
 
-Existing testing includes functional checks for authentication, role-based authorization, and API access. New implementation work should preserve these checks and add tests for changed behavior.
+`MM-Version` has no test framework, no tests, and no linter. Adding one is a new dependency, which a person decides first (`AGENTS.md`). Until then, each design-of-record lists its tests, one per main flow and extension, and they are run by hand against `npm run dev` and recorded in the pull request. The first framework added is a decision recorded in section 9.2.
 
 ## 9. Architecture Decisions
 
@@ -362,9 +382,15 @@ _Your quality goals from section 1.2 are usually the top rows; cite them by iden
 
 _List three to six, ranked by importance to your client times difficulty to achieve. Reuse the specification's identifiers, never new ones. **At least one row is a `SEC-*` attribute.** Every system your team builds this year holds some personal data, and if no security requirement appears here, that data's protection was never designed; it will be added later, which is where security bugs come from.]_
 
-| Rank | Requirement                 | Specification handles | Importance × difficulty | Drives                  |
-| ---- | --------------------------- | --------------------- | ----------------------- | ----------------------- |
-| 1    | _Payroll data confidential_ | _`SEC-payroll-auth`_  | _High × Medium_         | _`KD-payment-isolated`_ |
+| Rank | Requirement | Specification handles | Importance × difficulty | Drives |
+| --- | --- | --- | --- | --- |
+| 1 | One Brand never reads or changes another Brand's products | `SEC-brand-isolation` | High × Medium | Identity resolves one Brand per request; the Catalog filters every query by it (section 8.1) |
+| 2 | API Keys are strong, shown once, and end at once | `SEC-api-key-strength`, `SEC-api-key-ending` | High × Medium | `KD-api-key-storage` |
+| 3 | A stopped sending can be resent without duplicates | `ROB-import-resend` | High × Low | `KD-import-in-request` |
+| 4 | Every product's result within 60 seconds for a 200-product sending | `PER-import-results` | Medium × Medium | `KD-import-in-request`, `KD-photos-copied` |
+| 5 | At most 200 products per sending | `SCA-import-batch-limit` | Medium × Low | `KD-import-in-request` |
+
+Ranked by Matthew Stafford, 2026-10-28, for the BRND area; see section 1.2.
 
 ### 9.2 Key decisions
 
@@ -380,7 +406,31 @@ _A decision that turns out wrong is not deleted or rewritten. Mark it **Supersed
 - **Context:** Market Match already has a production deployment in which the React frontend is built as static assets, `/api/*` requests are handled by a Cloudflare Worker, and production data is stored in Cloudflare D1.
 - **Decision:** Continue the existing production deployment shape: deploy the built React frontend and the API together through the Cloudflare Worker deployment, with Cloudflare D1 as the production database.
 - **Rejected:** Split the frontend and API into independently deployed services. This would change the existing production deployment model and introduce additional deployment and integration complexity without a documented requirement for that separation.
-- **Trade-off:** The frontend and API remain coupled at deployment time, while local development differs from production because local development uses PostgreSQL and production uses D1.
+- **Trade-off:** The frontend and API remain coupled at deployment time. Local development runs the same Worker against a local D1 database, so it matches production's engine.
+
+**`KD-api-key-storage`: API Keys are Market Match's own, stored as hashes in D1.** _Accepted, 2026-10-28, Matthew Stafford._
+
+- **Driving requirements:** `SEC-api-key-strength`, `SEC-api-key-ending`, `SEC-brand-isolation`; `UC-BRND-generate-api-key`, `UC-BRND-send-products`; `BR-admin-issues-api-key`.
+- **Context:** The client gives each Brand its key himself (fifth client meeting). Each Brand is already a WorkOS Organization, and WorkOS offers organization-owned API keys with a validation endpoint.
+- **Decision:** The Application API generates each key from a cryptographic random source, shows it once to the Admin, and stores only its SHA-256 hash in a D1 table with its Brand, status, and who generated or ended it and when. A sending is authenticated by hashing the key it carries and looking it up; an ended key is a status change, effective on the next request.
+- **Rejected:** WorkOS API Keys. They would give a hosted management widget and revocation, but every sending would wait on a call to WorkOS, local development would need WorkOS for the API too, and it is a WorkOS feature the client has not used, with pricing we have not seen. A plain hash suffices because a 256-bit random key cannot be guessed, so a slow password hash adds nothing.
+- **Trade-off:** The team writes and maintains key generation, revocation, and the Admin's screen for them.
+
+**`KD-import-in-request`: a sending is checked and stored in the one request that delivers it.** _Accepted, 2026-10-28, Matthew Stafford._
+
+- **Driving requirements:** `PER-import-results` (60 seconds), `SCA-import-batch-limit` (200), `ROB-import-resend`.
+- **Context:** A sending carries at most 200 products and the Brand's system waits for every result. Matching by SKU makes a repeated sending harmless.
+- **Decision:** The Application API checks every product of a sending, stores the valid ones waiting for Approval, and returns every result in the same request. Spreadsheet imports and API sendings share this path.
+- **Rejected:** Background processing with Cloudflare Queues and a results endpoint the Brand's system polls. It would allow larger or slower sendings, but adds a platform service on the client's account and a second way for a sending to fail, which neither the 60-second limit nor the 200-product limit requires.
+- **Trade-off:** One request does all the work, so it is bounded by the Worker's limits per request: on the Workers Free plan, 50 outbound calls, which is fewer than the photo checks of a 200-product sending (`RISK-workers-plan-limits`, `OI-51`). If the limits or the client's numbers rule it out, this decision is superseded, not edited.
+
+**`KD-photos-copied`: Market Match keeps its own copy of every imported photo.** _Accepted, 2026-10-28, Matthew Stafford._
+
+- **Driving requirements:** `BR-photo-size`, `BR-approve-product`, `PER-import-results`; `RI-broken-product-photos` in vision and scope.
+- **Context:** Photos uploaded through Market Match already go to the Media Store, and the client stores every photo in the app himself today, from the Brand's Google Drive (fifth client meeting). Photos in a spreadsheet or an API sending arrive as links to the Brand's own hosting. Checking a linked photo's format and size already means downloading it, so keeping the download costs one more write.
+- **Decision:** When a product is stored, Market Match downloads each linked photo once, checks that it is JPEG or PNG and under 3 MB, and stores it in the Media Store through the Media component; the product then points only at the stored copy. The Brand's link is kept as the photo's source. A photo that cannot be downloaded or fails a check fails its product (`UC-BRND-import-products` extension 4c, `UC-BRND-send-products` extension 3c).
+- **Rejected:** Keeping the Brand's links, as `POST /api/products/bulk` does today. It stores nothing, but a Card breaks when the Brand moves or deletes the image, and can show a different picture than the one the Admin approved, which defeats `BR-approve-product`. It does not avoid the Workers plan question either, because checking each photo already takes one download.
+- **Trade-off:** The client's R2 storage grows, at most about 1.8 GB per 200 products with three photos under 3 MB each, and a sending makes two calls per photo (download and store), up to 1,200 for 200 products, which needs the Workers Paid plan (`RISK-workers-plan-limits`, `OI-51`).
 
 ## 10. Quality Requirements
 
@@ -410,9 +460,12 @@ _A **risk** might happen: an external system you have never called, a client dat
 
 _A risk written as a category ("security", "performance") is not a risk. Write the mechanism: what fails, and what that breaks.]_
 
-| ID                               | Type   | What could go wrong, and what it breaks                                                                                                   | Mitigation or fix                                                                                     | Cites                              |
-| -------------------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ---------------------------------- |
-| _`RISK-payroll-api-unavailable`_ | _Risk_ | _Nobody has seen the Payroll System's interface. If it only accepts a nightly batch file, ordering cannot confirm payment at order time._ | _Ask for the interface document at the next client meeting; build Payment against a stub until then._ | _`DE-payroll-integration`, `OI-4`_ |
+| ID | Type | What could go wrong, and what it breaks | Mitigation or fix | Cites |
+| --- | --- | --- | --- | --- |
+| `RISK-workers-plan-limits` | Risk | If the client's account is on the Workers Free plan, one request may make only 50 calls to other services, and copying the photos of a 200-product sending takes up to 1,200 (a download and a store per photo), so a full sending cannot be processed in one request. | Check the plan with the team's read-only Cloudflare access; if it is Free, the client decides whether to move to Paid (`OI-51`). Until then, lower the batch limit or supersede `KD-import-in-request`. | `KD-import-in-request`, `KD-photos-copied`, `OI-51` |
+| `RISK-photo-fetch-abuse` | Risk | Fetching a link a Brand supplies lets an outsider make the Worker request any address, including very large files. The existing `GET /api/proxy-image` already fetches any URL with no sign-in. | Fetch only `https` links, stop reading past 3 MB, and require sign-in on `/api/proxy-image`. | `KD-photos-copied`, section 8.1 |
+| `TD-no-tests` | Debt | `MM-Version` has no test framework, so every check of a use case is manual and nothing catches a regression. | Choose a framework with the team and the client (a new dependency) and record it in section 9.2. | section 8.2.10 |
+| `TD-products-live-unchecked` | Debt | Today every product a Brand adds or imports is live at once and unchecked on the server, and a Brand can delete its products outright with no limit and nothing kept. | Replaced by the Catalog through the BRND use cases, starting with `UC-BRND-create-product`. | `FR-PROD-server-checks`, `FR-PROD-hidden-until-approved`, `BR-remove-product` |
 
 ## 12. Glossary
 

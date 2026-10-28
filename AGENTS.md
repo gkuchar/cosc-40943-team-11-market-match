@@ -25,10 +25,10 @@ The binding conventions live once, in §8.2 of `docs/design/architectural-design
 
 - API calls from the front end go through `services/apiService.ts` (§8.2.1, §8.2.3).
 - Secrets stay outside source code: `.env.local` and `.dev.vars` locally, Cloudflare Worker secrets in production (§8.2.6).
-- **Known drift.** Three subsections of §8.2 disagree with the code, so follow the code and the use cases, not these lines: §8.2.5 says input is validated before it is saved, but `POST /api/products/bulk` checks nothing on the server; §8.2.8 says local development uses PostgreSQL, but it uses a local D1 database; §8.2.10 describes existing tests, but there are none.
+- Every check that decides whether data is stored runs on the server, in one function every route calls (§8.2.5). Older code breaks this: `POST /api/products/bulk` checks nothing on the server, so never copy it (`TD-products-live-unchecked` in §11).
 - Migration files in `worker/migrations/` are never renamed: D1 records applied migrations by filename. New migrations continue from `0008`.
 
-**Logging.** Log identifiers, never content: no secrets, tokens, API Keys, or passwords, and for a person their ID, never their email or demographic answers. Never log a whole object. Every `catch` that does not rethrow logs the exception; an empty `catch` is not allowed.
+**Logging** (§8.2.7). Log identifiers, never content: no secrets, tokens, API Keys, or passwords, and for a person their ID, never their email or demographic answers. Never log a whole object. Every `catch` that does not rethrow logs the exception; an empty `catch` is not allowed.
 
 ## The workflow the agent follows
 

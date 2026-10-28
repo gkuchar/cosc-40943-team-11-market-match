@@ -3,7 +3,7 @@
 **Project:** Market Match
 **Team:** 11
 **Client:** Demetrie King
-**Version:** 0.2
+**Version:** 0.5
 
 ---
 
@@ -32,6 +32,7 @@ _Within one use case, `PRE-1`, `POST-1`, and the step numbers are local and may 
 | 2026-09-14 | 0.1     | Draft four use cases derived from the vision and scope feature list                                                                                                                                                                                                                                                                                                                                                                                         | Chris Ramirez    |
 | 2026-10-13 | 0.2     | Rewrote `UC-FDBK-rate-product` and added `UC-FDBK-flip-card`, `UC-FDBK-open-card-media`, and `UC-FDBK-complete-market` to capture the data points from the third client meeting, checked against the client's repository                                                                                                                                                                                                                                    | Matthew Stafford |
 | 2026-10-25 | 0.4     | Added the product import use cases to the BRND list (`UC-BRND-import-products`, `UC-BRND-send-products`, `UC-BRND-update-product`, `UC-BRND-approve-product`, `UC-BRND-generate-api-key`); pointed BRND at `FEAT-product-management` and `FEAT-bulk-product-import`, and MKT at `FEAT-market-management`, replacing feature IDs retired in vision and scope v0.2. Wrote all six in full, with `UC-BRND-create-product` revised to wait for Approval and made the proving slice. Listed three FDBK reporting use cases. Added the business rules the MKT, PROD, and FDBK use cases carry out but did not cite, and removed `BR-capture-feedback` from `UC-PROD-view-product-details`, which captures nothing | Matthew Stafford |
+| 2026-10-28 | 0.5     | Filed the fifth client meeting's answers into the BRND use cases: the Admin, not the Brand, generates API Keys (`UC-BRND-generate-api-key`); Brands put each product in one of their own Categories, creating new ones as needed, so the Admin no longer chooses a Category at Approval; the Admin can approve a Brand's products all at once; an existing SKU changes that product; results restart after an approved change; JPEG or PNG photos; video links beyond YouTube, and video files. Added `UC-BRND-remove-product` | Matthew Stafford |
 
 ---
 
@@ -109,7 +110,7 @@ _[Your area codes, then a table of every use case by area. Write this list first
 | MKT       | Market participation: `FEAT-market-management`, `FEAT-consumer-feedback`                                         | `UC-MKT-enter-market`: Enter a market                                                                                                                                                                                                                                                                                                                           |
 | PROD      | Product information: `FEAT-product-information`                                        | `UC-PROD-view-product-details`: View product details                                                                                                                                                                                                                                                                                                            |
 | FDBK      | Consumer feedback and data capture: `FEAT-consumer-feedback`, `FEAT-feedback-insights` | `UC-FDBK-rate-product`: Rate a product; `UC-FDBK-flip-card`: Flip a card; `UC-FDBK-open-card-media`: Open a card photo or video; `UC-FDBK-complete-market`: Complete a market; listed, not yet written: `UC-FDBK-view-brand-insights`: View a Brand's product insights; `UC-FDBK-view-vendor-results`: View a Vendor's market results; `UC-FDBK-view-platform-activity`: View platform activity                                                                                                                                                                                   |
-| BRND      | Brand participation: `FEAT-product-management`, `FEAT-bulk-product-import`             | `UC-BRND-create-product`: Create a product; `UC-BRND-import-products`: Import products from a spreadsheet; `UC-BRND-send-products`: Send products from a connected system; `UC-BRND-update-product`: Update a product; `UC-BRND-approve-product`: Approve or return a submitted product; `UC-BRND-generate-api-key`: Generate an API key |
+| BRND      | Brand participation: `FEAT-product-management`, `FEAT-bulk-product-import`             | `UC-BRND-create-product`: Create a product; `UC-BRND-import-products`: Import products from a spreadsheet; `UC-BRND-send-products`: Send products from a connected system; `UC-BRND-update-product`: Update a product; `UC-BRND-remove-product`: Remove a product; `UC-BRND-approve-product`: Approve or return a submitted product; `UC-BRND-generate-api-key`: Generate an API key |
 
 ---
 
@@ -617,9 +618,9 @@ Only the owning Brand sees Clicks, totalled per media item across all Markets.
 
 ## BRND: Brand Participation
 
-These use cases cover how a Brand's products get into Market Match and reach Consumers: one at a time (`UC-BRND-create-product`), many at once by spreadsheet (`UC-BRND-import-products`) or straight from the Brand's own system through Market Match's API (`UC-BRND-send-products`), changed later (`UC-BRND-update-product`), and reviewed by the Admin before any Consumer sees them (`UC-BRND-approve-product`). `UC-BRND-generate-api-key` is how a Brand gets the API Key its own system needs. Together they cover `FEAT-product-management` and `FEAT-bulk-product-import`.
+These use cases cover how a Brand's products get into Market Match and reach Consumers: one at a time (`UC-BRND-create-product`), many at once by spreadsheet (`UC-BRND-import-products`) or straight from the Brand's own system through Market Match's API (`UC-BRND-send-products`), changed later (`UC-BRND-update-product`), removed (`UC-BRND-remove-product`), and reviewed by the Admin before any Consumer sees them (`UC-BRND-approve-product`). `UC-BRND-generate-api-key` is how the Admin gives a Brand the API Key its own system needs. Together they cover `FEAT-product-management` and `FEAT-bulk-product-import`.
 
-Every way in ends in the same place: a submitted product, or a change to one, waits for the Admin's Approval and no Consumer sees it until he approves it. A Brand identifies each product by its own SKU, unique within that Brand (another Brand may use the same SKU), which is how Market Match recognizes a product it already has (`AS-stable-product-id` in [vision and scope](vision-and-scope.md)). A Brand's catalog runs from 10 to 200 SKUs across the companies the client works with today.
+Every way in ends in the same place: a submitted product, or a change to one, waits for the Admin's Approval and no Consumer sees it until he approves it. A Brand identifies each product by its own SKU, unique within that Brand (another Brand may use the same SKU), which is how Market Match recognizes a product it already has: submitting a SKU the Brand already has changes that product (`AS-stable-product-id` in [vision and scope](vision-and-scope.md)). Each product belongs to one of the Brand's own Categories, which the Brand creates (`BR-brand-categories`). A Brand sends 10 to 200 SKUs at a time today, and expects to send new batches as new designs come out, up to 500 SKUs before an event (fifth client meeting).
 
 A Brand also sees, for every product it has submitted however it arrived, whether it is waiting, approved, or returned and why. That list is part of each use case's postconditions rather than a use case of its own.
 
@@ -629,11 +630,11 @@ A Brand also sees, for every product it has submitted however it arrived, whethe
 
 **UC ID and Name:** `UC-BRND-create-product`: Create a product
 **Created By:** Chris Ramirez; revised by Matthew Stafford
-**Date Created:** 2026-09-14; revised 2026-10-25
+**Date Created:** 2026-09-14; revised 2026-10-25 and 2026-10-28
 **Primary Actor:** Brand
 **Secondary Actors:** Admin, who reviews the product (`UC-BRND-approve-product`)
 **Trigger:** The Brand chooses to add a product to its Inventory.
-**Description:** The Brand supplies one product's content through Market Match. Market Match stores it in the Brand's Inventory as waiting for Approval, so the Admin reviews it before any Consumer sees it.
+**Description:** The Brand supplies one product's content through Market Match and puts it in one of its Categories. Market Match stores it in the Brand's Inventory as waiting for Approval, so the Admin reviews it before any Consumer sees it.
 
 **Preconditions:**
 
@@ -641,7 +642,7 @@ A Brand also sees, for every product it has submitted however it arrived, whethe
 
 **Postconditions:**
 
-- POST-1. The product is stored in the Brand's Inventory under the Brand's SKU, waiting for Approval.
+- POST-1. The product is stored in the Brand's Inventory under the Brand's SKU and in the Category the Brand chose, waiting for Approval.
 - POST-2. No Consumer can see the product.
 - POST-3. The product is in the Admin's list of products waiting for Approval.
 - POST-4. The product is in the Brand's list of submitted products, shown as waiting for Approval.
@@ -649,8 +650,8 @@ A Brand also sees, for every product it has submitted however it arrived, whethe
 **Main Success Scenario:**
 
 1. The Brand chooses to add a product.
-2. The system asks for the product's SKU, whether it is a Card or a Text Card, its title, description, and price, and, for a Card, its photos and video link.
-3. The Brand supplies the content, including at least one photo for a Card's front, and submits it.
+2. The system asks for the product's SKU, whether it is a Card or a Text Card, its title, description, price, and Category, and, for a Card, its photos and video, and offers the Brand's existing Categories.
+3. The Brand supplies the content, including at least one photo for a Card's front, chooses a Category, and submits it.
 4. The system checks the content against the required fields and media limits, and checks that the SKU is not already one of the Brand's products.
 5. The system stores the product in the Brand's Inventory as waiting for Approval and confirms it to the Brand.
 
@@ -661,48 +662,53 @@ A Brand also sees, for every product it has submitted however it arrived, whethe
 - **3b. The product is a Text Card:**
   - 3b1. The Brand supplies the title and the text only. Photos and a video are not asked for. Rejoins at step 4.
 - **3c. The product is a Card:**
-  - 3c1. The Brand supplies one to three photos, the first being the Card's front, and may add one video link. Rejoins at step 4.
+  - 3c1. The Brand supplies one to three photos, the first being the Card's front, and may add one video, as a link or as a file. Rejoins at step 4.
+- **3d. The Category the product belongs in does not exist yet:**
+  - 3d1. The Brand names a new Category. The system creates it for this Brand only and selects it. Rejoins at step 3.
 - **4a. A required field is missing or a field is invalid:**
   - 4a1. The system names each failing field and stores nothing; the form keeps what the Brand typed. The Brand corrects it and returns to step 3, or cancels.
-- **4b. A Card has no photo, more than three photos, more than one video link, or a photo 3 MB or larger:**
-  - 4b1. As 4a, naming the photo and the limit it breaks. The client's full image requirements are open.
-- **4c. The video link is not one Market Match accepts:**
-  - 4c1. As 4a, naming the video link. Which video links are accepted is open.
+- **4b. A Card has no photo, more than three photos, or more than one video, or a photo is not JPEG or PNG or is 3 MB or larger:**
+  - 4b1. As 4a, naming the photo and the limit it breaks.
+- **4c. The video link is not from a video site Market Match accepts, or the video file is too large:**
+  - 4c1. As 4a, naming the video. YouTube and Vimeo links are accepted; other sites and the largest file are open.
 - **4d. The SKU is already one of the Brand's products:**
-  - 4d1. The system says the SKU is taken, stores nothing, and offers to change that product instead (`UC-BRND-update-product`). Whether submitting an existing SKU should change the product rather than be refused is open.
+  - 4d1. The system says the SKU is already one of the Brand's products, stores nothing, and offers to change that product instead (`UC-BRND-update-product`).
 - **4e. The Brand's access was removed after the form was opened:**
   - 4e1. The system stores nothing and tells the user they no longer have access. The use case ends.
 - **5a. Saving fails:**
-  - 5a1. The system reports that the product was not saved. Nothing is stored; the form keeps what the Brand typed so it can submit again.
+  - 5a1. The system reports that the product was not saved. Nothing is stored, including a Category created in 3d; the form keeps what the Brand typed so it can submit again.
 
 **Priority:** High (provisional). The proving slice (`v0.1.0`): it runs through every layer, from a signed-in Brand through the API to the database and media storage.
 **Frequency of Use:** Once per new product. Most of a Brand's 10 to 200 SKUs are expected to arrive through `UC-BRND-import-products` or `UC-BRND-send-products`; this use case is for a product added by hand.
-**Business Rules:** `BR-submit-product`, `BR-products-brand-only`, `BR-approve-product`, `BR-text-card`, `BR-product-media-limit`, `BR-photo-size`
+**Business Rules:** `BR-submit-product`, `BR-products-brand-only`, `BR-approve-product`, `BR-text-card`, `BR-product-media-limit`, `BR-photo-size`, `BR-brand-categories`
 
 **Associated Information:**
+
+These are the fields the client fills in today (fifth client meeting); a longer list of product details that varies by kind of product is to come from him (`OI-47`).
 
 | Property name | Data type | Validation rule | Security or access concerns | Glossary reference |
 |---|---|---|---|---|
 | SKU | String | Required; unique within the Brand's Inventory; cannot be changed later | Supplied by the Brand; identifies the product on later imports | SKU |
 | Card type | Enumeration | Required; `CARD` or `TEXT_CARD` | Supplied by the Brand | Card; Text Card |
-| Title | String | Required; length limit open | Shown to Consumers once approved | Card |
-| Description | String | Required (team decision, 2026-10-25; the full list of required fields is still open) | Shown to Consumers once approved | Card |
+| Title | String | Required; the client set no length limit, so the design sets one | Shown to Consumers once approved | Card |
+| Description | String | Required | Shown to Consumers once approved | Card |
 | Price | Decimal | Optional; ≥ 0 | Shown only where a Market shows prices | Line Item |
-| Photos | One to three images | Cards only; the first is the front; each under 3 MB; other image requirements open | Shown to Consumers once approved | Card |
-| Video link | URL | Cards only; optional; at most one; which links are accepted is open | Shown to Consumers once approved | Card |
+| Category | Identifier | Required; one of the Brand's own Categories, or a new one the Brand names (3d) | A Brand sees and uses only its own Categories | Category |
+| Photos | One to three images | Cards only; the first is the front; each JPEG or PNG and under 3 MB | Shown to Consumers once approved | Card |
+| Video | URL or video file | Cards only; optional; at most one; a YouTube or Vimeo link, or a file; other sites and the file size limit are open | Shown to Consumers once approved | Card |
 | Brand reference | Identifier | Required; taken from the signed-in user's Organization, never from input | A Brand creates products only in its own Inventory | Brand |
 | Approval status | Enumeration | Set by the system: `WAITING`, `APPROVED`, or `RETURNED` | Only the Admin changes it, in `UC-BRND-approve-product` | Approval |
-
-The Brand does not choose the product's Category today. The Admin attaches an approved product to a Category in `UC-BRND-approve-product`. Whether a Brand may choose a Category, or propose a new one, is open.
 
 **Current state in the client's repository:**
 - A Brand's "Add Item" saves the product as `ACTIVE`, live at once, with no Approval (`components/BrandDashboard.tsx`; `POST /api/products` in `worker/src/index.ts`).
 - When no SKU is given, the server makes one up (`SKU-<timestamp>`), and nothing keeps SKUs unique.
-- The server allows images up to 5 MB and uploaded videos up to 25 MB, not the client's 3 MB photo limit, and accepts YouTube and Vimeo links as well as uploaded video.
+- The server allows any image type up to 5 MB and uploaded videos up to 25 MB, not the client's JPEG or PNG under 3 MB, and accepts YouTube and Vimeo links as well as uploaded video.
+- Only the Admin can create Categories (`POST /api/categories`), and a Category belongs to an Organization (`categories.org_id` in `worker/src/schema.ts`).
 
 **Related Use Cases:**
 - `UC-BRND-import-products` and `UC-BRND-send-products`: many products at once.
 - `UC-BRND-update-product`: change the product later.
+- `UC-BRND-remove-product`: remove it.
 - `UC-BRND-approve-product`: the Admin's review that follows.
 - `UC-PROD-view-product-details`: what a Consumer sees once the product is approved and in a Market.
 
@@ -710,13 +716,10 @@ The Brand does not choose the product's Category today. The Admin attaches an ap
 - Brands send prices along with their products, as they do today (fourth client meeting). A price is optional because Text Cards and many surveys have none.
 
 **Open Issues:** Tracked in [OPEN-ISSUES.md](OPEN-ISSUES.md).
-- [OI-23](OPEN-ISSUES.md#open): Which product fields are required?
-- [OI-24](OPEN-ISSUES.md#open): What name length, image format, and media size limits apply?
-- [OI-38](OPEN-ISSUES.md#open): Which video links are accepted: YouTube only, or any video link?
-- [OI-39](OPEN-ISSUES.md#open): May a Brand choose its product's Category, or propose a new Category?
-- [OI-40](OPEN-ISSUES.md#open): When a Brand submits a SKU it already has, should Market Match change that product or refuse the submission?
-- [OI-25](OPEN-ISSUES.md#resolved) (resolved): Who may create products for a brand? The Admin today; a Brand may submit items, each needing the Admin's Approval. See [Admin](project-glossary.md#admin), [Approval](project-glossary.md#approval), and [Inventory](project-glossary.md#inventory).
-- [OI-26](OPEN-ISSUES.md#resolved) (resolved): How does a created product join a market? Once approved it is attached to a Category, the Admin assembles the Market from Categories and launches it. See [Inventory](project-glossary.md#inventory), [Category](project-glossary.md#category), [Approval](project-glossary.md#approval), and [Launch](project-glossary.md#launch).
+- [OI-49](OPEN-ISSUES.md#open): Which video sites besides YouTube and Vimeo, and how large a video file? Extension 4c accepts YouTube and Vimeo links until answered.
+- [OI-47](OPEN-ISSUES.md#open): Which further product details, by kind of product? Phase 1 uses the fields above.
+- Resolved in the fifth client meeting: required fields for phase 1 ([OI-23](OPEN-ISSUES.md#resolved)), JPEG or PNG under 3 MB ([OI-24](OPEN-ISSUES.md#resolved)), video links ([OI-38](OPEN-ISSUES.md#resolved)), the Brand chooses the Category ([OI-39](OPEN-ISSUES.md#resolved)), and an existing SKU changes that product ([OI-40](OPEN-ISSUES.md#resolved)).
+- [OI-25](OPEN-ISSUES.md#resolved) and [OI-26](OPEN-ISSUES.md#resolved) (resolved): who may create products, and how an approved product reaches a Market. See [Approval](project-glossary.md#approval), [Inventory](project-glossary.md#inventory), and [Category](project-glossary.md#category).
 
 ---
 
@@ -724,11 +727,11 @@ The Brand does not choose the product's Category today. The Admin attaches an ap
 
 **UC ID and Name:** `UC-BRND-import-products`: Import products from a spreadsheet
 **Created By:** Matthew Stafford
-**Date Created:** 2026-10-25
+**Date Created:** 2026-10-25; revised 2026-10-28
 **Primary Actor:** Brand
 **Secondary Actors:** Admin, who reviews the imported products (`UC-BRND-approve-product`)
 **Trigger:** The Brand chooses to import a spreadsheet of products.
-**Description:** The Brand submits one spreadsheet listing many products, typically 10 to 200 SKUs. Market Match checks every row, stores each valid one waiting for Approval, and tells the Brand which rows failed and why. This replaces the Brand sending a document that the client copies in by hand. Whether the client wants spreadsheet import at all, or only the API, is open; this use case stands until he answers.
+**Description:** The Brand submits one spreadsheet listing many products, typically 10 to 200 SKUs. Market Match checks every row, stores each valid one waiting for Approval, and tells the Brand which rows failed and why. This replaces the Brand sending a Google Drive of photos and details that the client copies in by hand, at a minute to a minute and a half per product. Whether the client wants spreadsheet import at all, or only the API, is open; this use case stands until he answers.
 
 **Preconditions:**
 
@@ -736,10 +739,11 @@ The Brand does not choose the product's Category today. The Admin attaches an ap
 
 **Postconditions:**
 
-- POST-1. Each valid row is stored in the Brand's Inventory, waiting for Approval: as a new product when its SKU is new to the Brand, or as a change to the existing product when it is not (pending the client's answer on existing SKUs).
+- POST-1. Each valid row is stored in the Brand's Inventory, waiting for Approval: as a new product when its SKU is new to the Brand, or as a change to the existing product when it is not.
 - POST-2. No failed row is stored.
 - POST-3. No Consumer sees any imported product or change until the Admin approves it.
-- POST-4. The Brand has a result for every row: received for Approval, or failed with its reasons. The received products are in the Brand's list of submitted products.
+- POST-4. Every Category a valid row names that the Brand did not have exists, for this Brand only.
+- POST-5. The Brand has a result for every row: received for Approval, or failed with its reasons. The received products are in the Brand's list of submitted products.
 
 **Main Success Scenario:**
 
@@ -747,7 +751,7 @@ The Brand does not choose the product's Category today. The Admin attaches an ap
 2. The system provides the spreadsheet layout it accepts, one row per product.
 3. The Brand submits a filled-in spreadsheet.
 4. The system checks every row against the required fields and media limits, and checks that no SKU appears on more than one row.
-5. The system shows the Brand how many rows are new products, how many change existing products, and which rows fail and why.
+5. The system shows the Brand how many rows are new products, how many change existing products, which new Categories they create, and which rows fail and why.
 6. The Brand confirms the import.
 7. The system stores each valid row as waiting for Approval and reports the result for every row.
 
@@ -757,44 +761,50 @@ The Brand does not choose the product's Category today. The Admin attaches an ap
   - 3a1. The system says so and stores nothing. Which file types are accepted is open. The Brand returns to step 3 or cancels.
 - **3b. Required columns are missing or not recognized:**
   - 3b1. The system names the missing columns and stores nothing. The Brand corrects the spreadsheet and returns to step 3.
+- **3c. The spreadsheet has more rows than one import accepts:**
+  - 3c1. The system says so, giving the limit (`SCA-import-batch-limit`), and stores nothing. The Brand splits it and imports each part.
 - **4a. A row is missing a required field or has an invalid one:**
   - 4a1. The system marks that row failed, naming its SKU and each reason. The other rows are unaffected.
 - **4b. The same SKU appears on more than one row:**
   - 4b1. The system marks every one of those rows failed, naming the SKU, because it cannot tell which is meant. The other rows are unaffected.
-- **4c. A row's photo cannot be retrieved from its link, or is 3 MB or larger:**
+- **4c. A row's photo cannot be retrieved from its link, is not JPEG or PNG, or is 3 MB or larger:**
   - 4c1. The system marks that row failed, naming the SKU and the photo.
 - **4d. A row's SKU is already one of the Brand's products:**
-  - 4d1. The row is shown as a change to that product. If the client decides an existing SKU must be refused instead, the row fails, naming the SKU.
+  - 4d1. The row is shown as a change to that product.
+- **4e. A row names a Category the Brand does not have:**
+  - 4e1. The row is shown as creating that Category, so the Brand can catch a misspelled name before confirming.
 - **5a. Every row fails:**
   - 5a1. There is nothing to import. The Brand corrects the spreadsheet and returns to step 3, or cancels.
 - **6a. The Brand cancels instead of confirming:**
   - 6a1. Nothing is stored. The use case ends.
 - **7a. A row's SKU matches a product or change still waiting for Approval:**
-  - 7a1. The row replaces the waiting version, so the Admin reviews only the latest. Whether that is right, or the row should be refused, is part of the same open question on existing SKUs.
-- **7b. Storing stops partway through:**
-  - 7b1. The system reports which rows were stored. Importing the same spreadsheet again stores the rest without duplicating any row, because each row is matched by its SKU.
+  - 7a1. The row replaces the waiting version, so the Admin reviews only the latest.
+- **7b. A row's SKU matches a product the Brand removed:**
+  - 7b1. The row is stored as a new product. The removed product and its results stay apart from it (`UC-BRND-remove-product`).
+- **7c. Storing stops partway through:**
+  - 7c1. The system reports which rows were stored. Importing the same spreadsheet again stores the rest without duplicating any row, because each row is matched by its SKU.
 - **\*a. At any step, the Brand's access is removed:**
   - \*a1. The system stores nothing the Brand has not yet confirmed and tells the user they no longer have access.
 
 **Priority:** High (provisional), pending the client's answer on whether he wants spreadsheet import.
-**Frequency of Use:** Once when a Brand joins, then as often as its catalog changes, which is open. Each import carries 10 to 200 rows.
-**Business Rules:** `BR-submit-product`, `BR-products-brand-only`, `BR-approve-product`, `BR-text-card`, `BR-product-media-limit`, `BR-photo-size`
+**Frequency of Use:** Once when a Brand joins, then once per new batch of products, such as a clothing Brand's new designs. Each import carries 10 to 200 rows; a Brand with more sends several.
+**Business Rules:** `BR-submit-product`, `BR-products-brand-only`, `BR-approve-product`, `BR-text-card`, `BR-product-media-limit`, `BR-photo-size`, `BR-brand-categories`
 
 **Associated Information:**
 
-One spreadsheet row carries the same product fields as `UC-BRND-create-product` (SKU, card type, title, description, price, up to three photo links, a video link), with photos given as links rather than files. The import adds:
+One spreadsheet row carries the same product fields as `UC-BRND-create-product` (SKU, card type, title, description, price, Category by name, up to three photo links, a video link), with photos and video given as links rather than files. The import adds:
 
 | Property name | Data type | Validation rule | Security or access concerns | Glossary reference |
 |---|---|---|---|---|
 | Row number | Integer | Set by the system | Shown only to the importing Brand | (none) |
 | Row result | Enumeration | `NEW`, `CHANGE`, or `FAILED` with the SKU and reasons | Shown only to the importing Brand | Approval |
-| Brand reference | Identifier | Taken from the signed-in user's Organization for every row, never from the spreadsheet | A spreadsheet cannot write into another Brand's Inventory | Brand |
+| Brand reference | Identifier | Taken from the signed-in user's Organization for every row, never from the spreadsheet | A spreadsheet cannot write into another Brand's Inventory or Categories | Brand |
 
-Whether Market Match keeps its own copy of each photo, rather than linking to the Brand's website, is decided in the design (`RI-broken-product-photos` in vision and scope).
+Market Match downloads each linked photo when the row is checked and keeps its own copy, so the Card never depends on the Brand's website (`KD-photos-copied` in the [architecture](../design/architectural-design.md)). This is what the client does by hand today, storing every photo in Market Match from the Brand's Google Drive (fifth client meeting).
 
 **Current state in the client's repository:**
 - A four-step CSV wizard (`components/brand/csv/`) checks rows in the browser only. The client has not tried it (fourth client meeting).
-- `POST /api/products/bulk` (`worker/src/index.ts`) checks nothing on the server, stores every row as `ACTIVE` with no Approval, and always creates new products: a repeated SKU becomes a duplicate, and a blank one is made up.
+- `POST /api/products/bulk` (`worker/src/index.ts`) checks nothing on the server, stores every row as `ACTIVE` with no Approval, and always creates new products: a repeated SKU becomes a duplicate, and a blank one is made up. It saves each photo link as given.
 - The Admin's CSV upload (`components/admin/GlobalInventoryManager.tsx`) skips the row checks entirely.
 
 **Related Use Cases:**
@@ -808,11 +818,9 @@ Whether Market Match keeps its own copy of each photo, rather than linking to th
 
 **Open Issues:** Tracked in [OPEN-ISSUES.md](OPEN-ISSUES.md).
 - [OI-43](OPEN-ISSUES.md#open): Does the client want spreadsheet import, or only the API?
-- [OI-40](OPEN-ISSUES.md#open): Should a row with an existing SKU change that product or be refused?
-- [OI-23](OPEN-ISSUES.md#open): Which product fields are required?
-- [OI-24](OPEN-ISSUES.md#open): What name length, image format, and media size limits apply?
-- [OI-32](OPEN-ISSUES.md#open): How often does a Brand send its products?
 - [OI-36](OPEN-ISSUES.md#open): Which spreadsheet file types must an import accept?
+- [OI-49](OPEN-ISSUES.md#open): Which video sites besides YouTube and Vimeo?
+- Resolved in the fifth client meeting: [OI-23](OPEN-ISSUES.md#resolved), [OI-24](OPEN-ISSUES.md#resolved), [OI-32](OPEN-ISSUES.md#resolved), [OI-39](OPEN-ISSUES.md#resolved), and [OI-40](OPEN-ISSUES.md#resolved).
 
 ---
 
@@ -820,11 +828,11 @@ Whether Market Match keeps its own copy of each photo, rather than linking to th
 
 **UC ID and Name:** `UC-BRND-send-products`: Send products from a connected system
 **Created By:** Matthew Stafford
-**Date Created:** 2026-10-25
+**Date Created:** 2026-10-25; revised 2026-10-28
 **Primary Actor:** The Brand's product system, wherever the Brand already keeps its products (one prospective partner uses a Shopify store)
 **Secondary Actors:** Admin, who reviews the products (`UC-BRND-approve-product`)
 **Trigger:** The Brand's product system sends a batch of products to Market Match's API.
-**Description:** A Brand sends its products straight from the system where it keeps them, the way a seller connects to Shopify: Market Match publishes an API for products, and the Brand's system calls it with the Brand's API Key. No one types or uploads anything in Market Match. Market Match checks each product, stores each valid one waiting for Approval, and answers with a result for every product so the Brand's system knows what to fix. The API Key alone decides which Brand the products belong to.
+**Description:** A Brand sends its products straight from the system where it keeps them, the way a seller connects to Shopify: Market Match publishes an API for products, and the Brand's system calls it with the API Key the Admin gave the Brand. No one types or uploads anything in Market Match. Market Match checks each product, stores each valid one waiting for Approval, and answers with a result for every product so the Brand's system knows what to fix. The API Key alone decides which Brand the products belong to.
 
 **Preconditions:**
 
@@ -832,17 +840,18 @@ Whether Market Match keeps its own copy of each photo, rather than linking to th
 
 **Postconditions:**
 
-- POST-1. Each valid product is stored in the API Key's Brand's Inventory, waiting for Approval: as a new product when its SKU is new to the Brand, or as a change when it is not (pending the client's answer on existing SKUs).
+- POST-1. Each valid product is stored in the API Key's Brand's Inventory, waiting for Approval: as a new product when its SKU is new to the Brand, or as a change when it is not.
 - POST-2. No failed product is stored.
 - POST-3. No Consumer sees any product or change until the Admin approves it.
-- POST-4. The Brand's system has a result for every product: received for Approval, or failed with its SKU and reasons. The received products are in the Brand's list of submitted products.
+- POST-4. Every Category a valid product names that the Brand did not have exists, for this Brand only.
+- POST-5. The Brand's system has a result for every product: received for Approval, or failed with its SKU and reasons. The received products are in the Brand's list of submitted products.
 
 **Main Success Scenario:**
 
 1. The Brand's system sends a batch of products with its API Key.
 2. The system confirms that the API Key is active and finds the one Brand it belongs to.
 3. The system checks every product against the required fields and media limits, and checks that no SKU appears twice in the batch.
-4. The system stores each valid product in that Brand's Inventory as waiting for Approval.
+4. The system stores each valid product in that Brand's Inventory as waiting for Approval, in the Category it names.
 5. The system answers with the result for every product.
 
 **Extensions:**
@@ -854,40 +863,44 @@ Whether Market Match keeps its own copy of each photo, rather than linking to th
 - **2a. The API Key is unknown, has been replaced by a newer one, or has been revoked, or the Brand's access has been removed:**
   - 2a1. The system rejects the batch, stores nothing, and records the attempt so the Admin can see it.
 - **2b. The batch has more products than one sending accepts:**
-  - 2b1. The system rejects the batch with the limit, and the Brand's system sends smaller batches. The limit is set in the design to fit catalogs of 10 to 200 SKUs.
-- **3a. A product is missing a required field or has an invalid one, including a Card with no photo or too many, a photo 3 MB or larger, or a video link Market Match does not accept:**
+  - 2b1. The system rejects the batch with the limit (`SCA-import-batch-limit`), and the Brand's system sends smaller batches; a Brand with 500 SKUs sends three.
+- **3a. A product is missing a required field or has an invalid one, including a Card with no photo or too many, a photo that is not JPEG or PNG or is 3 MB or larger, or a video link Market Match does not accept:**
   - 3a1. The system marks that product failed, naming its SKU and each reason. The other products are unaffected.
 - **3b. The same SKU appears more than once in the batch:**
   - 3b1. The system marks each of those products failed, naming the SKU. The other products are unaffected.
 - **3c. A product's photo cannot be retrieved from its link:**
   - 3c1. The system marks that product failed, naming the SKU and the photo.
 - **4a. A product's SKU is already one of the Brand's products:**
-  - 4a1. It is stored as a change to that product. If the client decides an existing SKU must be refused instead, that product fails, naming the SKU.
+  - 4a1. It is stored as a change to that product.
 - **4b. A product's SKU matches a product or change still waiting for Approval:**
-  - 4b1. The new one replaces the waiting version, so the Admin reviews only the latest, pending the same open question.
-- **4c. Storing stops partway through:**
-  - 4c1. Products already stored stay stored. The Brand's system sends the same batch again, and the rest are stored without duplicates, because each product is matched by its SKU.
+  - 4b1. The new one replaces the waiting version, so the Admin reviews only the latest.
+- **4c. A product names a Category the Brand does not have:**
+  - 4c1. The system creates that Category for the Brand and says so in the product's result.
+- **4d. A product's SKU matches a product the Brand removed:**
+  - 4d1. It is stored as a new product. The removed product and its results stay apart from it.
+- **4e. Storing stops partway through:**
+  - 4e1. Products already stored stay stored. The Brand's system sends the same batch again, and the rest are stored without duplicates, because each product is matched by its SKU.
 
 **Priority:** High (provisional). This is the capability prospective partners asked for, and whose absence stopped those conversations (fourth client meeting).
-**Frequency of Use:** Once when a Brand connects, then whenever its catalog changes, which is open. 10 to 200 SKUs per Brand.
-**Business Rules:** `BR-connect-product-system`, `BR-products-brand-only`, `BR-approve-product`, `BR-text-card`, `BR-product-media-limit`, `BR-photo-size`
+**Frequency of Use:** Once when a Brand connects, then once per new batch of products. 10 to 200 SKUs at a time today; up to 500 before an event, sent as several batches.
+**Business Rules:** `BR-connect-product-system`, `BR-products-brand-only`, `BR-approve-product`, `BR-text-card`, `BR-product-media-limit`, `BR-photo-size`, `BR-brand-categories`
 
 **Associated Information:**
 
-Each product carries the same fields as `UC-BRND-create-product`, with photos given as links. Sending adds:
+Each product carries the same fields as `UC-BRND-create-product`, with the Category by name and photos and video given as links. Sending adds:
 
 | Property name | Data type | Validation rule | Security or access concerns | Glossary reference |
 |---|---|---|---|---|
 | API Key | Secret | Required; must be active | Decides the only Brand the batch can write to; never echoed back in a result | API Key |
 | Product result | Enumeration | `NEW`, `CHANGE`, or `FAILED` with the SKU and reasons, one per product | Returned only to the caller holding that API Key | Approval |
 
-Market Match publishes the contract the Brand's system must follow: the fields, their format, the batch limit, and the results it returns. That contract is an external interface in the [software requirements specification](software-requirements-specification.md), not part of this use case. How the API Key is checked, and how a batch is delivered (in one request, or as a file placed in storage first, as Shopify does), are decided in the architecture and design (`BR-connect-product-system` scope note in [business-rules.md](business-rules.md)).
+Market Match publishes the contract the Brand's system must follow: the fields, their format, the batch limit, and the results it returns. That contract is an external interface in the [software requirements specification](software-requirements-specification.md) (`FR-API-published-contract`), not part of this use case. As with a spreadsheet, Market Match downloads each linked photo and keeps its own copy (`KD-photos-copied`). How the API Key is checked and how a batch is delivered are decided in the architecture (`KD-api-key-storage`, `KD-import-in-request`).
 
 **Current state in the client's repository:**
 - No system can call Market Match without a signed-in user. Every protected route reads the `mm_session` cookie (`worker/src/middleware/auth.ts`), and there is no API Key of any kind.
 
 **Related Use Cases:**
-- `UC-BRND-generate-api-key`: gives the Brand its API Key.
+- `UC-BRND-generate-api-key`: how the Admin gives the Brand its API Key.
 - `UC-BRND-import-products`: the same import, by spreadsheet.
 - `UC-BRND-create-product`: one product at a time, by a person in Market Match, where this use case is many products at once from the Brand's own system with no person in Market Match.
 - `UC-BRND-approve-product`: the Admin's review that follows.
@@ -898,11 +911,9 @@ Market Match publishes the contract the Brand's system must follow: the fields, 
 - `AS-org-can-supply-products`: the Brand's system can send its products in the form Market Match accepts.
 
 **Open Issues:** Tracked in [OPEN-ISSUES.md](OPEN-ISSUES.md).
-- [OI-40](OPEN-ISSUES.md#open): Should a product with an existing SKU change that product or be refused?
-- [OI-23](OPEN-ISSUES.md#open): Which product fields are required?
-- [OI-24](OPEN-ISSUES.md#open): What image and media limits apply?
-- [OI-31](OPEN-ISSUES.md#open): Who at the Brand sets up the connection?
-- [OI-32](OPEN-ISSUES.md#open): How often does a Brand send its products?
+- [OI-47](OPEN-ISSUES.md#open): Which further product details, by kind of product? They widen the published contract.
+- [OI-49](OPEN-ISSUES.md#open): Which video sites besides YouTube and Vimeo?
+- Resolved in the fifth client meeting: [OI-23](OPEN-ISSUES.md#resolved), [OI-24](OPEN-ISSUES.md#resolved), [OI-31](OPEN-ISSUES.md#resolved), [OI-32](OPEN-ISSUES.md#resolved), [OI-39](OPEN-ISSUES.md#resolved), and [OI-40](OPEN-ISSUES.md#resolved).
 
 ---
 
@@ -910,11 +921,11 @@ Market Match publishes the contract the Brand's system must follow: the fields, 
 
 **UC ID and Name:** `UC-BRND-update-product`: Update a product
 **Created By:** Matthew Stafford
-**Date Created:** 2026-10-25
+**Date Created:** 2026-10-25; revised 2026-10-28
 **Primary Actor:** Brand
 **Secondary Actors:** Admin, who reviews the change (`UC-BRND-approve-product`)
 **Trigger:** The Brand chooses to change one of its products.
-**Description:** The Brand changes a product's photos, video, or details through Market Match, including fixing a product the Admin returned. The change waits for the Admin's Approval before any Consumer sees it.
+**Description:** The Brand changes a product's photos, video, details, or Category through Market Match, including fixing a product the Admin returned. The change waits for the Admin's Approval before any Consumer sees it. Once approved, the product's results start fresh, and its earlier results are kept for comparison.
 
 **Preconditions:**
 
@@ -926,7 +937,7 @@ Market Match publishes the contract the Brand's system must follow: the fields, 
 - POST-1. The change is stored against the product, waiting for Approval.
 - POST-2. No Consumer sees the change until the Admin approves it. What Consumers see of the product in the meantime is open.
 - POST-3. The change is in the Admin's list of products waiting for Approval, marked as a change, and in the Brand's list of submitted products.
-- POST-4. The product's data points so far (swipes, Clicks, viewing times) are kept. Whether a change to its photos or details should start them fresh is open.
+- POST-4. Once the Admin approves the change, the product's data points (swipes, Clicks, viewing times) start fresh from that moment, and those from before it are kept and reported to the Brand as the earlier period, dated by the change.
 
 **Main Success Scenario:**
 
@@ -943,21 +954,23 @@ Market Match publishes the contract the Brand's system must follow: the fields, 
 - **3a. The Brand cancels:**
   - 3a1. Nothing changes. The use case ends.
 - **3b. The Brand tries to change the SKU:**
-  - 3b1. The system does not allow it, because the SKU is how later imports find this product. To use a different SKU, the Brand creates a new product (`UC-BRND-create-product`). Whether the Brand can then remove the old one, and how removal works, is open.
+  - 3b1. The system does not allow it, because the SKU is how later imports find this product. To use a different SKU, the Brand creates a new product (`UC-BRND-create-product`) and may remove the old one (`UC-BRND-remove-product`).
+- **3c. The Brand moves the product to a Category it does not have yet:**
+  - 3c1. As `UC-BRND-create-product` extension 3d.
 - **4a. The content fails the checks:**
   - 4a1. As `UC-BRND-create-product` extensions 4a to 4c. Nothing is stored; the form keeps what the Brand typed. The Brand corrects it and returns to step 3.
 - **5a. The product already has a change waiting for Approval:**
   - 5a1. The new change replaces the waiting one, so the Admin reviews only the latest.
 - **5b. The product had been returned by the Admin:**
-  - 5b1. The change puts it back in the Admin's list. This is how a Brand fixes a returned product.
+  - 5b1. The change puts it back in the Admin's list. This is how a Brand fixes a returned product. A product that was never approved has no results, so none restart.
 - **5c. Saving fails:**
   - 5c1. The system reports that the change was not saved. Nothing is stored; the form keeps what the Brand typed.
 - **\*a. At any step, the Brand's access is removed:**
   - \*a1. The system stores nothing and tells the user they no longer have access.
 
 **Priority:** Medium (provisional)
-**Frequency of Use:** Whenever a Brand changes a product or fixes a returned one; open until the client says how often catalogs change. Changes can also arrive through `UC-BRND-import-products` and `UC-BRND-send-products`, when a SKU already exists.
-**Business Rules:** `BR-approve-product`, `BR-products-brand-only`, `BR-text-card`, `BR-product-media-limit`, `BR-photo-size`
+**Frequency of Use:** Whenever a Brand changes a product or fixes a returned one, such as swapping the photos that draw fewer Clicks. Changes also arrive through `UC-BRND-import-products` and `UC-BRND-send-products` when a SKU already exists. Whether a limit on how often applies to changes as well as removals is open.
+**Business Rules:** `BR-approve-product`, `BR-products-brand-only`, `BR-text-card`, `BR-product-media-limit`, `BR-photo-size`, `BR-brand-categories`, `BR-results-restart-on-change`
 
 **Associated Information:**
 
@@ -967,22 +980,98 @@ The changeable fields are those of `UC-BRND-create-product` except the SKU and t
 |---|---|---|---|---|
 | Product reference | Identifier | Required; must be in the signed-in Brand's Inventory | A Brand changes only its own products | Inventory |
 | Submitted at | Timestamp | Set by the system | Shown to the Brand and the Admin | Approval |
+| Changed at | Timestamp | Set by the system when the Admin approves the change | Divides the product's results into before and after; shown to the Brand | Approval |
 
 **Current state in the client's repository:**
-- `PUT /api/products/:id` (`worker/src/index.ts`) lets a Brand change its own product, checked by `brand_id` or `org_id`, and the change is live at once, with no Approval.
+- `PUT /api/products/:id` (`worker/src/index.ts`) lets a Brand change its own product, checked by `brand_id` or `org_id`, and the change is live at once, with no Approval. Results recorded before the change stay mixed with those after it.
 
 **Related Use Cases:**
 - `UC-BRND-approve-product`: the Admin's review of the change.
 - `UC-BRND-create-product`: where the product began.
+- `UC-BRND-remove-product`: taking the product out instead of changing it.
 
 **Assumptions:**
 - A change replaces the whole content the Brand submits, not a single field at a time.
 
 **Open Issues:** Tracked in [OPEN-ISSUES.md](OPEN-ISSUES.md).
 - [OI-35](OPEN-ISSUES.md#open): While a change waits for Approval, do Consumers keep seeing the current version, or is the product hidden?
-- [OI-41](OPEN-ISSUES.md#open): Do a product's data points carry over when its photos or details change, or start fresh?
-- [OI-42](OPEN-ISSUES.md#open): Can a Brand remove its own products, does removal need Approval, and can it remove all of them at any time?
-- [OI-32](OPEN-ISSUES.md#open): How often does a Brand change its products?
+- [OI-48](OPEN-ISSUES.md#open): Does the limit on removals also count changes?
+- Resolved in the fifth client meeting: results restart after a change ([OI-41](OPEN-ISSUES.md#resolved)), Brands may remove products ([OI-42](OPEN-ISSUES.md#resolved)), and how often Brands send products ([OI-32](OPEN-ISSUES.md#resolved)).
+
+---
+
+### UC-BRND-remove-product: Remove a product
+
+**UC ID and Name:** `UC-BRND-remove-product`: Remove a product
+**Created By:** Matthew Stafford
+**Date Created:** 2026-10-28
+**Primary Actor:** Brand
+**Secondary Actors:** Admin, who keeps the removed product's results
+**Trigger:** The Brand chooses to remove one of its products.
+**Description:** The Brand takes a product it no longer wants out of Market Match, without waiting for the Admin's Approval. The product can no longer be put in a Market, but Market Match keeps its results, because the Brand may ask for them later. A Brand can remove products only a limited number of times, so it cannot add and remove products over and over and skew its results.
+
+**Preconditions:**
+
+- PRE-1. The user is signed in with the Brand role and belongs to a Brand's Organization.
+- PRE-2. The Brand's Inventory has at least one product.
+
+**Postconditions:**
+
+- POST-1. The product is no longer in the Brand's Inventory, cannot be added to a Market, and is not in the Admin's list of products waiting for Approval.
+- POST-2. The product's data points are kept, and the Admin can still retrieve them.
+- POST-3. The removal is recorded with who made it and when, and counts toward the Brand's limit.
+
+**Main Success Scenario:**
+
+1. The Brand chooses one of its products to remove.
+2. The system shows the product and how many removals the Brand has left.
+3. The Brand confirms the removal.
+4. The system removes the product from the Brand's Inventory, keeps its results, records the removal, and confirms it to the Brand.
+
+**Extensions:**
+
+- **1a. The product belongs to another Brand:**
+  - 1a1. The system refuses and shows nothing of it. The use case ends.
+- **2a. The Brand has used all of its removals:**
+  - 2a1. The system says so and removes nothing. The use case ends. How many removals a Brand has, over what period, is open.
+- **2b. The product is in a Market that is running:**
+  - 2b1. Whether the Brand may remove it during the Market is open. Until answered, the system says it is in a running Market and removes nothing.
+- **2c. The product, or a change to it, is waiting for Approval:**
+  - 2c1. The system says the waiting submission will be withdrawn too. On confirmation it leaves the Admin's list. A product that was never approved has no results to keep. Rejoins at step 4.
+- **3a. The Brand cancels:**
+  - 3a1. Nothing changes. The use case ends.
+- **4a. Saving fails:**
+  - 4a1. The system reports that the product was not removed. Nothing changes, and no removal is counted.
+- **\*a. At any step, the Brand's access is removed:**
+  - \*a1. The system removes nothing and tells the user they no longer have access.
+
+**Priority:** Medium (provisional)
+**Frequency of Use:** Rare: limited by design to a few times per Brand. The limit is open.
+**Business Rules:** `BR-remove-product`, `BR-keep-removed-product-data`, `BR-products-brand-only`
+
+**Associated Information:**
+
+| Property name | Data type | Validation rule | Security or access concerns | Glossary reference |
+|---|---|---|---|---|
+| Product reference | Identifier | Required; must be in the signed-in Brand's Inventory | A Brand removes only its own products | Inventory |
+| Removed by, removed at | Identifier, timestamp | Set by the system | Recorded for every removal; shown to the Admin | Brand |
+| Removals left | Integer | Set by the system from the Brand's limit | Shown to the Brand | (none) |
+
+A removed product's SKU is free again: a later product with that SKU, by hand, spreadsheet, or API, is a new product, and the removed product's results stay with the removed product.
+
+**Current state in the client's repository:**
+- No Brand screen removes a product; the client removes products for Brands (fifth client meeting). But `DELETE /api/products/:id` (`worker/src/index.ts`) already lets a Brand delete its own product, and it erases the product row outright, with no limit and nothing kept.
+
+**Related Use Cases:**
+- `UC-BRND-update-product`: changing a product instead of removing it.
+- `UC-BRND-create-product`: adding a product again under the same SKU.
+- `UC-FDBK-view-brand-insights`: where a Brand would see a removed product's results, which the client may charge for.
+
+**Assumptions:**
+- Removing a product hides it rather than erasing it, so its results can still be reported.
+
+**Open Issues:** Tracked in [OPEN-ISSUES.md](OPEN-ISSUES.md).
+- [OI-48](OPEN-ISSUES.md#open): How many removals, over what period, do changes count too, and may a Brand remove a product from a running Market? Blocks extensions 2a and 2b.
 
 ---
 
@@ -990,11 +1079,11 @@ The changeable fields are those of `UC-BRND-create-product` except the SKU and t
 
 **UC ID and Name:** `UC-BRND-approve-product`: Approve or return a submitted product
 **Created By:** Matthew Stafford
-**Date Created:** 2026-10-25
+**Date Created:** 2026-10-25; revised 2026-10-28
 **Primary Actor:** Admin
 **Secondary Actors:** Brand, which sees the decision
 **Trigger:** The Admin opens the products waiting for his Approval.
-**Description:** The Admin reviews each product a Brand submitted, new or changed, whether it was added by hand, imported by spreadsheet, or sent through the API, and approves it or returns it to the Brand. Approving a new product attaches it to a Category, which is how it can be put in a Market. This replaces the client checking each product in his head while he typed it in.
+**Description:** The Admin reviews the products each Brand submitted, new or changed, whether added by hand, imported by spreadsheet, or sent through the API, and approves them, one at a time or all at once, or returns them to the Brand with a reason. An approved product sits in the Brand's Category, ready to be put in a Market. This replaces the client copying in and checking each product himself, at a minute to a minute and a half per product.
 
 **Preconditions:**
 
@@ -1002,70 +1091,69 @@ The changeable fields are those of `UC-BRND-create-product` except the SKU and t
 
 **Postconditions:**
 
-- POST-1. An approved new product is attached to its Category and can be included in a Market.
-- POST-2. An approved change replaces what Consumers see of the product.
+- POST-1. An approved new product is in its Brand's Category and can be included in a Market.
+- POST-2. An approved change replaces what Consumers see of the product, and the product's results start fresh from that moment (`UC-BRND-update-product` POST-4).
 - POST-3. A returned product stays out of Consumers' sight if it was new, or keeps its last approved version if it was a change, and the Brand sees why it was returned in its list of submitted products.
-- POST-4. Every decision is recorded with who made it and when.
+- POST-4. Every decision is recorded, one per product, with who made it and when.
 
 **Main Success Scenario:**
 
 1. The Admin opens the products waiting for Approval.
-2. The system lists them grouped by Brand, showing for each whether it is new or a change and how it arrived.
+2. The system lists them Brand by Brand, showing for each product whether it is new or a change, its Category, and how it arrived.
 3. The Admin chooses a product.
 4. The system shows the product as Consumers would see it on its Card and, for a change, what changed.
-5. The Admin approves the product and, if it is new, chooses its Category.
-6. The system records the approval, attaches a new product to its Category, and marks it approved in the Brand's list of submitted products.
+5. The Admin approves the product.
+6. The system records the approval and marks the product approved in the Brand's list of submitted products.
 7. The Admin repeats from step 3 until done.
 
 **Extensions:**
 
 - **1a. Nothing is waiting:**
   - 1a1. The system says so. The use case ends.
+- **3a. The Admin approves many of a Brand's products at once:**
+  - 3a1. After looking through the Brand's list, the Admin selects all of its waiting products, or several, and approves them in one decision.
+  - 3a2. The system records a separate approval for each selected product, as in step 6, and reports how many were approved. Rejoins at step 7.
 - **5a. The Admin returns the product instead:**
   - 5a1. The Admin gives the reason. The system records the return, keeps the product out of Consumers' sight or keeps its last approved version, and shows the Brand the reason. The Brand fixes it through `UC-BRND-update-product`. Rejoins at step 7.
-- **5b. The Category the product belongs in does not exist yet:**
-  - 5b1. The Admin creates it first, as only he can, then continues at step 5.
-- **5c. The product belongs in more than one Category:**
-  - 5c1. Today the Admin chooses one. The client expects to allow more than one later.
-- **5d. The Admin wants to approve a Brand's whole import at once:**
-  - 5d1. Whether he may approve many products in one decision, after looking through them, or must decide each one, is open. With 10 to 200 SKUs per Brand, this decides how much of the client's time the import saves.
-- **6a. The Brand sent a newer version while the Admin was reviewing:**
-  - 6a1. The system tells the Admin, records no decision, and shows the newer version. Rejoins at step 4.
+- **5b. The product belongs in more than one Category:**
+  - 5b1. Today a product is in one Category, the one its Brand chose. The client expects to allow more than one later.
+- **6a. The Brand sent a newer version, or removed the product, while the Admin was reviewing:**
+  - 6a1. The system tells the Admin and records no decision for that product. For a newer version it rejoins at step 4; for a removed product at step 7.
 - **6b. Recording the decision fails:**
-  - 6b1. The system reports it and nothing changes. The Admin decides again.
+  - 6b1. The system reports it and nothing changes. For many products at once (3a), it reports which were recorded. The Admin decides the rest again.
 
 **Priority:** High (provisional). Nothing a Brand submits reaches a Consumer without it.
-**Frequency of Use:** Once per submitted product or change; a new Brand brings 10 to 200 at once.
-**Business Rules:** `BR-approve-product`, `BR-admin-role`, `BR-create-market-admin-only`, `BR-multiple-categories`
+**Frequency of Use:** Once per submitted product or change; a Brand's batch brings 10 to 200 at once. The client's target is to approve a 100-product import in 10 to 15 minutes (`SM-product-onboarding`).
+**Business Rules:** `BR-approve-product`, `BR-admin-role`, `BR-brand-categories`, `BR-multiple-categories`, `BR-results-restart-on-change`
 
 **Associated Information:**
 
 | Property name | Data type | Validation rule | Security or access concerns | Glossary reference |
 |---|---|---|---|---|
-| Product or change reference | Identifier | Required; must be waiting for Approval | Admin only | Approval |
+| Product or change reference | Identifier | Required; one or more; each must be waiting for Approval | Admin only | Approval |
 | Decision | Enumeration | Required; `APPROVED` or `RETURNED` | Admin only | Approval |
 | Reason | String | Required when returned | Shown to the product's Brand only | Approval |
-| Category | Identifier | Required when approving a new product; must exist | Admin only | Category |
 | Decided by | Identifier | Set by the system | Recorded for every decision | Admin |
 | Decided at | Timestamp | Set by the system | Recorded for every decision | Approval |
 
-How the Brand learns of a decision beyond its list of submitted products, such as by email, is decided in the design.
+The Brand sees each decision in its list of submitted products. Market Match sends no notice of its own: the client emails a Brand himself when its products are approved, and may automate that later (fifth client meeting).
 
 **Current state in the client's repository:**
 - There is no Approval anywhere. Product statuses are `ACTIVE`, `INACTIVE`, and `ARCHIVED` (`types.ts`), and every product is saved `ACTIVE`.
 - A `BrandItem` type with `PENDING`, `APPROVED`, and `REJECTED` is declared in `types.ts` but never used.
 - The closest thing is the Admin's status toggle, which hides `INACTIVE` products from Consumers.
+- The Admin can already attach a product he creates to a Brand (fifth client meeting).
 
 **Related Use Cases:**
 - `UC-BRND-create-product`, `UC-BRND-import-products`, `UC-BRND-send-products`, `UC-BRND-update-product`: where the products under review come from.
+- `UC-BRND-remove-product`: a Brand withdrawing a product while it waits.
 
 **Assumptions:**
 - The Admin gives a reason whenever he returns a product, so the Brand knows what to fix.
 
 **Open Issues:** Tracked in [OPEN-ISSUES.md](OPEN-ISSUES.md).
-- [OI-37](OPEN-ISSUES.md#open): May the Admin approve a Brand's whole import at once, or must he decide each product?
 - [OI-35](OPEN-ISSUES.md#open): While a change waits for Approval, what do Consumers see?
-- [OI-39](OPEN-ISSUES.md#open): May a Brand choose its product's Category, or propose a new Category?
+- Resolved in the fifth client meeting: approving all at once ([OI-37](OPEN-ISSUES.md#resolved)) and the Brand choosing the Category ([OI-39](OPEN-ISSUES.md#resolved)).
 
 ---
 
@@ -1073,15 +1161,16 @@ How the Brand learns of a decision beyond its list of submitted products, such a
 
 **UC ID and Name:** `UC-BRND-generate-api-key`: Generate an API key
 **Created By:** Matthew Stafford
-**Date Created:** 2026-10-25
-**Primary Actor:** Brand
-**Secondary Actors:** The Brand's product system, which uses the API Key (`UC-BRND-send-products`); Admin, who can revoke it
-**Trigger:** The Brand chooses to connect its own system to Market Match.
-**Description:** A Brand generates an API Key so its own system can send products through Market Match's API. The key belongs to that Brand alone and reaches only its Inventory, it is shown once, and generating a new one ends the old one. Any Brand on Market Match may generate one, because only the Admin can put a Brand on Market Match, so every Brand is one the client works with.
+**Date Created:** 2026-10-25; revised 2026-10-28
+**Primary Actor:** Admin
+**Secondary Actors:** Brand, which receives the API Key and gives it to whoever sets up its system; the Brand's product system, which uses it (`UC-BRND-send-products`)
+**Trigger:** The Admin has signed a Brand and set up its Organization, and chooses to give the Brand an API Key.
+**Description:** The Admin generates an API Key for one Brand so the Brand's own system can send products through Market Match's API, and hands it to the Brand himself. The key belongs to that Brand alone and reaches only its Inventory, it is shown once, and generating a new one ends the old one. Brands do not generate their own keys, so the Admin controls who can send products; the client expects Brands to set themselves up later (fifth client meeting).
 
 **Preconditions:**
 
-- PRE-1. The user is signed in with the Brand role and belongs to a Brand's Organization.
+- PRE-1. The user is signed in as the Admin.
+- PRE-2. The Brand's Organization exists (`BR-create-organization`).
 
 **Postconditions:**
 
@@ -1092,40 +1181,42 @@ How the Brand learns of a decision beyond its list of submitted products, such a
 
 **Main Success Scenario:**
 
-1. The Brand chooses to generate an API Key.
+1. The Admin chooses a Brand and chooses to generate an API Key for it.
 2. The system creates a new API Key for that Brand.
 3. The system shows the key once, with a link to Market Match's published product contract.
-4. The Brand confirms it has saved the key, to give to whoever sets up its system.
+4. The Admin confirms he has saved the key, to give to the Brand.
 5. The system records the generation and no longer shows the key.
 
 **Extensions:**
 
 - **1a. The Brand already has an active API Key:**
-  - 1a1. The system warns that the current key will stop working at once and the Brand's system must switch to the new one. The Brand confirms, and the old key ends at step 2, or cancels and nothing changes.
-- **1b. The Brand revokes its API Key without generating a new one:**
+  - 1a1. The system warns that the current key will stop working at once and the Brand's system must switch to the new one. The Admin confirms, and the old key ends at step 2, or cancels and nothing changes.
+- **1b. The Admin revokes the Brand's API Key without generating a new one:**
   - 1b1. The system stops accepting the key at once and records the revocation. Products already received keep their Approval status. The use case ends.
 - **2a. Creating the key fails:**
   - 2a1. The system reports it, and any existing key keeps working. The use case ends.
-- **4a. The Brand leaves without saving the key:**
-  - 4a1. The key cannot be shown again. The Brand generates a new one (1a), which ends this one.
-- **5a. The key is later lost or leaked:**
-  - 5a1. The Brand generates a new one (1a), which ends the leaked key at once.
-- **\*a. The Admin removes the Brand's access, or revokes its API Key:**
+- **4a. The Admin leaves without saving the key:**
+  - 4a1. The key cannot be shown again. The Admin generates a new one (1a), which ends this one.
+- **5a. The Brand later reports the key lost or leaked:**
+  - 5a1. The Admin generates a new one (1a), which ends the leaked key at once.
+- **\*a. The Admin removes the Brand's access:**
   - \*a1. The key stops working at once, and every later sending with it is refused (`UC-BRND-send-products` extension 2a).
 
 **Priority:** High (provisional). `UC-BRND-send-products` cannot happen without it.
-**Frequency of Use:** Once per Brand that connects its system, plus a new key whenever one is lost, leaked, or replaced. How many Brands will connect is not known.
-**Business Rules:** `BR-connect-product-system`, `BR-products-brand-only`, `BR-create-organization`
+**Frequency of Use:** Once per Brand the client signs that connects its system, plus a new key whenever one is lost, leaked, or replaced. The client signs Brands one at a time, after a conversation with each.
+**Business Rules:** `BR-admin-issues-api-key`, `BR-connect-product-system`, `BR-products-brand-only`, `BR-create-organization`, `BR-admin-role`
 
 **Associated Information:**
 
 | Property name | Data type | Validation rule | Security or access concerns | Glossary reference |
 |---|---|---|---|---|
-| Brand reference | Identifier | Required; taken from the signed-in user's Organization, never from input | A Brand generates keys only for itself | Brand; Organization |
+| Brand reference | Identifier | Required; chosen by the Admin; must be an existing Brand Organization | Only the Admin generates keys | Brand; Organization |
 | API Key | Secret | Issued at step 2 | Shown only at step 3; never shown again; how it is stored is decided in the architecture | API Key |
-| Status | Enumeration | `ACTIVE`, `REPLACED`, or `REVOKED` | Shown to the Brand and the Admin, never the key itself | API Key |
-| Generated by, generated at | Identifier, timestamp | Set by the system | Recorded for every key | Brand |
+| Status | Enumeration | `ACTIVE`, `REPLACED`, or `REVOKED` | Shown to the Admin and to the Brand, never the key itself | API Key |
+| Generated by, generated at | Identifier, timestamp | Set by the system | Recorded for every key | Admin |
 | Ended by, ended at | Identifier, timestamp | Set by the system when the key is replaced or revoked | Recorded for every key that ends | API Key |
+
+How the Admin hands the key to the Brand happens outside Market Match.
 
 **Current state in the client's repository:**
 - No API Key exists. The Admin creates Organizations in WorkOS, and every request to Market Match comes from a signed-in user.
@@ -1134,10 +1225,10 @@ How the Brand learns of a decision beyond its list of submitted products, such a
 - `UC-BRND-send-products`: what the API Key is for.
 
 **Assumptions:**
-- The Brand user who generates the key gives it to whoever sets up the Brand's system, inside the Brand. This is the team's proposal for who sets up the connection, to confirm with the client.
+- The Brand passes the key only to whoever sets up its system, and tells the Admin if it is lost or leaked.
 
 **Open Issues:** Tracked in [OPEN-ISSUES.md](OPEN-ISSUES.md).
-- [OI-31](OPEN-ISSUES.md#open): Who at the Brand sets up the connection? The team proposes the Brand user generates the key and passes it to its own developers.
+- Resolved in the fifth client meeting: the Admin, not the Brand, gives out API Keys ([OI-31](OPEN-ISSUES.md#resolved)).
 
 ---
 
