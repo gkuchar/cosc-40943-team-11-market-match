@@ -163,7 +163,7 @@ Out of scope for this document:
   **Source:**  Market Match website.
 - **`BR-get-product-feedback`:** A brand can receive feedback on their product based on the ratings submitted by consumers.
   **Source:**  Market Match website.
-- **`BR-product-media-limit`:** A product can have up to three pictures and one video. The video is a link to YouTube, Vimeo, or another video site, or a video file the brand sends; which other sites, and how large a file, are still open (`OI-49`).
+- **`BR-product-media-limit`:** A product can have up to three pictures and one video. The video is a link to YouTube, Vimeo, or another video site, or a video file the brand sends; which other sites, and how large a file, are still open (`OI-57`).
   **Source:**  09-21-2026 Client Meeting; 10-26-2026 Client Meeting (links beyond YouTube, and video files).
 - **`BR-text-card`:** An item that needs no picture can be created as a text-only card.
   **Source:**  09-21-2026 Client Meeting.
@@ -183,7 +183,7 @@ Out of scope for this document:
   **Source:**  10-26-2026 Client Meeting.
 - **`BR-results-restart-on-change`:** When a brand changes a product's photos or details, the product's results start fresh from the change, and its results from before the change are kept so the brand can compare the two.
   **Source:**  10-26-2026 Client Meeting.
-- **`BR-remove-product`:** A brand can remove its own products without the admin's approval, but only a limited number of times, so that brands do not add and remove products over and over and skew their results. The limit is still open (`OI-48`).
+- **`BR-remove-product`:** A brand can remove its own products without the admin's approval, but only a limited number of times, so that brands do not add and remove products over and over and skew their results. The limit is still open (`OI-56`).
   **Source:**  10-26-2026 Client Meeting.
 - **`BR-keep-removed-product-data`:** When a brand removes a product, Market Match keeps the product's results, because the brand may later ask for them, and the client may charge for providing them.
   **Source:**  10-26-2026 Client Meeting.

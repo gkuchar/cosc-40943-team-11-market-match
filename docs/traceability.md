@@ -69,7 +69,7 @@ _A worked example from Project Pulse named each enforcing use case with the step
 | `BR-submit-product` | Market Match website | `UC-BRND-create-product` steps 2–5; `UC-BRND-import-products` steps 3–7 |
 | `BR-join-market` | Market Match website | Out of MVP scope (vision and scope §4.3) |
 | `BR-get-product-feedback` | Market Match website | `UC-FDBK-view-brand-insights` (listed, not yet written) |
-| `BR-product-media-limit` | 09-21-2026 and 10-26-2026 client meetings | `UC-BRND-create-product` step 4 and extensions 3c, 4b, 4c; `UC-BRND-import-products` step 4 and extension 4c; `UC-BRND-send-products` step 3 and extension 3a; `UC-BRND-update-product` step 4 and extension 4a; other video sites and the video file limit pending `OI-49` |
+| `BR-product-media-limit` | 09-21-2026 and 10-26-2026 client meetings | `UC-BRND-create-product` step 4 and extensions 3c, 4b, 4c; `UC-BRND-import-products` step 4 and extension 4c; `UC-BRND-send-products` step 3 and extension 3a; `UC-BRND-update-product` step 4 and extension 4a; other video sites and the video file limit pending `OI-57` |
 | `BR-text-card` | 09-21-2026 client meeting | `UC-BRND-create-product` step 2 and extension 3b; cited by `UC-BRND-import-products`, `UC-BRND-send-products`, and `UC-BRND-update-product` through the same card type field, with no step of their own |
 | `BR-approve-product` | 09-21-2026 and 10-21-2026 client meetings | `UC-BRND-create-product` step 5; `UC-BRND-import-products` step 7; `UC-BRND-send-products` step 4; `UC-BRND-update-product` step 5; `UC-BRND-approve-product` steps 5–6 and extensions 3a and 5a; `FR-PROD-hidden-until-approved` |
 | `BR-products-brand-only` | Demetrie King, text message, 10-23-2026; 10-26-2026 client meeting | `UC-BRND-create-product` PRE-1; `UC-BRND-import-products` PRE-1; `UC-BRND-update-product` PRE-1; `UC-BRND-remove-product` PRE-1; `UC-BRND-send-products` PRE-1; `FR-PROD-brand-scoped-storage`; `SEC-brand-isolation` |
@@ -79,7 +79,7 @@ _A worked example from Project Pulse named each enforcing use case with the step
 | `BR-brand-categories` | 10-26-2026 client meeting | `UC-BRND-create-product` steps 2–3 and extension 3d; `UC-BRND-import-products` step 5 and extension 4e; `UC-BRND-send-products` step 4 and extension 4c; `UC-BRND-update-product` extension 3c; `UC-BRND-approve-product` step 2 |
 | `BR-admin-issues-api-key` | 10-26-2026 client meeting | `UC-BRND-generate-api-key` PRE-1 and steps 1–5 |
 | `BR-results-restart-on-change` | 10-26-2026 client meeting | `UC-BRND-update-product` POST-4; `UC-BRND-approve-product` POST-2 |
-| `BR-remove-product` | 10-26-2026 client meeting | `UC-BRND-remove-product` steps 1–4 and extension 2a; the limit pending `OI-48` |
+| `BR-remove-product` | 10-26-2026 client meeting | `UC-BRND-remove-product` steps 1–4 and extension 2a; the limit pending `OI-56` |
 | `BR-keep-removed-product-data` | 10-26-2026 client meeting | `UC-BRND-remove-product` POST-2 and step 4 |
 | `BR-submit-market` | Market Match website | Out of MVP scope (vision and scope §4.3) |
 | `BR-get-market-feedback` | Market Match website | `UC-FDBK-view-vendor-results` (listed, not yet written) |
