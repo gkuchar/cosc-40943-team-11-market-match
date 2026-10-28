@@ -32,7 +32,6 @@ _Within one use case, `PRE-1`, `POST-1`, and the step numbers are local and may 
 | 2026-09-14 | 0.1     | Draft four use cases derived from the vision and scope feature list                                                                                                                                                                                                                                                                                                                                                                                         | Chris Ramirez    |
 | 2026-10-13 | 0.2     | Rewrote `UC-FDBK-rate-product` and added `UC-FDBK-flip-card`, `UC-FDBK-open-card-media`, and `UC-FDBK-complete-market` to capture the data points from the third client meeting, checked against the client's repository                                                                                                                                                                                                                                    | Matthew Stafford |
 | 2026-10-25 | 0.4     | Added the product import use cases to the BRND list (`UC-BRND-import-products`, `UC-BRND-send-products`, `UC-BRND-update-product`, `UC-BRND-approve-product`, `UC-BRND-generate-api-key`); pointed BRND at `FEAT-product-management` and `FEAT-bulk-product-import`, and MKT at `FEAT-market-management`, replacing feature IDs retired in vision and scope v0.2. Wrote all six in full, with `UC-BRND-create-product` revised to wait for Approval and made the proving slice. Listed three FDBK reporting use cases. Added the business rules the MKT, PROD, and FDBK use cases carry out but did not cite, and removed `BR-capture-feedback` from `UC-PROD-view-product-details`, which captures nothing | Matthew Stafford |
-| 2026-10-25 | 0.3 | Expanded `UC-MKT-enter-market` to cover market-session entry and the handoff to category selection and feedback | Team 11 |
 
 ---
 
@@ -600,9 +599,7 @@ Only the owning Brand sees Clicks, totalled per media item across all Markets.
 
 **Priority:** High (provisional). The client called the Engagement Funnel and Completion Time what he most wants to showcase for a Brand Market.
 **Frequency of Use:** One Market session per Consumer per Market visit. A single QR Code event in the client's growth scenario starts up to 10,000 sessions in a short window.
-**Business Rules:** `BR-select-market`, `BR-code-requires-sign-in`,
-`BR-public-market`, `BR-select-category`, `BR-market-categories`,
-`BR-capture-feedback`
+**Business Rules:** `BR-select-market`, `BR-code-requires-sign-in`, `BR-public-market`, `BR-select-category`, `BR-capture-feedback`, `BR-engagement-funnel`, `BR-market-completion-time`
 
 **Associated Information:**
 

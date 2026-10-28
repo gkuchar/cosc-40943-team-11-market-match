@@ -1,2 +1,8 @@
 */.DS_Store
 .DS_Store
+
+# Secrets: never committed (see AGENTS.md)
+.env
+.env.*
+.dev.vars
+.dev.vars.*
