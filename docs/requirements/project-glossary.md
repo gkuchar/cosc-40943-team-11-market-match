@@ -79,6 +79,16 @@ _The Admin dashboard allows for the creation of products, market surveys, and up
 
 **Not to be confused with:** WorkOS, which is the separate third-party console where user, Organization, and Role records actually live.
 
+### Anonymous Consumer
+
+_A Consumer who reached a Public Access Market by QR Code or link without signing in. Market Match gives each one their own temporary identity for that Market, so each person counts once toward the Market's Consumers and their swipes can be analyzed per person. Rescanning on the same device returns to the same Anonymous Consumer. It holds no email and no Demographic answers, and it is removed after a retention period while the Market keeps its Consumer count._
+
+**Synonyms:** temporary user, temporary survey taker, Public Access Consumer, anonymous survey taker, anonymous user
+
+**Not to be confused with:** the single shared `anonymous-public` user the client's app uses today, under which every Public Access scan counts as one Consumer.
+
+**Source:** fourth client meeting with Demetrie King
+
 ### API Key
 
 _The secret the Admin generates for a Brand and hands to it, so that the Brand's own system, wherever it keeps its products, can send them through Market Match's API without anyone signing in. Each key belongs to one Brand and reaches only that Brand's Inventory. It is shown once, generating a new one ends the old one, and it stops working when the Brand's access is removed. Every product sent with it still waits for Approval. Brands do not generate their own keys for now._
