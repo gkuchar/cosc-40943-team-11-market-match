@@ -33,6 +33,7 @@ _Within one use case, `PRE-1`, `POST-1`, and the step numbers are local and may 
 | 2026-10-13 | 0.2     | Rewrote `UC-FDBK-rate-product` and added `UC-FDBK-flip-card`, `UC-FDBK-open-card-media`, and `UC-FDBK-complete-market` to capture the data points from the third client meeting, checked against the client's repository                                                                                                                                                                                                                                    | Matthew Stafford |
 | 2026-10-25 | 0.4     | Added the product import use cases to the BRND list (`UC-BRND-import-products`, `UC-BRND-send-products`, `UC-BRND-update-product`, `UC-BRND-approve-product`, `UC-BRND-generate-api-key`); pointed BRND at `FEAT-product-management` and `FEAT-bulk-product-import`, and MKT at `FEAT-market-management`, replacing feature IDs retired in vision and scope v0.2. Wrote all six in full, with `UC-BRND-create-product` revised to wait for Approval and made the proving slice. Listed three FDBK reporting use cases. Added the business rules the MKT, PROD, and FDBK use cases carry out but did not cite, and removed `BR-capture-feedback` from `UC-PROD-view-product-details`, which captures nothing | Matthew Stafford |
 | 2026-10-26 | 0.5     | Added `UC-MKT-create-anonymous-consumer` from the fourth client meeting: each Public Access Consumer becomes their own Anonymous Consumer, reused on rescan and removed after a retention period. Added `UC-MKT-expire-anonymous-consumer`, which removes expired Anonymous Consumers without lowering any Market's Consumer count | Griffin Kuchar |
+| 2026-10-28 | 0.6     | Added `UC-MKT-link-anonymous-consumer`: a device's anonymous activity joins the account signed in on it, matched by the device reference rather than IP address; the client confirmed linking (OI-48). Made an anonymous return resume its Market session in `UC-FDBK-complete-market` (2c, 7a1, 7a2) so the Consumer count holds, and defined that count as distinct session owners | Griffin Kuchar |
 
 ---
 
@@ -107,7 +108,7 @@ _[Your area codes, then a table of every use case by area. Write this list first
 
 | Area code | Feature area                                                                           | Use cases                                                                                                                                                                                                                                                                                                                                                       |
 | --------- | -------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| MKT       | Market participation: `FEAT-market-management`, `FEAT-consumer-feedback`                                         | `UC-MKT-enter-market`: Enter a market; `UC-MKT-create-anonymous-consumer`: Create an Anonymous Consumer; `UC-MKT-expire-anonymous-consumer`: Remove an expired Anonymous Consumer |
+| MKT       | Market participation: `FEAT-market-management`, `FEAT-consumer-feedback`                                         | `UC-MKT-enter-market`: Enter a market; `UC-MKT-create-anonymous-consumer`: Create an Anonymous Consumer; `UC-MKT-expire-anonymous-consumer`: Remove an expired Anonymous Consumer; `UC-MKT-link-anonymous-consumer`: Link anonymous activity to a signed-in Consumer |
 | PROD      | Product information: `FEAT-product-information`                                        | `UC-PROD-view-product-details`: View product details                                                                                                                                                                                                                                                                                                            |
 | FDBK      | Consumer feedback and data capture: `FEAT-consumer-feedback`, `FEAT-feedback-insights` | `UC-FDBK-rate-product`: Rate a product; `UC-FDBK-flip-card`: Flip a card; `UC-FDBK-open-card-media`: Open a card photo or video; `UC-FDBK-complete-market`: Complete a market; listed, not yet written: `UC-FDBK-view-brand-insights`: View a Brand's product insights; `UC-FDBK-view-vendor-results`: View a Vendor's market results; `UC-FDBK-view-platform-activity`: View platform activity                                                                                                                                                                                   |
 | BRND      | Brand participation: `FEAT-product-management`, `FEAT-bulk-product-import`             | `UC-BRND-create-product`: Create a product; `UC-BRND-import-products`: Import products from a spreadsheet; `UC-BRND-send-products`: Send products from a connected system; `UC-BRND-update-product`: Update a product; `UC-BRND-approve-product`: Approve or return a submitted product; `UC-BRND-generate-api-key`: Generate an API key |
@@ -222,8 +223,8 @@ Display the selected market name and its participating product cards. Product or
   - 2b1. The system ignores it. Continues at step 3 as a new Anonymous Consumer.
 - **2c. The device holds a reference the server did not issue, or one issued for another Market:**
   - 2c1. The system ignores it, so one device cannot act as another's Anonymous Consumer. Continues at step 3.
-- **3a. The device cannot keep the reference (private browsing, storage blocked or cleared, or a different device):**
-  - 3a1. The system still creates the Anonymous Consumer and continues. A later scan from the same person cannot be recognized and counts as a new Consumer; this is an accepted limit of not signing in.
+- **3a. The device cannot keep the reference (private browsing, or storage blocked or cleared):**
+  - 3a1. The system still creates the Anonymous Consumer and continues. A later scan from the same person cannot be recognized and counts as a new Consumer; this is an accepted limit of not signing in. The same applies when the person scans again from a different device.
 - **3b. Creating the Anonymous Consumer fails:**
   - 3b1. The system reports that the Market could not be opened and shows no Cards, because a swipe needs an owner to be counted against. Nothing partial is kept. The Consumer retries from step 1.
 
@@ -245,6 +246,8 @@ Display the selected market name and its participating product cards. Product or
 
 **Who sees what.** The Organization the Market is assigned to sees Anonymous Consumers only as a count and in aggregates, never one by one (`BR-public-market`, `BR-view-org-markets`). The Admin sees the count. Averages per Consumer, such as average swipes, divide by the number of Anonymous Consumers.
 
+**Inflated counts.** Repeated or scripted scans, or clearing storage between scans, mint new Anonymous Consumers and inflate the Consumer count that Organizations rely on. Rate limiting is decided in the design.
+
 **Systemic failure.** A link that fails PRE-1 or PRE-2 creates nothing. Logs name the Anonymous Consumer and Market by ID only, never the device reference.
 
 **Current state in the client's repository** (as recorded in `UC-FDBK-complete-market`; not re-read for this draft):
@@ -255,6 +258,7 @@ Display the selected market name and its participating product cards. Product or
 
 - `UC-FDBK-complete-market`: Complete a market (continues from step 4 and owns the Market session).
 - `UC-MKT-expire-anonymous-consumer`: Remove an expired Anonymous Consumer.
+- `UC-MKT-link-anonymous-consumer`: Link anonymous activity to a signed-in Consumer.
 - `UC-MKT-enter-market`: Enter a market (the signed-in path, by Market Code).
 
 **Assumptions:**
@@ -263,11 +267,6 @@ Display the selected market name and its participating product cards. Product or
 - Demographics are not asked of an Anonymous Consumer (fourth client meeting, line 126).
 
 **Open Issues:** Tracked in [OPEN-ISSUES.md](OPEN-ISSUES.md).
-
-- [OI-47](OPEN-ISSUES.md#open): How long is an Anonymous Consumer kept before it is removed?
-- [OI-48](OPEN-ISSUES.md#open): If a Consumer who entered anonymously later signs in, should their anonymous activity join their account?
-- [OI-50](OPEN-ISSUES.md#open): When a signed-in Consumer scans a Public Access QR Code, are they counted as themselves or as an Anonymous Consumer?
-- [OI-51](OPEN-ISSUES.md#open): Should an Anonymous Consumer expire a fixed time after its first scan, or after its last swipe?
 
 ---
 
@@ -305,7 +304,7 @@ Display the selected market name and its participating product cards. Product or
 - **2a. No Anonymous Consumer has expired:**
   - 2a1. The system logs a run with nothing removed. The use case ends.
 - **3a. The Anonymous Consumer's Market session is incomplete:**
-  - 3a1. The session stays incomplete and counts as _started_ but not _completed_ (or _entered_ only, if no Card was swiped). A later scan from that device is a new Anonymous Consumer, per `UC-MKT-create-anonymous-consumer` extension 2b.
+  - 3a1. The session stays incomplete and counts as _started_ but not _completed_ (or _entered_ or _viewed_ only, if no Card was swiped). A later scan from that device is a new Anonymous Consumer, per `UC-MKT-create-anonymous-consumer` extension 2b.
 - **3b. The Consumer is partway through the Market when the expiry time passes:**
   - 3b1. Removal goes ahead. The Consumer's next request is refused as expired and handled by `UC-MKT-create-anonymous-consumer` extension 2b, so the rest of their swipes land in a new Market session. Whether expiry should count from the last swipe instead is open.
 - **3c. Removing one Anonymous Consumer fails:**
@@ -328,7 +327,7 @@ Display the selected market name and its participating product cards. Product or
 | Market session reference | Identifier | Kept; its link to the Anonymous Consumer is cleared | Still counted in aggregates | Market |
 | Run outcome | Count and list of IDs | Removed count; IDs of any failures | Logged by ID only, never the device reference | (none) |
 
-**The Consumer count does not depend on Anonymous Consumers.** A Market's Consumer count is derived from its Market sessions, never from Anonymous Consumer records, so this removal cannot lower it (POST-3). The FDBK reporting use cases must count the same way.
+**How the Consumer count is computed.** A Market's Consumer count is the number of distinct owners of its Market sessions: a Consumer, an Anonymous Consumer, or, once detached by this use case, the session itself. An Anonymous Consumer has one Market session per Market, because a return resumes it (`UC-FDBK-complete-market` extension 2c), so detaching it leaves the count unchanged (POST-3). The FDBK reporting use cases must count the same way.
 
 **Systemic failure.** For each Anonymous Consumer, detaching and removing are stored together or not at all, so no Market session is left pointing at a removed identity. Every failure is logged by ID; no `catch` is empty.
 
@@ -350,6 +349,93 @@ Display the selected market name and its participating product cards. Product or
 - [OI-47](OPEN-ISSUES.md#open): How long is an Anonymous Consumer kept before it is removed?
 - [OI-49](OPEN-ISSUES.md#open): Does a Market session that is never completed count as zero in average Completion Time, or is it left out?
 - [OI-51](OPEN-ISSUES.md#open): Should an Anonymous Consumer expire a fixed time after its first scan, or after its last swipe?
+
+---
+
+### UC-MKT-link-anonymous-consumer: Link anonymous activity to a signed-in Consumer
+
+**UC ID and Name:** `UC-MKT-link-anonymous-consumer`: Link anonymous activity to a signed-in Consumer
+**Created By:** Griffin Kuchar
+**Date Created:** 2026-10-28
+**Primary Actor:** Consumer
+**Secondary Actors:** None
+**Trigger:** The Consumer completes sign-in. Sign-in creates the account on first login (`BR-default-consumer-role`); whether signing in to an existing account also links is open.
+**Description:** A person who swiped anonymously and then signs up keeps that activity under their account, so they count as one Consumer rather than two. Matching uses only the server-issued device reference from `UC-MKT-create-anonymous-consumer`, never IP address: campus Wi-Fi and phone carriers put thousands of people behind one IP, so IP matching would attach strangers' swipes to a named account.
+
+**Preconditions:**
+
+- PRE-1. The Consumer is signed in.
+
+**Postconditions:**
+
+- POST-1. Each valid, unexpired Anonymous Consumer whose reference the device presented has its Market sessions moved to the Consumer and is then removed.
+- POST-2. Each affected Market counts the person once.
+- POST-3. The device no longer holds the linked references.
+- POST-4. Nothing is linked from another device or by network address.
+
+**Main Success Scenario:**
+
+1. The Consumer completes sign-in.
+2. The system reads the Anonymous Consumer references held on the device.
+3. The system checks that each reference was issued by the server and that its Anonymous Consumer has not expired.
+4. For each valid reference, the system moves the Anonymous Consumer's Market sessions, with their swipes, Flips, Clicks, and funnel stages, to the Consumer and removes the Anonymous Consumer. Both happen as one unit.
+5. The system clears the linked references from the device. Sign-in continues as normal.
+
+**Extensions:**
+
+- **2a. The device holds no references (a different device, or storage was cleared):**
+  - 2a1. Nothing is linked. The anonymous activity stays anonymous until it expires (`UC-MKT-expire-anonymous-consumer`). This is the accepted limit of matching by device.
+- **3a. A reference's Anonymous Consumer has expired or was already removed:**
+  - 3a1. The system skips it and clears it from the device. The other references continue.
+- **3b. A reference was not issued by the server:**
+  - 3b1. The system ignores it and clears it from the device. The other references continue.
+- **3c. The device is shared, and holds references from more than one person:**
+  - 3c1. Every valid reference on the device links to whoever signs in first. A device reference cannot tell people apart; see Assumptions.
+- **4a. The Consumer already has their own Market session in the same Market:**
+  - 4a1. Both sessions are kept under the Consumer. They have one owner, so the person counts once in that Market under the counting rule in `UC-MKT-expire-anonymous-consumer`. Whether reports should merge the two sessions' swipes is left to the FDBK reporting use cases.
+- **4b. Linking fails:**
+  - 4b1. Sign-in still succeeds. Nothing partial is moved, the references stay on the device, and the failure is logged by ID. Linking is tried again at the next sign-in on that device.
+- **4c. A moved Market session is incomplete:**
+  - 4c1. The Consumer can resume it as a signed-in Consumer, through `UC-FDBK-complete-market` extension 2c.
+
+**Priority:** Low (provisional). Counting is correct for anonymous visitors without it; it only prevents one person counting twice after signing up.
+**Frequency of Use:** At most once per sign-in, and only on a device that holds Anonymous Consumer references. Low while most Public Access visitors never sign in.
+**Business Rules:** `BR-anonymous-consumer`, `BR-sign-in`, `BR-default-consumer-role`
+
+**Associated Information:**
+
+| Property name | Data type | Validation rule | Security or access concerns | Glossary reference |
+|---|---|---|---|---|
+| Device reference | Opaque value | Must have been issued by the server (`UC-MKT-create-anonymous-consumer`) | Never logged; cleared from the device once handled | Anonymous Consumer |
+| Anonymous Consumer | Identifier | Must exist and not be expired | Removed once linked | Anonymous Consumer |
+| Consumer reference | Identifier | Taken from the signed-in session, never from input | One Consumer cannot claim another's activity | Consumer |
+| Moved Market sessions | List of identifiers | Every Market session of each valid Anonymous Consumer | Still seen only in aggregates by the Market's Organization | Market |
+
+**No network address is used.** IP address and other network data are never used to match, and never stored or logged for this use case.
+
+**Demographics are not backfilled.** Swipes moved from an Anonymous Consumer keep their empty Demographic snapshot, even after the Consumer enters Demographics at sign-up. Whether they should get them is open.
+
+**Systemic failure.** For each Anonymous Consumer, moving its sessions and removing it are stored together or not at all, so no session is left without an owner and none is counted twice. Logs name the Consumer, Anonymous Consumer, and Market by ID only.
+
+**Current state in the client's repository:** Nothing links anonymous activity to an account; Public Access activity sits under the shared `anonymous-public` user (as recorded in `UC-FDBK-complete-market`; not re-read for this draft).
+
+**Related Use Cases:**
+
+- `UC-MKT-create-anonymous-consumer`: Create an Anonymous Consumer (issues the device reference this matches on).
+- `UC-MKT-expire-anonymous-consumer`: Remove an expired Anonymous Consumer (a linked Anonymous Consumer is already removed, so it never expires).
+- `UC-FDBK-complete-market`: Complete a market (a moved incomplete session resumes through extension 2c).
+
+**Assumptions:**
+
+- A device holds one person's anonymous activity. On a shared device, everything links to whoever signs in first (extension 3c).
+- The link is made at sign-in on the same device the person scanned on. There is no other way to claim anonymous activity.
+
+**Open Issues:** Tracked in [OPEN-ISSUES.md](OPEN-ISSUES.md).
+
+- [OI-48](OPEN-ISSUES.md#resolved) (resolved): Should a Consumer's anonymous activity be joined to their account when they sign up? Yes, per the client (2026-10-26).
+- [OI-52](OPEN-ISSUES.md#open): Should swipes made anonymously get the Demographics the Consumer enters at sign-up?
+- [OI-53](OPEN-ISSUES.md#open): Should anonymous activity link only when someone creates an account, or also when an existing user signs in on that device?
+- [OI-54](OPEN-ISSUES.md#open): Should a Consumer be told, or asked, before their earlier anonymous swipes are joined to their account?
 
 ---
 
@@ -414,7 +500,7 @@ Keep the product identity visible with its details. Product data is read only in
 
 ## FDBK: Consumer Feedback and Data Capture
 
-These four use cases cover capturing every data point the client named for a Market. They do not cover the dashboards that report the data points. Each use case's Associated Information says what the client's repository (`MM-Version`, branch `tcu-fall-2026-stage`) captures today and what is missing, so the work left is visible. The data points apply to signed-in Consumers and to Public Access Consumers alike. A Public Access Consumer is identified only by an anonymous Market session.
+These four use cases cover capturing every data point the client named for a Market. They do not cover the dashboards that report the data points. Each use case's Associated Information says what the client's repository (`MM-Version`, branch `tcu-fall-2026-stage`) captures today and what is missing, so the work left is visible. The data points apply to signed-in Consumers and to Public Access Consumers alike. A Public Access Consumer is identified by an Anonymous Consumer (`UC-MKT-create-anonymous-consumer`).
 
 ### UC-FDBK-rate-product: Rate a product
 
@@ -721,7 +807,7 @@ Only the owning Brand sees Clicks, totalled per media item across all Markets.
   - 2a1. Handled by `UC-MKT-enter-market` extension 4a. No Market session is started.
 - **2b. The Market session cannot be stored:**
   - 2b1. The system reports that the Market could not be opened and does not show Cards. A swipe needs a stored session to belong to. The Consumer retries from step 1.
-- **2c. The signed-in Consumer has an incomplete Market session for this Market:**
+- **2c. The Consumer has an incomplete Market session for this Market, either signed in or as the same Anonymous Consumer (`UC-MKT-create-anonymous-consumer` extension 2a):**
   - 2c1. The system resumes that session instead of starting a new one, records the resume time, and shows only Cards not yet swiped. Rejoins at step 5 if Categories were chosen, otherwise at step 3.
 - **2d. The Market is the demo Market:**
   - 2d1. The system lets the Consumer go through it but records no funnel stages. The use case continues without capture.
@@ -730,8 +816,8 @@ Only the owning Brand sees Clicks, totalled per media item across all Markets.
 - **5a. The chosen Categories contain no Cards:**
   - 5a1. The system shows that there is nothing to swipe. The session reached _entered_ only. The use case ends.
 - **7a. The Consumer stops partway and leaves:**
-  - 7a1. The Market session stays incomplete with its stages so far and the time of its last swipe. It counts as _started_ but not _completed_ in the funnel. A signed-in Consumer can resume through extension 2c.
-  - 7a2. A Public Access Consumer has no identity, so returning later starts a new Market session.
+  - 7a1. The Market session stays incomplete with its stages so far and the time of its last swipe. It counts as _started_ but not _completed_ in the funnel. The Consumer can resume through extension 2c, signed in or as the same unexpired Anonymous Consumer.
+  - 7a2. A Public Access Consumer who returns on the same device before their Anonymous Consumer expires resumes the same Market session (extension 2c), as the client described for a return at the 26th of 50 Cards (fourth client meeting, lines 146–148). One who returns from another device, or after expiry, starts a new Market session as a new Anonymous Consumer.
 - **8a. The Consumer chooses more Categories after completing the chosen ones:**
   - 8a1. The system records the added Categories against the same Market session. How this affects completion is an open issue.
 
@@ -776,7 +862,7 @@ Only the owning Brand sees Clicks, totalled per media item across all Markets.
 **Assumptions:**
 
 - A Market is complete when every Line Item in the Categories the Consumer chose has been swiped, not every Category in the Market. Decided by the team on 2026-10-13 from the client's five-choose-three example; not yet confirmed with the client.
-- Public Access Consumers are captured through an anonymous Market session, with _entered_ recorded when the link is opened.
+- Public Access Consumers are captured through an Anonymous Consumer (`UC-MKT-create-anonymous-consumer`), with _entered_ recorded when the link is opened.
 
 **Open Issues:** Tracked in [OPEN-ISSUES.md](OPEN-ISSUES.md).
 
