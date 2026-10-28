@@ -139,16 +139,16 @@ _A worked example from Project Pulse, which numbers its releases from its own ta
 | `UC-FDBK-flip-card` | ❌ Not started |  | After `v0.1.0`; pending `OI-1` |  |  |  |
 | `UC-FDBK-open-card-media` | ❌ Not started |  | After `v0.1.0`; pending `OI-1` |  |  |  |
 | `UC-FDBK-complete-market` | ❌ Not started |  | After `v0.1.0`; pending `OI-1` |  |  |  |
-| `UC-BRND-create-product` | ❌ Not started |  | `v0.1.0` (proving slice) |  |  |  |
+| `UC-BRND-create-product` | ❌ Not started |  | After `v0.1.0`; pending `OI-1` |  |  |  |
 | `UC-BRND-import-products` | ❌ Not started |  | After `v0.1.0`; pending `OI-1` |  |  |  |
 | `UC-BRND-send-products` | ❌ Not started |  | After `v0.1.0`; pending `OI-1` |  |  |  |
 | `UC-BRND-update-product` | ❌ Not started |  | After `v0.1.0`; pending `OI-1` |  |  |  |
 | `UC-BRND-remove-product` | ❌ Not started |  | After `v0.1.0`; pending `OI-1` |  |  |  |
 | `UC-BRND-approve-product` | ❌ Not started |  | After `v0.1.0`; pending `OI-1` |  |  |  |
-| `UC-BRND-generate-api-key` | ❌ Not started |  | After `v0.1.0`; pending `OI-1` |  |  |  |
-| `FR-PROD-brand-scoped-storage` | ❌ Not started |  | `v0.1.0` (with the proving slice) |  |  |  |
-| `FR-PROD-hidden-until-approved` | ❌ Not started |  | `v0.1.0` (with the proving slice) |  |  |  |
-| `FR-PROD-server-checks` | ❌ Not started |  | `v0.1.0` (with the proving slice) |  |  |  |
+| `UC-BRND-generate-api-key` | ❌ Not started |  | `v0.1.0` (proving slice) | [`brnd.md`](design/brnd.md#uc-brnd-generate-api-key-generating-replacing-and-revoking-an-api-key) |  |  |
+| `FR-PROD-brand-scoped-storage` | ❌ Not started |  | After `v0.1.0`, with `UC-BRND-create-product` |  |  |  |
+| `FR-PROD-hidden-until-approved` | ❌ Not started |  | After `v0.1.0`, with `UC-BRND-create-product` |  |  |  |
+| `FR-PROD-server-checks` | ❌ Not started |  | After `v0.1.0`, with `UC-BRND-create-product` |  |  |  |
 | `FR-API-published-contract` | ❌ Not started |  | After `v0.1.0`; pending `OI-1` |  |  |  |
 
 **Checks.**

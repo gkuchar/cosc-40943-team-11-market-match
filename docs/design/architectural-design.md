@@ -3,7 +3,7 @@
 **Project:** Market Match
 **Team:** Team 11
 **Client:** Demetrie King, Market Match
-**Version:** 0.2
+**Version:** 0.3
 
 ---
 
@@ -36,6 +36,7 @@ _[These are slugs, like every other identifier in your project, so an inserted d
 | ------- | ---- | ------ | ------------------------------ |
 | 0.1     |   2026-10-02    |   Team 11     | Initial draft for Checkpoint 1 |
 | 0.2     | 2026-10-28 | Matthew Stafford | Brand product import (BRND): quality goals and the §9.1 ranking for BRND; the Brand's product system and the R2 Media Store in the context and container diagrams, and PostgreSQL removed; the §5.2 component table; API Keys in §8.1; §8.2.5, §8.2.7, §8.2.8, §8.2.9, and §8.2.10 rewritten to match the code; `KD-api-key-storage`, `KD-import-in-request`, and `KD-photos-copied`; §11 risks and debt |
+| 0.3     | 2026-10-28 | Matthew Stafford | From the BRND design-of-record (`docs/design/brnd.md`): §8.2.2 time and time zones; `RISK-workos-org-deleted-event` in §11 |
 
 ---
 
@@ -336,7 +337,7 @@ Frontend API calls are centralized through `services/apiService.ts`; non-success
 
 #### 8.2.2 Time and time zones
 
-No project-wide time-zone convention is documented in the existing Market Match architecture. This remains to be defined if requirements introduce deadlines or other time-sensitive behavior.
+Every timestamp is taken from the server's clock and stored in UTC as ISO 8601 text, as the code already does (`new Date().toISOString()` in the Application API, `datetime('now')` in the schema). Times are converted to the viewer's time zone only when shown, in the browser. Why: Brands, Consumers, and the client are in different places, and results are split at the moment a change is approved (`BR-results-restart-on-change`), so a stored time must mean one instant. Shown in: `worker/src/schema.ts` (`created_at` defaults); first new use in `docs/design/brnd.md`.
 
 #### 8.2.3 API conventions
 
@@ -464,6 +465,7 @@ _A risk written as a category ("security", "performance") is not a risk. Write t
 | --- | --- | --- | --- | --- |
 | `RISK-workers-plan-limits` | Risk | If the client's account is on the Workers Free plan, one request may make only 50 calls to other services, and copying the photos of a 200-product sending takes up to 1,200 (a download and a store per photo), so a full sending cannot be processed in one request. | Check the plan with the team's read-only Cloudflare access; if it is Free, the client decides whether to move to Paid (`OI-59`). Until then, lower the batch limit or supersede `KD-import-in-request`. | `KD-import-in-request`, `KD-photos-copied`, `OI-59` |
 | `RISK-photo-fetch-abuse` | Risk | Fetching a link a Brand supplies lets an outsider make the Worker request any address, including very large files. The existing `GET /api/proxy-image` already fetches any URL with no sign-in. | Fetch only `https` links, stop reading past 3 MB, and require sign-in on `/api/proxy-image`. | `KD-photos-copied`, section 8.1 |
+| `RISK-workos-org-deleted-event` | Risk | A Brand's API Key ends when its Organization is deleted only if the client's WorkOS dashboard sends `organization.deleted` to `/api/webhooks/workos`. If it does not, a deleted Brand's key keeps working until the Admin revokes it. | Check the WorkOS webhook's subscribed events with the client before release; until then the Admin revokes a key before deleting its Organization. | `UC-BRND-generate-api-key` \*a, `SEC-api-key-ending`, `docs/design/brnd.md` |
 | `TD-no-tests` | Debt | `MM-Version` has no test framework, so every check of a use case is manual and nothing catches a regression. | Choose a framework with the team and the client (a new dependency) and record it in section 9.2. | section 8.2.10 |
 | `TD-products-live-unchecked` | Debt | Today every product a Brand adds or imports is live at once and unchecked on the server, and a Brand can delete its products outright with no limit and nothing kept. | Replaced by the Catalog through the BRND use cases, starting with `UC-BRND-create-product`. | `FR-PROD-server-checks`, `FR-PROD-hidden-until-approved`, `BR-remove-product` |
 
