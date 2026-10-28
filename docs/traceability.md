@@ -69,13 +69,18 @@ _A worked example from Project Pulse named each enforcing use case with the step
 | `BR-submit-product` | Market Match website | `UC-BRND-create-product` steps 2–5; `UC-BRND-import-products` steps 3–7 |
 | `BR-join-market` | Market Match website | Out of MVP scope (vision and scope §4.3) |
 | `BR-get-product-feedback` | Market Match website | `UC-FDBK-view-brand-insights` (listed, not yet written) |
-| `BR-product-media-limit` | 09-21-2026 client meeting | `UC-BRND-create-product` step 4 and extensions 4b, 4c; `UC-BRND-import-products` step 4; `UC-BRND-send-products` step 3 and extension 3a; `UC-BRND-update-product` step 4 and extension 4a |
+| `BR-product-media-limit` | 09-21-2026 and 10-26-2026 client meetings | `UC-BRND-create-product` step 4 and extensions 3c, 4b, 4c; `UC-BRND-import-products` step 4 and extension 4c; `UC-BRND-send-products` step 3 and extension 3a; `UC-BRND-update-product` step 4 and extension 4a; other video sites and the video file limit pending `OI-57` |
 | `BR-text-card` | 09-21-2026 client meeting | `UC-BRND-create-product` step 2 and extension 3b; cited by `UC-BRND-import-products`, `UC-BRND-send-products`, and `UC-BRND-update-product` through the same card type field, with no step of their own |
-| `BR-approve-product` | 09-21-2026 and 10-21-2026 client meetings | `UC-BRND-create-product` step 5; `UC-BRND-import-products` step 7; `UC-BRND-send-products` step 4; `UC-BRND-update-product` step 5; `UC-BRND-approve-product` steps 5–6 and extension 5a; `FR-PROD-hidden-until-approved` |
-| `BR-products-brand-only` | Demetrie King, text message, 10-23-2026 | `UC-BRND-create-product` PRE-1; `UC-BRND-import-products` PRE-1; `UC-BRND-update-product` PRE-1; `UC-BRND-send-products` PRE-1; `UC-BRND-generate-api-key` PRE-1; `FR-PROD-brand-scoped-storage`; `SEC-brand-isolation` |
+| `BR-approve-product` | 09-21-2026 and 10-21-2026 client meetings | `UC-BRND-create-product` step 5; `UC-BRND-import-products` step 7; `UC-BRND-send-products` step 4; `UC-BRND-update-product` step 5; `UC-BRND-approve-product` steps 5–6 and extensions 3a and 5a; `FR-PROD-hidden-until-approved` |
+| `BR-products-brand-only` | Demetrie King, text message, 10-23-2026; 10-26-2026 client meeting | `UC-BRND-create-product` PRE-1; `UC-BRND-import-products` PRE-1; `UC-BRND-update-product` PRE-1; `UC-BRND-remove-product` PRE-1; `UC-BRND-send-products` PRE-1; `FR-PROD-brand-scoped-storage`; `SEC-brand-isolation` |
 | `BR-connect-product-system` | 10-21-2026 client meeting | `UC-BRND-generate-api-key` steps 1–5 and extensions 1a, 1b, and \*a; `UC-BRND-send-products` PRE-1, step 2, and extensions 1b and 2a; `FR-PROD-brand-scoped-storage`; `SEC-brand-isolation`; `SEC-api-key-strength`; `SEC-api-key-ending` |
-| `BR-multiple-categories` | 10-21-2026 client meeting | `UC-BRND-approve-product` extension 5c |
-| `BR-photo-size` | 10-21-2026 client meeting | `UC-BRND-create-product` extension 4b; `UC-BRND-import-products` extension 4c; `UC-BRND-send-products` extension 3a; `UC-BRND-update-product` extension 4a |
+| `BR-multiple-categories` | 10-21-2026 client meeting | `UC-BRND-approve-product` extension 5b (one Category today; more later) |
+| `BR-photo-size` | 10-21-2026 and 10-26-2026 client meetings | `UC-BRND-create-product` extension 4b; `UC-BRND-import-products` extension 4c; `UC-BRND-send-products` extension 3a; `UC-BRND-update-product` extension 4a |
+| `BR-brand-categories` | 10-26-2026 client meeting | `UC-BRND-create-product` steps 2–3 and extension 3d; `UC-BRND-import-products` step 5 and extension 4e; `UC-BRND-send-products` step 4 and extension 4c; `UC-BRND-update-product` extension 3c; `UC-BRND-approve-product` step 2 |
+| `BR-admin-issues-api-key` | 10-26-2026 client meeting | `UC-BRND-generate-api-key` PRE-1 and steps 1–5 |
+| `BR-results-restart-on-change` | 10-26-2026 client meeting | `UC-BRND-update-product` POST-4; `UC-BRND-approve-product` POST-2 |
+| `BR-remove-product` | 10-26-2026 client meeting | `UC-BRND-remove-product` steps 1–4 and extension 2a; the limit pending `OI-56` |
+| `BR-keep-removed-product-data` | 10-26-2026 client meeting | `UC-BRND-remove-product` POST-2 and step 4 |
 | `BR-submit-market` | Market Match website | Out of MVP scope (vision and scope §4.3) |
 | `BR-get-market-feedback` | Market Match website | `UC-FDBK-view-vendor-results` (listed, not yet written) |
 | `BR-market-code` | 09-21-2026 client meeting | Out of MVP scope (vision and scope §4.3) |
@@ -85,7 +90,7 @@ _A worked example from Project Pulse named each enforcing use case with the step
 | `BR-public-market` | 09-21-2026 client meeting | Joining: `UC-FDBK-complete-market` PRE-2 and step 1. Reporting to the organization: `UC-FDBK-view-vendor-results` (listed, not yet written) |
 | `BR-code-requires-sign-in` | 09-30-2026 client meeting | `UC-MKT-enter-market` PRE-1; `UC-FDBK-complete-market` PRE-2 |
 | `BR-select-category` | 09-30-2026 client meeting | `UC-FDBK-complete-market` steps 3–5 |
-| `BR-create-market-admin-only` | 09-21-2026 client meeting | Categories: `UC-BRND-approve-product` extension 5b. Markets: Out of MVP scope (vision and scope §4.3) |
+| `BR-create-market-admin-only` | 09-21-2026 client meeting | Out of MVP scope (vision and scope §4.3); Categories are now the Brand's (`BR-brand-categories`) |
 | `BR-configure-branding` | Client brief | Out of MVP scope (vision and scope §4.3) |
 | `BR-access-own-data` | Client brief | Out of MVP scope (vision and scope §4.3) |
 | `BR-connect-api` | Client brief | Out of MVP scope (vision and scope §4.3) |
@@ -96,9 +101,9 @@ _A worked example from Project Pulse named each enforcing use case with the step
 | `BR-vendor-feedback-scope` | 09-30-2026 client meeting | `UC-FDBK-view-vendor-results` (listed, not yet written) |
 | `BR-brand-feedback-scope` | 09-30-2026 client meeting | `UC-FDBK-view-brand-insights` (listed, not yet written) |
 | `BR-admin-feedback-scope` | 09-30-2026 client meeting | `UC-FDBK-view-platform-activity` (listed, not yet written) |
-| `BR-create-organization` | 09-21-2026 client meeting | Out of MVP scope (vision and scope §4.3); relied on by `UC-BRND-generate-api-key`, since only the Admin puts a Brand on Market Match |
+| `BR-create-organization` | 09-21-2026 client meeting | Out of MVP scope (vision and scope §4.3); relied on by `UC-BRND-generate-api-key` PRE-2 |
 | `BR-default-consumer-role` | 09-21-2026 client meeting | Out of MVP scope (vision and scope §4.3) |
-| `BR-admin-role` | 09-21-2026 client meeting | `UC-BRND-approve-product` PRE-1 |
+| `BR-admin-role` | 09-21-2026 client meeting | `UC-BRND-approve-product` PRE-1; `UC-BRND-generate-api-key` PRE-1 |
 | `BR-assign-role` | 09-21-2026 client meeting | Out of MVP scope (vision and scope §4.3) |
 | `BR-dashboard-access` | 09-21-2026 client meeting | Out of MVP scope (vision and scope §4.3) |
 | `BR-view-org-markets` | 09-21-2026 client meeting | Out of MVP scope (vision and scope §4.3) |
@@ -134,15 +139,16 @@ _A worked example from Project Pulse, which numbers its releases from its own ta
 | `UC-FDBK-flip-card` | ❌ Not started |  | After `v0.1.0`; pending `OI-1` |  |  |  |
 | `UC-FDBK-open-card-media` | ❌ Not started |  | After `v0.1.0`; pending `OI-1` |  |  |  |
 | `UC-FDBK-complete-market` | ❌ Not started |  | After `v0.1.0`; pending `OI-1` |  |  |  |
-| `UC-BRND-create-product` | ❌ Not started |  | `v0.1.0` (proving slice) |  |  |  |
+| `UC-BRND-create-product` | ❌ Not started |  | After `v0.1.0`; pending `OI-1` |  |  |  |
 | `UC-BRND-import-products` | ❌ Not started |  | After `v0.1.0`; pending `OI-1` |  |  |  |
 | `UC-BRND-send-products` | ❌ Not started |  | After `v0.1.0`; pending `OI-1` |  |  |  |
 | `UC-BRND-update-product` | ❌ Not started |  | After `v0.1.0`; pending `OI-1` |  |  |  |
+| `UC-BRND-remove-product` | ❌ Not started |  | After `v0.1.0`; pending `OI-1` |  |  |  |
 | `UC-BRND-approve-product` | ❌ Not started |  | After `v0.1.0`; pending `OI-1` |  |  |  |
-| `UC-BRND-generate-api-key` | ❌ Not started |  | After `v0.1.0`; pending `OI-1` |  |  |  |
-| `FR-PROD-brand-scoped-storage` | ❌ Not started |  | `v0.1.0` (with the proving slice) |  |  |  |
-| `FR-PROD-hidden-until-approved` | ❌ Not started |  | `v0.1.0` (with the proving slice) |  |  |  |
-| `FR-PROD-server-checks` | ❌ Not started |  | `v0.1.0` (with the proving slice) |  |  |  |
+| `UC-BRND-generate-api-key` | ❌ Not started |  | `v0.1.0` (proving slice) | [`brnd.md`](design/brnd.md#uc-brnd-generate-api-key-generating-replacing-and-revoking-an-api-key) |  |  |
+| `FR-PROD-brand-scoped-storage` | ❌ Not started |  | After `v0.1.0`, with `UC-BRND-create-product` |  |  |  |
+| `FR-PROD-hidden-until-approved` | ❌ Not started |  | After `v0.1.0`, with `UC-BRND-create-product` |  |  |  |
+| `FR-PROD-server-checks` | ❌ Not started |  | After `v0.1.0`, with `UC-BRND-create-product` |  |  |  |
 | `FR-API-published-contract` | ❌ Not started |  | After `v0.1.0`; pending `OI-1` |  |  |  |
 
 **Checks.**
