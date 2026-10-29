@@ -129,7 +129,9 @@ _[One `###` heading per use case, grouped under a `##` heading per area.]_
 **Primary Actor:** Consumer
 **Secondary Actors:** None
 **Trigger:** The consumer chooses to enter a market.
-**Description:** The consumer enters a market ID code to access participating products and begin providing feedback.
+**Description:** The consumer enters a market ID code to access a participating
+market. The system creates or resumes the market session that the feedback flow
+uses to store category selection and product activity.
 
 **Preconditions:**
 
@@ -138,14 +140,24 @@ _[One `###` heading per use case, grouped under a `##` heading per area.]_
 **Postconditions:**
 
 - POST-1. The market matching the accepted code is selected.
-- POST-2. The system displays a participating product or states that no products are available.
+- POST-2. The system creates or resumes an incomplete market session for the
+  authenticated consumer.
+- POST-3. The system displays the market's categories and a participating
+  product, or states that no products are available.
 
 **Main Success Scenario:**
 
 1. The consumer chooses to enter a market.
 2. The system requests a market ID code.
 3. The consumer enters the code and submits it.
-4. The system validates the code, selects the matching accessible market, and displays a participating product.
+4. The system validates the code and selects the matching accessible market.
+5. The system creates a market session, or resumes the authenticated
+   consumer's incomplete session for that market.
+6. The system displays the market's categories so the consumer can choose
+   which categories enter the feedback flow.
+7. If the selected or resumed session has available products, the system
+   displays the first participating product; otherwise it displays an
+   empty-state message.
 
 **Extensions:**
 
@@ -154,23 +166,46 @@ _[One `###` heading per use case, grouped under a `##` heading per area.]_
 - **4a. The code is blank or does not identify an accessible market:**
   - 4a1. The system explains that the market cannot be entered and leaves the current selection unchanged. The consumer returns to step 3 to correct the code or cancels.
 - **4b. The market contains no available products:**
-  - 4b1. The system selects the market and displays an empty-state message; the use case succeeds without starting a rating.
+  - 4b1. The system selects the market, stores the entered session, and
+    displays an empty-state message; the use case succeeds without starting a
+    rating.
 - **4c. The market cannot be loaded:**
   - 4c1. The system reports the failure and retains the previous selection. The consumer retries from step 3 or ends the use case.
+- **5a. The consumer has an incomplete session for the market:**
+  - 5a1. The system resumes that session rather than creating a duplicate,
+    preserves its selected categories and prior feedback, and returns the
+    consumer to the category or remaining-product state.
+- **5b. The market session cannot be stored:**
+  - 5b1. The system reports that the market cannot be opened, does not display
+    products, and leaves the previous market selection unchanged.
+- **6a. The consumer leaves before choosing categories:**
+  - 6a1. The session remains stored with its entered time only. The consumer
+    can return to the session later.
 
 **Priority:** High (provisional)
 **Frequency of Use:** Once per market entry or switch; daily volume is unconfirmed.
-**Business Rules:** `BR-select-market`, `BR-code-requires-sign-in`
+**Business Rules:** `BR-select-market`, `BR-code-requires-sign-in`,
+`BR-select-category`, `BR-market-categories`, `BR-engagement-funnel`
 
 **Associated Information:**
 
-| Property name  | Data type | Validation rule                                                                                         | Security or access concerns                                                           | Glossary reference |
-| -------------- | --------- | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ------------------ |
-| Market ID code | String    | Required; must resolve to an accessible market; format and case sensitivity pending client confirmation | Supplied by the authenticated consumer; access conditions pending client confirmation | Market Code        |
+| Property name | Data type | Validation rule | Security or access concerns | Glossary reference |
+|---|---|---|---|---|
+| Market ID code | String | Required; must resolve to an accessible market; format and case sensitivity pending client confirmation | Supplied by the authenticated consumer; access conditions pending client confirmation | Market Code |
+| Market session | Identifier | Created after a valid code resolves; resumed when the consumer has an incomplete session | Tied to the authenticated consumer; not exposed to another consumer | Market |
+| Entry method | Enumeration | `MARKET_CODE` for this use case | System-captured | Market Code |
+| Selected categories | List of identifiers | Must be chosen from categories belonging to the selected market; selection is completed by `UC-FDBK-complete-market` | Stored with the market session | Category |
+| Entered at | Timestamp | Required when a new session is created | System-captured | Engagement Funnel |
 
-Display the selected market name and its participating product cards. Product ordering is pending client confirmation. This use case creates no rating, product, or market. A failed lookup leaves the previous selection unchanged.
+Display the selected market name and its categories. Product ordering is pending
+client confirmation. This use case creates a market session but creates no
+rating, product, or market. Category selection and the first product view
+continue in `UC-FDBK-complete-market`; a failed lookup or session write leaves
+the previous selection unchanged.
 
-**Related Use Cases:** `UC-PROD-view-product-details`: View product details; `UC-FDBK-rate-product`: Rate a product.
+**Related Use Cases:** `UC-FDBK-complete-market`: Complete a market;
+`UC-PROD-view-product-details`: View product details; `UC-FDBK-rate-product`:
+Rate a product.
 **Assumptions:** Email and one-time-code sign-in occurs before market entry, following vision and scope section 1.2. A market ID code is distinct from a sign-in code.
 **Open Issues:** Tracked in [OPEN-ISSUES.md](OPEN-ISSUES.md).
 
