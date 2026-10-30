@@ -31,6 +31,7 @@ _Within one use case, `PRE-1`, `POST-1`, and the step numbers are local and may 
 | ---------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
 | 2026-09-14 | 0.1     | Draft four use cases derived from the vision and scope feature list                                                                                                                                                                                                                                                                                                                                                                                         | Chris Ramirez    |
 | 2026-10-13 | 0.2     | Rewrote `UC-FDBK-rate-product` and added `UC-FDBK-flip-card`, `UC-FDBK-open-card-media`, and `UC-FDBK-complete-market` to capture the data points from the third client meeting, checked against the client's repository                                                                                                                                                                                                                                    | Matthew Stafford |
+| 2026-10-23 | 0.3     | Filed the fourth client meeting's data point answers into `UC-FDBK-open-card-media` (one Click per photo, Photo View Time) and `UC-FDBK-complete-market` (Completion Time start, resume, continuous Categories, zero when incomplete, a temporary identity per Public Access Consumer, funnel for Standard Markets) | Matthew Stafford |
 | 2026-10-25 | 0.4     | Added the product import use cases to the BRND list (`UC-BRND-import-products`, `UC-BRND-send-products`, `UC-BRND-update-product`, `UC-BRND-approve-product`, `UC-BRND-generate-api-key`); pointed BRND at `FEAT-product-management` and `FEAT-bulk-product-import`, and MKT at `FEAT-market-management`, replacing feature IDs retired in vision and scope v0.2. Wrote all six in full, with `UC-BRND-create-product` revised to wait for Approval and made the proving slice. Listed three FDBK reporting use cases. Added the business rules the MKT, PROD, and FDBK use cases carry out but did not cite, and removed `BR-capture-feedback` from `UC-PROD-view-product-details`, which captures nothing | Matthew Stafford |
 | 2026-10-26 | 0.5     | Added `UC-MKT-create-anonymous-consumer` from the fourth client meeting: each Public Access Consumer becomes their own Anonymous Consumer, reused on rescan and removed after a retention period. Added `UC-MKT-expire-anonymous-consumer`, which removes expired Anonymous Consumers without lowering any Market's Consumer count | Griffin Kuchar |
 | 2026-10-28 | 0.6     | Added `UC-MKT-link-anonymous-consumer`: a device's anonymous activity joins the account signed in on it, matched by the device reference rather than IP address; the client confirmed linking (OI-48). Made an anonymous return resume its Market session in `UC-FDBK-complete-market` (2c, 7a1, 7a2) so the Consumer count holds, and defined that count as distinct session owners | Griffin Kuchar |
@@ -696,7 +697,7 @@ Gaps this use case closes:
 **Primary Actor:** Consumer
 **Secondary Actors:** YouTube, which hosts the video
 **Trigger:** The Consumer taps one of a Card's photos or its video.
-**Description:** The Consumer opens a photo or the video on a Card. Market Match records a Click against that specific piece of media, so a Brand can see which photos and video draw attention and swap out what does not.
+**Description:** The Consumer opens a photo or the video on a Card. Market Match records a Click against that specific piece of media and, for a photo, how long the Consumer looks at it, so a Brand can see which photos and video draw attention and swap out what does not.
 
 **Preconditions:**
 
@@ -707,25 +708,27 @@ Gaps this use case closes:
 
 - POST-1. A Click is stored against the Line Item, the media's slot (photo 1, 2, 3, or video), the specific media item in that slot, the Market, and the Market session.
 - POST-2. The system displays the opened photo or video.
+- POST-3. For a photo, its Photo View Time is stored against the same media item and Market session.
 
 **Main Success Scenario:**
 
 1. The Consumer taps a photo or the video on the Card.
 2. The system records a Click for that media item.
 3. The system displays the photo or plays the video.
+4. When the Consumer moves away from a photo, the system records how long it was displayed as its Photo View Time.
 
 **Extensions:**
 
 - **1a. The photo is the front photo shown automatically when the Card appears:**
   - 1a1. Its automatic display is not a Click. The Card impression covers it. A deliberate tap back to the front photo is a Click. Rejoins at step 2.
 - **1b. The Consumer taps the same media again in the same viewing:**
-  - 1b1. The system records another Click with its own time. Whether reports count every Click or one per Consumer is an open issue, and storing each Click supports either.
+  - 1b1. No second Click is recorded: a Consumer's repeated taps on the same photo count as one Click (fourth client meeting). Each viewing still adds to that photo's Photo View Time. Rejoins at step 3.
 - **2a. Recording the Click fails:**
   - 2a1. The system still displays the media, because a lost Click must not block the Consumer. It retries the Click without duplicating it, and if it cannot, the failure is logged rather than silently dropped.
 - **3a. The video cannot be loaded from YouTube:**
   - 3a1. The Click stays recorded, because the Consumer's tap is the data point. The system shows that the video is unavailable, and the Consumer returns to the Card.
 - **3b. Opening the video takes the Consumer out of Market Match to YouTube:**
-  - 3b1. The Click is recorded before the Consumer leaves. Watch time is not measured, because the client said the Brand reads that from YouTube.
+  - 3b1. The Click is recorded before the Consumer leaves. Watch time is not measured, because the client said the Brand reads that from YouTube, and agreed in the fourth client meeting that videos get Clicks only.
 
 **Priority:** Medium (provisional)
 **Frequency of Use:** Zero or more per Card shown. Volume is unknown, because no Clicks are captured today.
@@ -739,18 +742,19 @@ Gaps this use case closes:
 | Media slot               | Enumeration | Required; `PHOTO_1`, `PHOTO_2`, `PHOTO_3`, or `VIDEO`; must exist on the Card  | System-captured             | Card; Clicks       |
 | Media item               | Identifier  | Required; identifies the specific photo or video link in the slot when clicked | System-captured             | Clicks             |
 | Clicked at               | Timestamp   | Required                                                                       | System-captured             | Clicks             |
+| Photo View Time | Duration, milliseconds | Photos only; ≥ 0; from display to moving away, summed across viewings in the Market session | Brand sees averages for its own photos | Photo View Time |
 | Market session reference | Identifier  | Required                                                                       | Derived by the server       | Market             |
 
 Clicks are tied to the specific media item, not just its slot. The client's stated reason for Clicks is that a Brand swaps a photo when it gets little traction. Counting by slot alone would merge the old photo's Clicks with its replacement's.
 
-Only the owning Brand sees Clicks, totalled per media item across all Markets.
+Only the owning Brand sees a media item's total Clicks and, for a photo, its average Photo View Time, combined across all Markets.
 
 **Current state in the client's repository:**
 
 - No Clicks are captured.
 - `SwipeAnalytics.mediaClicks` is declared in `types.ts` but never filled. The Brand Dashboard's media Clicks section renders an empty object.
 - The video is an autoplaying muted iframe with `pointer-events-none` (`components/SwipeCard.tsx`), so it cannot be tapped today.
-- What is captured is the time each carousel slot is displayed. `media_views` is keyed by slot labels such as `'Image 1 (Front)'` and `'Video'`, signed-in swipes only, and holds no media item identity.
+- What is captured is the time each carousel slot is displayed. `media_views` is keyed by slot labels such as `'Image 1 (Front)'` and `'Video'`, signed-in swipes only, and holds no media item identity. The client wants this per-photo time kept (fourth client meeting), so it becomes Photo View Time, tied to the media item instead of the slot.
 
 **Related Use Cases:**
 
@@ -765,8 +769,8 @@ Only the owning Brand sees Clicks, totalled per media item across all Markets.
 **Open Issues:** Tracked in [OPEN-ISSUES.md](OPEN-ISSUES.md).
 
 - [OI-15](OPEN-ISSUES.md#open): Does navigating the photo carousel count as a Click, or only tapping to enlarge?
-- [OI-16](OPEN-ISSUES.md#open): Should reports count every Click or one per Consumer per media item?
-- [OI-17](OPEN-ISSUES.md#open): Should per-media display time (`media_views`) be kept now that the client wants Clicks?
+- [OI-16](OPEN-ISSUES.md#resolved) (resolved): One Click per Consumer per photo; repeated taps count once. See [Clicks](project-glossary.md#clicks)
+- [OI-17](OPEN-ISSUES.md#resolved) (resolved): Per-photo display time is kept, as Photo View Time. See [Photo View Time](project-glossary.md#photo-view-time)
 
 ---
 
@@ -817,10 +821,10 @@ Only the owning Brand sees Clicks, totalled per media item across all Markets.
 - **5a. The chosen Categories contain no Cards:**
   - 5a1. The system shows that there is nothing to swipe. The session reached _entered_ only. The use case ends.
 - **7a. The Consumer stops partway and leaves:**
-  - 7a1. The Market session stays incomplete with its stages so far and the time of its last swipe. It counts as _started_ but not _completed_ in the funnel. The Consumer can resume through extension 2c, signed in or as the same unexpired Anonymous Consumer.
+  - 7a1. The Market session stays incomplete with its stages so far and the time of its last swipe. It counts as _started_ but not _completed_ in the funnel, and its Completion Time is zero (see OI-49). The Consumer can resume through extension 2c, signed in or as the same unexpired Anonymous Consumer.
   - 7a2. A Public Access Consumer who returns on the same device before their Anonymous Consumer expires resumes the same Market session (extension 2c), as the client described for a return at the 26th of 50 Cards (fourth client meeting, lines 146–148). One who returns from another device, or after expiry, starts a new Market session as a new Anonymous Consumer.
 - **8a. The Consumer chooses more Categories after completing the chosen ones:**
-  - 8a1. The system records the added Categories against the same Market session. How this affects completion is an open issue.
+  - 8a1. The system records the added Categories against the same Market session and moves its completed-at time to when the added Categories are finished. Completion Time is one continuous span across every Category chosen (fourth client meeting).
 
 **Priority:** High (provisional). The client called the Engagement Funnel and Completion Time what he most wants to showcase for a Brand Market.
 **Frequency of Use:** One Market session per Consumer per Market visit. A single QR Code event in the client's growth scenario starts up to 10,000 sessions in a short window.
@@ -842,9 +846,9 @@ Only the owning Brand sees Clicks, totalled per media item across all Markets.
 **Who sees what:**
 
 - Brand Market: the owning Brand sees the funnel counts and average Completion Time.
-- Standard Market: the Vendor sees the average Completion Time and, possibly, the funnel.
+- Standard Market: the funnel and average Completion Time are reported too (fourth client meeting). Whether the Vendor sees the full funnel or only Completion Time is still open.
 - No dashboard shows a single Consumer's session.
-- Completion Time is derived from the stored timestamps rather than stored itself. The resume-gap rule is still open, and timestamps allow either rule to be computed later.
+- Completion Time is derived from the stored timestamps rather than stored itself. It starts at *entered* for a Market Code session (code entry, not sign-in) and at *viewed* for a Public Access session (the first Card), and runs to *completed*, including any time away between leaving and resuming (fourth client meeting).
 
 **Current state in the client's repository:**
 
@@ -853,7 +857,7 @@ Only the owning Brand sees Clicks, totalled per media item across all Markets.
 - `completeSurvey` in `App.tsx` only updates browser storage.
 - A signed-in Consumer gets a new session row on each visit. Resume works in the browser only.
 - The Admin Dashboard's Engagement Funnel (`components/admin/UserAnalytics.tsx`) is hardcoded percentages.
-- Public Access sessions all use the `anonymous-public` user, so they cannot be told apart beyond the session id.
+- Public Access sessions all use the `anonymous-public` user, so they cannot be told apart beyond the session id. The client confirmed this shows every Public Access visitor as one Consumer, and wants each counted separately (fourth client meeting).
 
 **Related Use Cases:**
 
@@ -864,14 +868,17 @@ Only the owning Brand sees Clicks, totalled per media item across all Markets.
 
 - A Market is complete when every Line Item in the Categories the Consumer chose has been swiped, not every Category in the Market. Decided by the team on 2026-10-13 from the client's five-choose-three example; not yet confirmed with the client.
 - Public Access Consumers are captured through an Anonymous Consumer (`UC-MKT-create-anonymous-consumer`), with _entered_ recorded when the link is opened.
+- Demographics are collected from signed-in Consumers only; Public Access Consumers are not asked (fourth client meeting).
 
 **Open Issues:** Tracked in [OPEN-ISSUES.md](OPEN-ISSUES.md).
 
-- [OI-18](OPEN-ISSUES.md#open): Does Completion Time include time away from a Market the Consumer stopped and resumed, or only active time?
-- [OI-19](OPEN-ISSUES.md#open): Does the funnel clock start at code entry (the client's first description) or when the first Card is viewed (his later description)? Both timestamps are captured so either can be reported.
-- [OI-20](OPEN-ISSUES.md#open): How do Categories chosen after completion affect completion?
+- [OI-18](OPEN-ISSUES.md#resolved) (resolved): Time away counts. See [Completion Time](project-glossary.md#completion-time)
+- [OI-19](OPEN-ISSUES.md#resolved) (resolved): Code entry for a Market Code session; the first Card for Public Access. See [Completion Time](project-glossary.md#completion-time)
+- [OI-20](OPEN-ISSUES.md#resolved) (resolved): Continuous across every Category chosen. See extension 8a
 - [OI-21](OPEN-ISSUES.md#open): Should Vendors see the full Engagement Funnel or only Completion Time?
-- [OI-22](OPEN-ISSUES.md#open): Is the funnel shown per Brand Market only, or also per Standard Market?
+- [OI-22](OPEN-ISSUES.md#resolved) (resolved): Both. See [Engagement Funnel](project-glossary.md#engagement-funnel)
+- [OI-34](OPEN-ISSUES.md#open): What does Average Swipes measure?
+- [OI-49](OPEN-ISSUES.md#open): Do Consumers who never finish, with a Completion Time of zero, count toward the average Completion Time?
 
 ---
 
