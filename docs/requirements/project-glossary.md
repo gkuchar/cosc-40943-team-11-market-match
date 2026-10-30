@@ -48,15 +48,15 @@ _Rules:_
 
 ## Revision History
 
-| Date       | Version | Description                                                                                                                                                                                                               | Author           |
-| ---------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
-| 2026-09-14 | 0.1     | Initial terms from the client brief and first client meeting                                                                                                                                                              | Matthew Stafford |
-| 2026-09-21 | 0.2     | Dashboard, metric, and card terms from the brand dashboard walkthrough                                                                                                                                                    | Matthew Stafford |
-| 2026-09-23 | 0.3     | Tenancy, role, market assembly, and environment terms from the second client meeting. Renamed Skew to SKU, split Code into One-Time Code and Market Code, merged Survey into Market, and corrected Brand and Demographic. | Matthew Stafford |
+| Date       | Version | Description                                                                                                                                                                                                                                                                                         | Author           |
+| ---------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| 2026-09-14 | 0.1     | Initial terms from the client brief and first client meeting                                                                                                                                                                                                                                        | Matthew Stafford |
+| 2026-09-21 | 0.2     | Dashboard, metric, and card terms from the brand dashboard walkthrough                                                                                                                                                                                                                              | Matthew Stafford |
+| 2026-09-23 | 0.3     | Tenancy, role, market assembly, and environment terms from the second client meeting. Renamed Skew to SKU, split Code into One-Time Code and Market Code, merged Survey into Market, and corrected Brand and Demographic.                                                                           | Matthew Stafford |
 | 2026-10-13 | 0.4     | Data point terms from the third client meeting: Brand Market, Standard Market, Clicks, Completion Time, Engagement Funnel, Join Market, Like Rate, Swipe Behavior, Trends. Corrected Average Dwell Time (to the flip) and Average Decision Time (to the swipe), and superseded Brand Card - Market. | Matthew Stafford |
-| 2026-10-23 | 0.5     | Data point answers from the fourth client meeting: added Average Swipes and Photo View Time; Clicks count once per photo; Completion Time start, resume, and incomplete rules; Engagement Funnel covers Standard Markets. | Matthew Stafford |
-| 2026-10-25 | 0.6     | Product import terms: added API Key; Inventory now fills by import as well as one item at a time. (Version 0.5 is in the data points pull request.) | Matthew Stafford |
-| 2026-10-28 | 0.7     | Fifth client meeting: the Admin generates each Brand's API Key; Brands create their own Categories; Card video can be any of several video sites or a file, and photos are JPEG or PNG; Inventory items can be removed by their Brand. | Matthew Stafford |
+| 2026-10-23 | 0.5     | Data point answers from the fourth client meeting: added Average Swipes and Photo View Time; Clicks count once per photo; Completion Time start, resume, and incomplete rules; Engagement Funnel covers Standard Markets.                                                                           | Matthew Stafford |
+| 2026-10-25 | 0.6     | Product import terms: added API Key; Inventory now fills by import as well as one item at a time. (Version 0.5 is in the data points pull request.)                                                                                                                                                 | Matthew Stafford |
+| 2026-10-28 | 0.7     | Fifth client meeting: the Admin generates each Brand's API Key; Brands create their own Categories; Card video can be any of several video sites or a file, and photos are JPEG or PNG; Inventory items can be removed by their Brand.                                                              | Matthew Stafford |
 
 ---
 
@@ -308,7 +308,7 @@ _On a Market the likes is the number of people that liked the product, also corr
 
 ### Line Item
 
-_A single entry inside a Category, added to Inventory one at a time. A Line Item is either a product, with up to three photos and one video, or a Text Card. The number of Categories and Line Items in a Market is one of the three inputs to Market Pricing._
+_A single entry inside a Category, added to Inventory one by one, or in batches by spreadsheet or through Market Match's API (`SCA-import-batch-limit`). A Line Item is either a product, with up to three photos and one video, or a Text Card. The number of Categories and Line Items in a Market is one of the three inputs to Market Pricing._
 
 **Synonyms:** item
 
