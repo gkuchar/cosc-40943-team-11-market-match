@@ -695,7 +695,7 @@ Gaps this use case closes:
 **Created By:** Matthew Stafford
 **Date Created:** 2026-10-13
 **Primary Actor:** Consumer
-**Secondary Actors:** YouTube, which hosts the video
+**Secondary Actors:** YouTube or Vimeo, whichever hosts the video
 **Trigger:** The Consumer taps one of a Card's photos or its video.
 **Description:** The Consumer opens a photo or the video on a Card. Market Match records a Click against that specific piece of media and, for a photo, how long the Consumer looks at it, so a Brand can see which photos and video draw attention and swap out what does not.
 
@@ -725,10 +725,10 @@ Gaps this use case closes:
   - 1b1. No second Click is recorded: a Consumer's repeated taps on the same photo count as one Click (fourth client meeting). Each viewing still adds to that photo's Photo View Time. Rejoins at step 3.
 - **2a. Recording the Click fails:**
   - 2a1. The system still displays the media, because a lost Click must not block the Consumer. It retries the Click without duplicating it, and if it cannot, the failure is logged rather than silently dropped.
-- **3a. The video cannot be loaded from YouTube:**
+- **3a. The video cannot be loaded from its video site:**
   - 3a1. The Click stays recorded, because the Consumer's tap is the data point. The system shows that the video is unavailable, and the Consumer returns to the Card.
-- **3b. Opening the video takes the Consumer out of Market Match to YouTube:**
-  - 3b1. The Click is recorded before the Consumer leaves. Watch time is not measured, because the client said the Brand reads that from YouTube, and agreed in the fourth client meeting that videos get Clicks only.
+- **3b. Opening the video takes the Consumer out of Market Match to its video site:**
+  - 3b1. The Click is recorded before the Consumer leaves. Watch time is not measured, because the client said the Brand reads that from the site hosting the video (he named YouTube), and agreed in the fourth client meeting that videos get Clicks only.
 
 **Priority:** Medium (provisional)
 **Frequency of Use:** Zero or more per Card shown. Volume is unknown, because no Clicks are captured today.

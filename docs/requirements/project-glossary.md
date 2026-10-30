@@ -202,7 +202,7 @@ _**Example.** "What type of music do y'all want?" is a Category; each music genr
 
 ### Clicks
 
-_The number of times Consumers open each individual piece of media on a Card: each of its up to three photos, and its video link. A Brand reads Clicks per photo and per video so it can see which media draws attention and swap out what does not, for example by promoting the most-clicked photo to be the front photo. A Consumer who taps the same photo more than once counts as one Click on it. Clicks are the only measure taken on the video. How long a Consumer watches is left to YouTube, which the Brand can read for itself._
+_The number of times Consumers open each individual piece of media on a Card: each of its up to three photos, and its video link. A Brand reads Clicks per photo and per video so it can see which media draws attention and swap out what does not, for example by promoting the most-clicked photo to be the front photo. A Consumer who taps the same photo more than once counts as one Click on it. Clicks are the only measure taken on the video. How long a Consumer watches is left to the video site, which the Brand can read for itself._
 
 **Not to be confused with:** a Flip, which turns the Card over rather than opening one piece of media on it; and Photo View Time, which is how long a photo is looked at rather than whether it was opened.
 
@@ -308,7 +308,7 @@ _On a Market the likes is the number of people that liked the product, also corr
 
 ### Line Item
 
-_A single entry inside a Category, added to Inventory one at a time. A Line Item is either a product, with up to three photos and one YouTube video link, or a Text Card. The number of Categories and Line Items in a Market is one of the three inputs to Market Pricing._
+_A single entry inside a Category, added to Inventory one at a time. A Line Item is either a product, with up to three photos and one video, or a Text Card. The number of Categories and Line Items in a Market is one of the three inputs to Market Pricing._
 
 **Synonyms:** item
 
@@ -376,7 +376,7 @@ _On a Market the passes is the number of the people that did not like the produc
 
 ### Photo View Time
 
-_How long a Consumer looks at one specific photo on a Card after opening it, so a Brand can see which of its photos holds attention, for example one design Consumers zoom in on and study longer than another. Measured per photo, not per Card, and not for the video, whose viewing is left to YouTube._
+_How long a Consumer looks at one specific photo on a Card after opening it, so a Brand can see which of its photos holds attention, for example one design Consumers zoom in on and study longer than another. Measured per photo, not per Card, and not for the video, whose viewing is left to the video site._
 
 **Not to be confused with:** Average Dwell Time, which is the time before the Card is flipped; and Clicks, which count whether a photo was opened.
 
