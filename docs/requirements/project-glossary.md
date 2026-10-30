@@ -3,7 +3,7 @@
 **Project:** Market Match
 **Team:** \_11
 **Client:** Demetrie King
-**Version:** 0.4
+**Version:** 0.6
 
 ---
 
@@ -55,6 +55,7 @@ _Rules:_
 | 2026-09-23 | 0.3     | Tenancy, role, market assembly, and environment terms from the second client meeting. Renamed Skew to SKU, split Code into One-Time Code and Market Code, merged Survey into Market, and corrected Brand and Demographic. | Matthew Stafford |
 | 2026-10-13 | 0.4     | Data point terms from the third client meeting: Brand Market, Standard Market, Clicks, Completion Time, Engagement Funnel, Join Market, Like Rate, Swipe Behavior, Trends. Corrected Average Dwell Time (to the flip) and Average Decision Time (to the swipe), and superseded Brand Card - Market. | Matthew Stafford |
 | 2026-10-23 | 0.5     | Data point answers from the fourth client meeting: added Average Swipes and Photo View Time; Clicks count once per photo; Completion Time start, resume, and incomplete rules; Engagement Funnel covers Standard Markets. | Matthew Stafford |
+| 2026-10-25 | 0.6     | Product import terms: added API Key; Inventory now fills by import as well as one item at a time. (Version 0.5 is in the data points pull request.) | Matthew Stafford |
 
 ---
 
@@ -77,6 +78,26 @@ _The platform-wide role that can create Organizations and users, assign roles, b
 _The Admin dashboard allows for the creation of products, market surveys, and uploading of photos/videos so Brands have their SKUs on the application. It is also where the Admin creates Organizations and users, assigns Roles, builds Categories, adds Inventory items, generates Market Codes, sets a Market to Public Access, launches Markets, and deletes products._
 
 **Not to be confused with:** WorkOS, which is the separate third-party console where user, Organization, and Role records actually live.
+
+### Anonymous Consumer
+
+_A Consumer who reached a Public Access Market by QR Code or link without signing in. Market Match gives each one their own temporary identity for that Market, so each person counts once toward the Market's Consumers and their swipes can be analyzed per person. Rescanning on the same device returns to the same Anonymous Consumer. It holds no email and no Demographic answers, and it is removed after a retention period while the Market keeps its Consumer count._
+
+**Synonyms:** temporary user, temporary survey taker, Public Access Consumer, anonymous survey taker, anonymous user
+
+**Not to be confused with:** the single shared `anonymous-public` user the client's app uses today, under which every Public Access scan counts as one Consumer.
+
+**Source:** fourth client meeting with Demetrie King
+
+### API Key
+
+_The secret a Brand generates in Market Match so that its own system, wherever it keeps its products, can send them through Market Match's API without anyone signing in. Each key belongs to one Brand and reaches only that Brand's Inventory. It is shown once, generating a new one ends the old one, and it stops working when the Brand's access is removed. Every product sent with it still waits for Approval._
+
+**Synonyms:** API connection, product connection, integration, credential. Use API Key in code and on screen.
+
+**Not to be confused with:** `FEAT-api-integration`, the wider API for surveys, users, and responses, which is out of the MVP.
+
+**Source:** the client's "API connections" (fourth client meeting with Demetrie King); term chosen by the team for `BR-connect-product-system`
 
 ### Approval
 
@@ -194,7 +215,7 @@ _Where Market Match is hosted. The application runs as two Cloudflare Workers, o
 
 ### Completion Time
 
-_How long a Consumer takes to go through a whole Market, start to finish, meaning every Line Item in every Category the Consumer chose to go through, including Categories added partway through. For a Consumer who joins with a Market Code, the time starts when the code is entered, not at sign-in; for a Public Access Consumer, it starts when the first Card appears. Time away from a Market the Consumer left and came back to counts, so it is one continuous span. A Consumer who never finishes has a Completion Time of zero, and whether those zeros count toward the average is open (`OI-33`). The client wants the average Completion Time on both Brand Markets and Standard Markets. "It took 100 students, on average, this amount of time to go through this survey." This is an overall figure for the Market, not a product-by-product one._
+_How long a Consumer takes to go through a whole Market, start to finish, meaning every Line Item in every Category the Consumer chose to go through, including Categories added partway through. For a Consumer who joins with a Market Code, the time starts when the code is entered, not at sign-in; for a Public Access Consumer, it starts when the first Card appears. Time away from a Market the Consumer left and came back to counts, so it is one continuous span. A Consumer who never finishes has a Completion Time of zero, and whether those zeros count toward the average is open (`OI-49`). The client wants the average Completion Time on both Brand Markets and Standard Markets. "It took 100 students, on average, this amount of time to go through this survey." This is an overall figure for the Market, not a product-by-product one._
 
 **Synonyms:** time to complete, market completion time
 
@@ -246,7 +267,7 @@ _A Card can be flipped from the front side to the back side. This is a metric tr
 
 ### Inventory
 
-_The collection of Line Items a Brand or the Admin has loaded into Market Match. Items are added one at a time, given up to three photos and one YouTube video link or made into a Text Card, and then attached to a Category so they can appear in a Market._
+_The collection of Line Items a Brand or the Admin has loaded into Market Match. Items are added one at a time, imported by spreadsheet, or sent from the Brand's own system through Market Match's API with an API Key; each has up to three photos and one YouTube video link or is a Text Card, waits for the Admin's Approval, and is then attached to a Category so it can appear in a Market._
 
 **Not to be confused with:** Inventory - Brand Dashboard, which is the page that reports statistics on those items rather than the collection itself.
 

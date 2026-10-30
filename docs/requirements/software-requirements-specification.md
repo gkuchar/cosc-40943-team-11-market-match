@@ -39,6 +39,7 @@ _Requirements cited from elsewhere keep their own identifiers: `UC-*` from [use-
 | Date       | Version | Description | Author      |
 |------------|---|---|-------------|
 | 09/14/2026 | 0.1 | Initial draft | Vinh Nguyen |
+| 10/25/2026 | 0.2 | Product import requirements: §5.2 functional requirements for Brand-scoped storage, Approval, server-side checks, and the published product contract; §8.3 and §8.4 for Brands' own systems; §9.2, §9.3, §9.4, §9.6, and §9.7 attributes for import, API Keys, and privacy | Matthew Stafford |
 
 ---
 
@@ -161,9 +162,21 @@ _Group them under sub-headings by concern, and write each one using an [EARS](ht
 - _**Optional:** Where `<feature is included>`, the `<system>` shall `<response>`._
 - _**Unwanted behavior:** If `<precondition>`, then the `<system>` shall `<response>`._
 
-_Example: `FR-SAVE-autosave-active`: While a student is editing a weekly activity report during an active week, the system shall persist the draft every 30 seconds._
+_A worked example from Project Pulse paired an event-driven autosave requirement with its 30-second interval._
 
 _**Every requirement here needs an oracle.** If you cannot say how a tester would tell whether it holds, it is not a requirement yet.]_
+
+#### Products a Brand submits
+
+These hold for every way a Brand's products come in: `UC-BRND-create-product`, `UC-BRND-import-products`, `UC-BRND-send-products`, and `UC-BRND-update-product`.
+
+- **`FR-PROD-brand-scoped-storage`** (ubiquitous): The system shall store every product and every change a Brand submits in that Brand's Inventory only, taking the Brand from the signed-in user's Organization or from the API Key and never from the submitted content. *Oracle:* a submission that names another Brand, or another Brand's product, stores nothing in that Brand's Inventory. Carries out `BR-products-brand-only` and `BR-connect-product-system`.
+- **`FR-PROD-hidden-until-approved`** (state driven): While a product or a change is waiting for Approval or has been returned, the system shall not show it to any Consumer. *Oracle:* no Market a Consumer can reach contains a waiting or returned product, or the content of a waiting change. Carries out `BR-approve-product`.
+- **`FR-PROD-server-checks`** (ubiquitous): The system shall apply the same product checks on the server (required fields, media limits, and one SKU per Brand) to every product submission, whether made by hand, by spreadsheet, or through the API. *Oracle:* the same invalid product is refused, with the same reasons, by all three routes. Today the client's app checks spreadsheet rows only in the browser.
+
+#### The product API
+
+- **`FR-API-published-contract`** (ubiquitous): The system shall publish the product import contract (the fields, their formats, the 200-product batch limit, and the result returned for each product) where every Brand with an API Key can read it. *Oracle:* a batch built only from the published contract is accepted. Needed by `UC-BRND-send-products` and `UC-BRND-generate-api-key`.
 
 ---
 
@@ -218,9 +231,15 @@ _[Any hardware the system talks to, or "none".]_
 
 _[Other software systems yours connects to: what crosses the boundary, in which direction, in what format, and what happens when the other side is unavailable.]_
 
+- **`SI-brand-product-system`:** A Brand's own system, wherever it keeps its products, sends batches of up to 200 products into Market Match's API, authenticated by the Brand's API Key, and receives a result for every product (`UC-BRND-send-products`). The format is the published product contract (`FR-API-published-contract`). If Market Match is unavailable, nothing in a batch is half-applied, and the Brand's system sends the same batch again without creating duplicates (`ROB-import-resend`).
+
+The interfaces that already exist (WorkOS for sign-in, Cloudflare for hosting and storage, and YouTube for video links) are described in the architecture-of-record's context view and are to be added here when this section is completed.
+
 ### 8.4 API document
 
 _[Link to your API documentation. It is generated from the code, so link it rather than transcribing endpoints that will be stale within a week.]_
+
+The product import contract (`FR-API-published-contract`) is generated from the code once the product API exists, and is linked here then.
 
 ### 8.5 Communications interfaces
 
@@ -242,15 +261,21 @@ _Example: `USE-wcag-aa`: All user-facing views shall conform to WCAG 2.1 level A
 
 ### 9.2 Performance
 
-_Example: `PER-report-load`: A peer evaluation report for a section of 80 students shall render within 2 seconds at the 95th percentile._
+- **`PER-import-results`:** For one sending of 200 products, by spreadsheet or through the API, the system shall return the result for every product within a time the client sets, at the 95th percentile, measured from receiving the sending to returning the last result. *Pending `OI-44`*: the threshold is the client's to give.
 
 ### 9.3 Security
 
-_Example: `SEC-authentication`: The system shall authenticate every request to a non-public endpoint, and shall reject unauthenticated requests without disclosing whether the requested resource exists._
+- **`SEC-authentication`:** The system shall authenticate every request to a non-public endpoint, by a signed-in session or an API Key, and shall refuse an unauthenticated request without revealing whether the requested resource exists. *Measure:* 100% of non-public endpoints, called without credentials, are refused.
+- **`SEC-brand-isolation`:** No request authenticated as one Brand, by session or API Key, shall read or change another Brand's products. *Measure:* 0 cross-Brand reads or writes in a test that calls every product endpoint as Brand A against Brand B's products. Carries out `BR-products-brand-only` and `BR-connect-product-system`.
+- **`SEC-api-key-strength`:** Each API Key shall carry at least 256 bits of randomness, shall be shown to its Brand only once, when generated, and shall be stored only as a one-way hash from which the key cannot be recovered. *Measure:* inspecting storage finds no value that is, or can be turned back into, a key. Team decision, 2026-10-25, following common industry practice for API tokens.
+- **`SEC-api-key-ending`:** A replaced or revoked API Key, or one whose Brand's access has been removed, shall be refused on 100% of requests from the moment it ends. *Measure:* a request with each kind of ended key is refused, in a test run immediately after the key ends.
+- **`SEC-pii-protection`:** Personal data shall be encrypted at rest and in transit and never stored in plaintext (`BR-protect-pii`). How this applies on top of the encryption Cloudflare D1 already provides at rest is decided in the architecture-of-record. Which personal data Market Match may hold at all is open: `BR-collect-email-only` allows only an email address, while the feedback use cases store demographic answers (`OI-45`).
 
 ### 9.4 Safety
 
 _[Conditions under which the system could contribute to harm, and what prevents it. For most projects in this course the honest answer is `SAF-not-applicable`, with a sentence saying why.]_
+
+- **`SAF-not-applicable`:** Market Match collects product preferences and shows marketing content; no failure of it can cause physical harm. Its worst failures lose or expose data, which `SEC-*` and `ROB-*` cover.
 
 ### 9.5 Availability
 
@@ -258,11 +283,13 @@ _Example: `AVL-uptime`: The system shall be available 99% of the time during the
 
 ### 9.6 Robustness
 
-_Example: `ROB-edit-loss-bound`: On an unexpected client disconnect, the system shall lose no more than 30 seconds of a student's in-progress edits._
+- **`ROB-import-resend`:** When an import or a sending stops partway and the same spreadsheet or batch is sent again, the system shall create 0 duplicate products, matching each product by its SKU within the Brand. *Measure:* interrupt an import of 200 products partway, send it again, and count products per SKU.
 
 ### 9.7 Scalability, interoperability, maintainability
 
 _[Add the ones that apply, with `SCA-`, `INT-`, and `MNT-` identifiers. Maintainability is the one this course cares about most, because someone inherits your code in January.]_
+
+- **`SCA-import-batch-limit`:** One sending, by spreadsheet or through the API, shall carry at most 200 products, matching the largest catalog among the client's Brands today (10 to 200 SKUs); a larger one is refused whole, with the limit, so the Brand sends smaller batches. *Measure:* a 200-product sending is accepted and a 201-product sending is refused with the limit. Team decision, 2026-10-25.
 
 ---
 
