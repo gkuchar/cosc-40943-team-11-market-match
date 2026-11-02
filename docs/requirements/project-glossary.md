@@ -3,7 +3,7 @@
 **Project:** Market Match
 **Team:** \_11
 **Client:** Demetrie King
-**Version:** 0.6
+**Version:** 0.7
 
 ---
 
@@ -48,14 +48,15 @@ _Rules:_
 
 ## Revision History
 
-| Date       | Version | Description                                                                                                                                                                                                               | Author           |
-| ---------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
-| 2026-09-14 | 0.1     | Initial terms from the client brief and first client meeting                                                                                                                                                              | Matthew Stafford |
-| 2026-09-21 | 0.2     | Dashboard, metric, and card terms from the brand dashboard walkthrough                                                                                                                                                    | Matthew Stafford |
-| 2026-09-23 | 0.3     | Tenancy, role, market assembly, and environment terms from the second client meeting. Renamed Skew to SKU, split Code into One-Time Code and Market Code, merged Survey into Market, and corrected Brand and Demographic. | Matthew Stafford |
+| Date       | Version | Description                                                                                                                                                                                                                                                                                         | Author           |
+| ---------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| 2026-09-14 | 0.1     | Initial terms from the client brief and first client meeting                                                                                                                                                                                                                                        | Matthew Stafford |
+| 2026-09-21 | 0.2     | Dashboard, metric, and card terms from the brand dashboard walkthrough                                                                                                                                                                                                                              | Matthew Stafford |
+| 2026-09-23 | 0.3     | Tenancy, role, market assembly, and environment terms from the second client meeting. Renamed Skew to SKU, split Code into One-Time Code and Market Code, merged Survey into Market, and corrected Brand and Demographic.                                                                           | Matthew Stafford |
 | 2026-10-13 | 0.4     | Data point terms from the third client meeting: Brand Market, Standard Market, Clicks, Completion Time, Engagement Funnel, Join Market, Like Rate, Swipe Behavior, Trends. Corrected Average Dwell Time (to the flip) and Average Decision Time (to the swipe), and superseded Brand Card - Market. | Matthew Stafford |
-| 2026-10-23 | 0.5     | Data point answers from the fourth client meeting: added Average Swipes and Photo View Time; Clicks count once per photo; Completion Time start, resume, and incomplete rules; Engagement Funnel covers Standard Markets. | Matthew Stafford |
-| 2026-10-25 | 0.6     | Product import terms: added API Key; Inventory now fills by import as well as one item at a time. (Version 0.5 is in the data points pull request.) | Matthew Stafford |
+| 2026-10-23 | 0.5     | Data point answers from the fourth client meeting: added Average Swipes and Photo View Time; Clicks count once per photo; Completion Time start, resume, and incomplete rules; Engagement Funnel covers Standard Markets.                                                                           | Matthew Stafford |
+| 2026-10-25 | 0.6     | Product import terms: added API Key; Inventory now fills by import as well as one item at a time. (Version 0.5 is in the data points pull request.)                                                                                                                                                 | Matthew Stafford |
+| 2026-10-28 | 0.7     | Fifth client meeting: the Admin generates each Brand's API Key; Brands create their own Categories; Card video can be any of several video sites or a file, and photos are JPEG or PNG; Inventory items can be removed by their Brand.                                                              | Matthew Stafford |
 
 ---
 
@@ -91,13 +92,13 @@ _A Consumer who reached a Public Access Market by QR Code or link without signin
 
 ### API Key
 
-_The secret a Brand generates in Market Match so that its own system, wherever it keeps its products, can send them through Market Match's API without anyone signing in. Each key belongs to one Brand and reaches only that Brand's Inventory. It is shown once, generating a new one ends the old one, and it stops working when the Brand's access is removed. Every product sent with it still waits for Approval._
+_The secret the Admin generates for a Brand and hands to it, so that the Brand's own system, wherever it keeps its products, can send them through Market Match's API without anyone signing in. Each key belongs to one Brand and reaches only that Brand's Inventory. It is shown once, generating a new one ends the old one, and it stops working when the Brand's access is removed. Every product sent with it still waits for Approval. Brands do not generate their own keys for now._
 
 **Synonyms:** API connection, product connection, integration, credential. Use API Key in code and on screen.
 
 **Not to be confused with:** `FEAT-api-integration`, the wider API for surveys, users, and responses, which is out of the MVP.
 
-**Source:** the client's "API connections" (fourth client meeting with Demetrie King); term chosen by the team for `BR-connect-product-system`
+**Source:** the client's "API connections" (fourth client meeting with Demetrie King); term chosen by the team for `BR-connect-product-system`; the Admin hands out keys (fifth client meeting)
 
 ### Approval
 
@@ -185,23 +186,23 @@ _A Market run for a Brand, so the Brand can test its own products with an audien
 
 ### Card
 
-_A Card has a front side and back side. The front side is a photo of the product and the product name. The back of the Card includes more details in which a Brand can put a description of their product as well as a video showcasing their product. A Card carries up to three photos and one video, and the video is supplied as a YouTube link rather than an uploaded file._
+_A Card has a front side and back side. The front side is a photo of the product and the product name. The back of the Card includes more details in which a Brand can put a description of their product as well as a video showcasing their product. A Card carries up to three photos, each a JPEG or PNG under 3 MB, and one video, given as a link to YouTube, Vimeo, or another video site, or as a video file._
 
 **Not to be confused with:** a Text Card, which is a Card with no product photo or video.
 
 ### Category
 
-_A named grouping of Line Items inside a Market. A Category is usually a product type such as energy drinks, sports drinks, or chips, but it can also be a question, in which case the Cards under it are Text Cards holding the answer options. The Admin creates Categories, attaches Inventory items to them, and assembles a Market by selecting which Categories it contains._
+_A named grouping of Line Items inside a Market. A Category is usually a product type such as energy drinks, sports drinks, or chips, but it can also be a question, in which case the Cards under it are Text Cards holding the answer options. A Brand creates its own Categories and puts each of its Inventory items in one; a Brand's Categories hold only its own products. The Admin assembles a Market by selecting which Categories it contains: choosing a Brand brings up its Categories, and choosing a Category brings in every item in it._
 
 _**Example.** "What type of music do y'all want?" is a Category; each music genre under it is a Text Card._
 
 **Not to be confused with:** a Market, which is the whole survey. A Market contains Categories; a Category contains Line Items.
 
-**Source:** second client meeting with Demetrie King
+**Source:** second client meeting with Demetrie King; Brands create their own (fifth client meeting)
 
 ### Clicks
 
-_The number of times Consumers open each individual piece of media on a Card: each of its up to three photos, and its video link. A Brand reads Clicks per photo and per video so it can see which media draws attention and swap out what does not, for example by promoting the most-clicked photo to be the front photo. A Consumer who taps the same photo more than once counts as one Click on it. Clicks are the only measure taken on the video. How long a Consumer watches is left to YouTube, which the Brand can read for itself._
+_The number of times Consumers open each individual piece of media on a Card: each of its up to three photos, and its video link. A Brand reads Clicks per photo and per video so it can see which media draws attention and swap out what does not, for example by promoting the most-clicked photo to be the front photo. A Consumer who taps the same photo more than once counts as one Click on it. Clicks are the only measure taken on the video. How long a Consumer watches is left to the video site, which the Brand can read for itself._
 
 **Not to be confused with:** a Flip, which turns the Card over rather than opening one piece of media on it; and Photo View Time, which is how long a photo is looked at rather than whether it was opened.
 
@@ -267,7 +268,7 @@ _A Card can be flipped from the front side to the back side. This is a metric tr
 
 ### Inventory
 
-_The collection of Line Items a Brand or the Admin has loaded into Market Match. Items are added one at a time, imported by spreadsheet, or sent from the Brand's own system through Market Match's API with an API Key; each has up to three photos and one YouTube video link or is a Text Card, waits for the Admin's Approval, and is then attached to a Category so it can appear in a Market._
+_The collection of Line Items a Brand or the Admin has loaded into Market Match. Items are added one at a time, imported by spreadsheet, or sent from the Brand's own system through Market Match's API with an API Key; each has up to three photos and one video or is a Text Card, sits in one of the Brand's Categories, and waits for the Admin's Approval before it can appear in a Market. A Brand can also remove its own items; their results are kept._
 
 **Not to be confused with:** Inventory - Brand Dashboard, which is the page that reports statistics on those items rather than the collection itself.
 
@@ -307,7 +308,7 @@ _On a Market the likes is the number of people that liked the product, also corr
 
 ### Line Item
 
-_A single entry inside a Category, added to Inventory one at a time. A Line Item is either a product, with up to three photos and one YouTube video link, or a Text Card. The number of Categories and Line Items in a Market is one of the three inputs to Market Pricing._
+_A single entry inside a Category, added to Inventory one by one, or in batches by spreadsheet or through Market Match's API (`SCA-import-batch-limit`). A Line Item is either a product, with up to three photos and one video, or a Text Card. The number of Categories and Line Items in a Market is one of the three inputs to Market Pricing._
 
 **Synonyms:** item
 
@@ -375,7 +376,7 @@ _On a Market the passes is the number of the people that did not like the produc
 
 ### Photo View Time
 
-_How long a Consumer looks at one specific photo on a Card after opening it, so a Brand can see which of its photos holds attention, for example one design Consumers zoom in on and study longer than another. Measured per photo, not per Card, and not for the video, whose viewing is left to YouTube._
+_How long a Consumer looks at one specific photo on a Card after opening it, so a Brand can see which of its photos holds attention, for example one design Consumers zoom in on and study longer than another. Measured per photo, not per Card, and not for the video, whose viewing is left to the video site._
 
 **Not to be confused with:** Average Dwell Time, which is the time before the Card is flipped; and Clicks, which count whether a photo was opened.
 

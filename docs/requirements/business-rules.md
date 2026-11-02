@@ -3,7 +3,7 @@
 **Project:** Market Match
 **Team:** 11
 **Client:** Demetrie King
-**Version:** 0.3
+**Version:** 0.5
 
 ---
 
@@ -86,6 +86,7 @@ _The Source column is the defense. Every rule traces to a document or a person, 
 | 2026-10-12 | 0.2 | Added rules from the 09-07, 09-21, and 09-30 client meetings (organizations and roles, market setup, product approval, pricing, data collection, analytics definitions) | Griffin Kuchar |
 | 2026-10-14 | 0.3 | Addressed review: added `BR-dashboard-access`, folded decision and dwell time into `BR-capture-feedback` by glossary reference, flagged the demographic data gap | Griffin Kuchar |
 | 2026-10-25 | 0.4 | Product import rules from the 10-21-2026 client meeting and the client's 10-23-2026 text: widened `BR-approve-product` to every way a brand submits products; added `BR-products-brand-only`, `BR-connect-product-system`, `BR-multiple-categories`, and `BR-photo-size` | Matthew Stafford |
+| 2026-10-28 | 0.5 | Product import answers from the 10-26-2026 client meeting: video links beyond YouTube and video files in `BR-product-media-limit`; JPEG and PNG in `BR-photo-size`; Brands create their own Categories, so `BR-create-market-admin-only` no longer covers Categories; added `BR-brand-categories`, `BR-admin-issues-api-key`, `BR-results-restart-on-change`, `BR-remove-product`, and `BR-keep-removed-product-data` | Matthew Stafford |
 
 ---
 
@@ -98,15 +99,15 @@ This document collects the policies, regulations, standards, and formulas that g
 ### 1.2 Scope
 
 These rules cover the participation and data policies of the Market Match business as
-described in the client brief, the client meetings through 10-21-2026, and the client's
+described in the client brief, the client meetings through 10-26-2026, and the client's
 10-23-2026 text message.
 
 In scope:
 
 - **Consumer participation:** how consumers sign in, rate and inspect products, select
   markets, and accrue and forfeit lottery entries (2.1).
-- **Brand participation:** how brands create and import products, how those products are
-  approved, join markets, and receive feedback (2.2).
+- **Brand participation:** how brands create, import, change, and remove products and
+  their categories, how those products are approved, join markets, and receive feedback (2.2).
 - **Market lifecycle:** how markets are created and how they receive feedback (2.3).
 - **White-label operation:** how partner organizations brand their own instance, keep
   their data isolated, and connect via API (2.4).
@@ -162,20 +163,30 @@ Out of scope for this document:
   **Source:**  Market Match website.
 - **`BR-get-product-feedback`:** A brand can receive feedback on their product based on the ratings submitted by consumers.
   **Source:**  Market Match website.
-- **`BR-product-media-limit`:** A product can have up to three pictures and one video, and the video is supplied as a YouTube link.
-  **Source:**  09-21-2026 Client Meeting.
+- **`BR-product-media-limit`:** A product can have up to three pictures and one video. The video is a link to YouTube, Vimeo, or another video site, or a video file the brand sends; which other sites, and how large a file, are still open (`OI-57`).
+  **Source:**  09-21-2026 Client Meeting; 10-26-2026 Client Meeting (links beyond YouTube, and video files).
 - **`BR-text-card`:** An item that needs no picture can be created as a text-only card.
   **Source:**  09-21-2026 Client Meeting.
 - **`BR-approve-product`:** Every product a brand submits (`BR-submit-product`), whether one at a time, by spreadsheet, or straight from its own system (`BR-connect-product-system`), and any later update the brand makes to its images or details, must be approved by the Market Match admin before it is published.
   **Source:**  09-21-2026 Client Meeting; 10-21-2026 Client Meeting (approval extends to imported products).
 - **`BR-products-brand-only`:** Only brands upload products to Market Match. Vendors do not upload products; they select categories.
-  **Source:**  Demetrie King, text message, 10-23-2026.
+  **Source:**  Demetrie King, text message, 10-23-2026; confirmed in the 10-26-2026 Client Meeting.
 - **`BR-connect-product-system`:** A brand the client is working with can send its products to Market Match straight from the system where it already keeps them, instead of the client entering each product by hand. Only brands the client is working with can connect this way.
   **Source:**  10-21-2026 Client Meeting.
 - **`BR-multiple-categories`:** A product can belong to more than one category, so the client does not have to rebuild it for each category it fits. Expected to apply later rather than now; today a product belongs to one category.
   **Source:**  10-21-2026 Client Meeting.
-- **`BR-photo-size`:** Brands supply product photos under 3 MB. The client is sending his full list of image requirements, which is still open (`OI-24`).
-  **Source:**  10-21-2026 Client Meeting.
+- **`BR-photo-size`:** Brands supply product photos as JPEG or PNG files under 3 MB each; WebP and other formats are not accepted.
+  **Source:**  10-21-2026 Client Meeting (size); 10-26-2026 Client Meeting (formats).
+- **`BR-brand-categories`:** A brand creates its own categories and says which category each of its products belongs in. A brand's categories hold only that brand's products, so when the admin builds a market for a brand, choosing one of its categories brings in every product in it.
+  **Source:**  10-26-2026 Client Meeting.
+- **`BR-admin-issues-api-key`:** The admin gives each brand the key its own system uses to send products, after he has signed the brand and created its organization; brands do not create their own keys. Expected to change later, when brands may set themselves up.
+  **Source:**  10-26-2026 Client Meeting.
+- **`BR-results-restart-on-change`:** When a brand changes a product's photos or details, the product's results start fresh from the change, and its results from before the change are kept so the brand can compare the two.
+  **Source:**  10-26-2026 Client Meeting.
+- **`BR-remove-product`:** A brand can remove its own products without the admin's approval, but only a limited number of times, so that brands do not add and remove products over and over and skew their results. The limit is still open (`OI-56`).
+  **Source:**  10-26-2026 Client Meeting.
+- **`BR-keep-removed-product-data`:** When a brand removes a product, Market Match keeps the product's results, because the brand may later ask for them, and the client may charge for providing them.
+  **Source:**  10-26-2026 Client Meeting.
 
 ### 2.3 Markets
 
@@ -201,8 +212,8 @@ Out of scope for this document:
   **Source:**  09-30-2026 Client Meeting.
 - **`BR-select-category`:** A consumer who joins a market chooses which of that market's categories to swipe through.
   **Source:**  09-30-2026 Client Meeting.
-- **`BR-create-market-admin-only`:** Only the Market Match admin can create categories and markets; brands and vendors cannot create their own. Expected to change after the current phase, once pricing for self-serve markets is set.
-  **Source:**  09-21-2026 Client Meeting.
+- **`BR-create-market-admin-only`:** Only the Market Match admin can create markets; brands and vendors cannot create their own. Expected to change after the current phase, once pricing for self-serve markets is set. Categories for a brand's own products are the brand's to create (`BR-brand-categories`).
+  **Source:**  09-21-2026 Client Meeting; 10-26-2026 Client Meeting (brands create their own categories).
 
 ### 2.4 White-Label-Architecture (Organizations)
 

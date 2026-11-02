@@ -3,7 +3,7 @@
 **Project:** Market Match
 **Team:** 11
 **Client:** Demetrie King
-**Version:** 0.1
+**Version:** 0.3
 
 ---
 
@@ -40,6 +40,7 @@ _Requirements cited from elsewhere keep their own identifiers: `UC-*` from [use-
 |------------|---|---|-------------|
 | 09/14/2026 | 0.1 | Initial draft | Vinh Nguyen |
 | 10/25/2026 | 0.2 | Product import requirements: §5.2 functional requirements for Brand-scoped storage, Approval, server-side checks, and the published product contract; §8.3 and §8.4 for Brands' own systems; §9.2, §9.3, §9.4, §9.6, and §9.7 attributes for import, API Keys, and privacy | Matthew Stafford |
+| 10/28/2026 | 0.3 | Fifth client meeting: set `PER-import-results` to 60 seconds (team decision; the client set none), noted 500-SKU Brands under `SCA-import-batch-limit`, and made the Admin the one shown a new API Key in `SEC-api-key-strength` | Matthew Stafford |
 
 ---
 
@@ -261,13 +262,13 @@ _Example: `USE-wcag-aa`: All user-facing views shall conform to WCAG 2.1 level A
 
 ### 9.2 Performance
 
-- **`PER-import-results`:** For one sending of 200 products, by spreadsheet or through the API, the system shall return the result for every product within a time the client sets, at the 95th percentile, measured from receiving the sending to returning the last result. *Pending `OI-44`*: the threshold is the client's to give.
+- **`PER-import-results`:** For one sending of 200 products, by spreadsheet or through the API, the system shall return the result for every product within 60 seconds at the 95th percentile, measured from receiving the sending to returning the last result. *Measure:* time 20 sendings of 200 valid products, each with three linked photos, against the preview environment. Team decision, 2026-10-28: the client set no limit and would accept even 20 to 30 minutes for the whole process (`OI-44`, fifth client meeting); 60 seconds lets the Brand's system wait for its results on one request, within the timeouts common HTTP clients use.
 
 ### 9.3 Security
 
 - **`SEC-authentication`:** The system shall authenticate every request to a non-public endpoint, by a signed-in session or an API Key, and shall refuse an unauthenticated request without revealing whether the requested resource exists. *Measure:* 100% of non-public endpoints, called without credentials, are refused.
 - **`SEC-brand-isolation`:** No request authenticated as one Brand, by session or API Key, shall read or change another Brand's products. *Measure:* 0 cross-Brand reads or writes in a test that calls every product endpoint as Brand A against Brand B's products. Carries out `BR-products-brand-only` and `BR-connect-product-system`.
-- **`SEC-api-key-strength`:** Each API Key shall carry at least 256 bits of randomness, shall be shown to its Brand only once, when generated, and shall be stored only as a one-way hash from which the key cannot be recovered. *Measure:* inspecting storage finds no value that is, or can be turned back into, a key. Team decision, 2026-10-25, following common industry practice for API tokens.
+- **`SEC-api-key-strength`:** Each API Key shall carry at least 256 bits of randomness, shall be shown only once, to the Admin who generates it, and shall be stored only as a one-way hash from which the key cannot be recovered. *Measure:* inspecting storage finds no value that is, or can be turned back into, a key. Team decision, 2026-10-25, following common industry practice for API tokens.
 - **`SEC-api-key-ending`:** A replaced or revoked API Key, or one whose Brand's access has been removed, shall be refused on 100% of requests from the moment it ends. *Measure:* a request with each kind of ended key is refused, in a test run immediately after the key ends.
 - **`SEC-pii-protection`:** Personal data shall be encrypted at rest and in transit and never stored in plaintext (`BR-protect-pii`). How this applies on top of the encryption Cloudflare D1 already provides at rest is decided in the architecture-of-record. Which personal data Market Match may hold at all is open: `BR-collect-email-only` allows only an email address, while the feedback use cases store demographic answers (`OI-45`).
 
@@ -289,7 +290,7 @@ _Example: `AVL-uptime`: The system shall be available 99% of the time during the
 
 _[Add the ones that apply, with `SCA-`, `INT-`, and `MNT-` identifiers. Maintainability is the one this course cares about most, because someone inherits your code in January.]_
 
-- **`SCA-import-batch-limit`:** One sending, by spreadsheet or through the API, shall carry at most 200 products, matching the largest catalog among the client's Brands today (10 to 200 SKUs); a larger one is refused whole, with the limit, so the Brand sends smaller batches. *Measure:* a 200-product sending is accepted and a 201-product sending is refused with the limit. Team decision, 2026-10-25.
+- **`SCA-import-batch-limit`:** One sending, by spreadsheet or through the API, shall carry at most 200 products, matching the largest catalog among the client's Brands today (10 to 200 SKUs); a larger one is refused whole, with the limit, so the Brand sends smaller batches. A clothing Brand's 500 SKUs before an event (fifth client meeting) arrive as three sendings; the limit was kept at 200 on 2026-10-28 so one sending fits `PER-import-results`. *Measure:* a 200-product sending is accepted and a 201-product sending is refused with the limit. Team decision, 2026-10-25.
 
 ---
 
