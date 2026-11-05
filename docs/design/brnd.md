@@ -70,6 +70,7 @@ classDiagram
         <<new, worker/src/apiKeys.ts>>
         +generateKey() string
         +hashKey(key) string
+        +listKeys(orgId)
         +issueKey(orgId, adminId, confirmReplace)
         +revokeKey(keyId, endedBy)
         +revokeAllForOrg(orgId, endedBy)
@@ -86,7 +87,7 @@ classDiagram
 
 - `worker/migrations/0008_api_keys.sql` (new): creates `api_keys` and its indexes (Data model below).
 - `worker/src/schema.ts` (reused): adds the `apiKeys` table definition for Drizzle.
-- `worker/src/apiKeys.ts` (new): the only code that creates, hashes, or ends an API Key. A module of its own, not more of `index.ts`, because `UC-BRND-send-products` will call `hashKey` to check a key on every sending.
+- `worker/src/apiKeys.ts` (new): the only code that creates, hashes, lists, or ends an API Key; `listKeys` selects every column but `key_hash`, so no route can return a hash. A module of its own, not more of `index.ts`, because `UC-BRND-send-products` will call `hashKey` to check a key on every sending.
 - `worker/src/index.ts` (reused): the three routes, each behind the existing `withFreshRole` and `requireRole('admin')`, and a new `organization.deleted` branch in the existing `POST /api/webhooks/workos` handler.
 - `services/apiService.ts` (reused): a new `ApiKeys` group using the existing `request` helper (§8.2.1, §8.2.3).
 - `components/admin/BrandManagement.tsx` (reused): already receives `workosOrgs` in the Admin's Brands tab. Gains an API Key panel for each Organization in `workosOrgs`: the newest key's status and who generated or ended it and when, Generate (or Replace, with the warning of extension 1a), Revoke, and a dialog that shows a new key once. The panel is not filtered to Brands in the browser; the server's `422 NOT_A_BRAND` is the check that counts (§8.2.5). Older keys and showing a name rather than a user id are left to the build; no requirement depends on either.
@@ -178,7 +179,7 @@ _[Only the decisions a reader could not recover from the code: an invariant, who
 
 _A decision that affects the whole system rather than this area is an architecture decision. It belongs in your architecture-of-record as a `KD-*` entry, not here.]_
 
-**One active key per Brand, enforced by D1.** A partial unique index allows one `ACTIVE` row per `workos_org_id`, and replacing a key ends the old row and inserts the new one in one D1 batch, so either both happen or neither does. Rejected: checking for an active key in code and then inserting, because two requests at once could both pass the check, and a failure between the two writes could leave a Brand with two working keys or none (extension 2a).
+**One active key per Brand, enforced by D1.** A partial unique index allows one `ACTIVE` row per `workos_org_id`, and replacing a key ends the old row and inserts the new one in one D1 batch, so either both happen or neither does. Rejected: checking for an active key in code and then inserting, because two requests at once could both pass the check, and a failure between the two writes could leave a Brand with two working keys or none (extension 2a). Without `confirmReplace` the insert runs alone, with no replace step, so a key made by another request since the check is refused by the index rather than ended unconfirmed; the request that loses such a race gets `500`, not `409`, and no key is stored for it.
 
 **A key belongs to the Brand's WorkOS Organization.** The `workos_org_id` is the same identifier products carry in `org_id`. Rejected: tying a key to the Admin who generated it or to a Brand user, because the key would then stop working when that person leaves, which the use case rules out (extension \*a).
 
@@ -224,7 +225,7 @@ _[Which existing services, components, and conventions this area uses rather tha
 - **Authentication and authorization:** the existing `authMiddleware` session, re-read from D1 by `withFreshRole` so an Admin whose role was removed is refused at once, then `requireRole('admin')` (§8.1).
 - **WorkOS:** the Organization lookup follows the existing `GET /api/organizations` route, which calls WorkOS's REST API with `WORKOS_API_KEY`; the webhook reuses the existing signature check (`verifyWorkOSSignature`).
 - **Front end calls** go through `services/apiService.ts` (§8.2.1, §8.2.3).
-- **Error handling** (§8.2.1), **time** (§8.2.2), **validation on the server** (§8.2.5), **logging**: never log a key or its hash, only the key's id and the Organization id; at `699a0ac` no middleware logs request or response bodies, so the `201` reaches no log (§8.2.7), **persistence**: migration `0008`, the D1 batch (§8.2.8), **auditing** (§8.2.9), **testing** by hand (§8.2.10).
+- **Error handling** (§8.2.1), **time** (§8.2.2), **validation on the server** (§8.2.5), **logging**: never log a key or its hash, only the key's id and the Organization id; at `699a0ac` no middleware logs request or response bodies, so the `201` reaches no log (§8.2.7); a failed save is caught in the route and answered with a fixed `500`, because `app.onError` returns and logs the error's stack and a failed plain insert's Drizzle message lists its parameters, the new key's hash among them, **persistence**: migration `0008`, the D1 batch (§8.2.8), **auditing** (§8.2.9), **testing** by hand (§8.2.10).
 
 ## Tests
 
