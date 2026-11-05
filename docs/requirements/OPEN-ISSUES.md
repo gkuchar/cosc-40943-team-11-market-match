@@ -31,7 +31,7 @@ _[Send the shortlist to your client the day before. A client who has seen the qu
 |---|---|---|---|---|
 | OI-1 | Which use cases belong in the MVP, and in what priority order? | Every use case is marked High (provisional). Blocks vision and scope section 4.3 (MVP Scope) and sprint planning. | Client | 2026-09-14 |
 | OI-3 | What format and case sensitivity does a Market Code have? | Blocks code validation in `UC-MKT-enter-market`. | Client; the generator is also readable in the client's repository | 2026-09-14 |
-| OI-4 | Which Consumers may enter which Markets (access conditions)? | Blocks the access check in `UC-MKT-enter-market`; a wrong guess leaks one Organization's Market to another. | Client | 2026-09-14 |
+| OI-4 | Which Consumers may enter which Markets (access conditions)? | Blocks the access check in `UC-MKT-enter-market`, which `UC-PROD-view-product-details` relies on; a wrong guess leaks one Organization's Market to another. | Client | 2026-09-14 |
 | OI-5 | In what order are a Market's products shown to a Consumer? | Affects `UC-MKT-enter-market` and `UC-FDBK-rate-product`, and can bias which products get swiped. | Client | 2026-09-14 |
 | OI-6 | Which additional-information formats can the back of a Card hold? | Blocks what `UC-PROD-view-product-details` must display. | Client | 2026-09-14 |
 | OI-8 | What happens if activity capture fails while a Consumer views product details? | Decides whether a lost data point blocks the Consumer in `UC-PROD-view-product-details`. | Team, confirmed with the client | 2026-09-14 |

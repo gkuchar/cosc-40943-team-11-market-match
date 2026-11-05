@@ -69,9 +69,9 @@ _A worked example from Project Pulse named each enforcing use case with the step
 | `BR-submit-product` | Market Match website | `UC-BRND-create-product` steps 2–5; `UC-BRND-import-products` steps 3–7 |
 | `BR-join-market` | Market Match website | Out of MVP scope (vision and scope §4.3) |
 | `BR-get-product-feedback` | Market Match website | `UC-FDBK-view-brand-insights` (listed, not yet written) |
-| `BR-product-media-limit` | 09-21-2026 and 10-26-2026 client meetings | `UC-BRND-create-product` step 4 and extensions 3c, 4b, 4c; `UC-BRND-import-products` step 4 and extension 4c; `UC-BRND-send-products` step 3 and extension 3a; `UC-BRND-update-product` step 4 and extension 4a; other video sites and the video file limit pending `OI-57` |
-| `BR-text-card` | 09-21-2026 client meeting | `UC-BRND-create-product` step 2 and extension 3b; cited by `UC-BRND-import-products`, `UC-BRND-send-products`, and `UC-BRND-update-product` through the same card type field, with no step of their own |
-| `BR-approve-product` | 09-21-2026 and 10-21-2026 client meetings | `UC-BRND-create-product` step 5; `UC-BRND-import-products` step 7; `UC-BRND-send-products` step 4; `UC-BRND-update-product` step 5; `UC-BRND-approve-product` steps 5–6 and extensions 3a and 5a; `FR-PROD-hidden-until-approved` |
+| `BR-product-media-limit` | 09-21-2026 and 10-26-2026 client meetings | `UC-BRND-create-product` step 4 and extensions 3c, 4b, 4c; `UC-BRND-import-products` step 4 and extension 4c; `UC-BRND-send-products` step 3 and extension 3a; `UC-BRND-update-product` step 4 and extension 4a; `UC-PROD-view-product-details` Associated Information (photos and video, shown to Consumers); other video sites and the video file limit pending `OI-57` |
+| `BR-text-card` | 09-21-2026 client meeting | `UC-BRND-create-product` step 2 and extension 3b; cited by `UC-BRND-import-products`, `UC-BRND-send-products`, and `UC-BRND-update-product` through the same card type field, with no step of their own; `UC-PROD-view-product-details` Associated Information (a Text Card has no media) |
+| `BR-approve-product` | 09-21-2026 and 10-21-2026 client meetings | `UC-BRND-create-product` step 5; `UC-BRND-import-products` step 7; `UC-BRND-send-products` step 4; `UC-BRND-update-product` step 5; `UC-BRND-approve-product` steps 5–6 and extensions 3a and 5a; `UC-PROD-view-product-details` PRE-3; `FR-PROD-hidden-until-approved` |
 | `BR-products-brand-only` | Demetrie King, text message, 10-23-2026; 10-26-2026 client meeting | `UC-BRND-create-product` PRE-1; `UC-BRND-import-products` PRE-1; `UC-BRND-update-product` PRE-1; `UC-BRND-remove-product` PRE-1; `UC-BRND-send-products` PRE-1; `FR-PROD-brand-scoped-storage`; `SEC-brand-isolation` |
 | `BR-connect-product-system` | 10-21-2026 client meeting | `UC-BRND-generate-api-key` steps 1–5 and extensions 1a, 1b, and \*a; `UC-BRND-send-products` PRE-1, step 2, and extensions 1b and 2a; `FR-PROD-brand-scoped-storage`; `SEC-brand-isolation`; `SEC-api-key-strength`; `SEC-api-key-ending` |
 | `BR-multiple-categories` | 10-21-2026 client meeting | `UC-BRND-approve-product` extension 5b (one Category today; more later) |
@@ -87,7 +87,7 @@ _A worked example from Project Pulse named each enforcing use case with the step
 | `BR-market-type` | 09-21-2026 client meeting | Out of MVP scope (vision and scope §4.3) |
 | `BR-market-organization` | 09-21-2026 client meeting | Out of MVP scope (vision and scope §4.3) |
 | `BR-market-categories` | 09-21-2026 client meeting | Out of MVP scope (vision and scope §4.3) |
-| `BR-public-market` | 09-21-2026 client meeting | Joining: `UC-FDBK-complete-market` PRE-2 and step 1. Reporting to the organization: `UC-FDBK-view-vendor-results` (listed, not yet written) |
+| `BR-public-market` | 09-21-2026 client meeting | Joining: `UC-FDBK-complete-market` PRE-2 and step 1. Viewing details: `UC-PROD-view-product-details` PRE-1. Reporting to the organization: `UC-FDBK-view-vendor-results` (listed, not yet written) |
 | `BR-code-requires-sign-in` | 09-30-2026 client meeting | `UC-MKT-enter-market` PRE-1; `UC-FDBK-complete-market` PRE-2 |
 | `BR-select-category` | 09-30-2026 client meeting | `UC-FDBK-complete-market` steps 3–5 |
 | `BR-create-market-admin-only` | 09-21-2026 client meeting | Out of MVP scope (vision and scope §4.3); Categories are now the Brand's (`BR-brand-categories`) |
