@@ -3,7 +3,7 @@
 **Project:** Market Match
 **Team:** 11
 **Client:** Demetrie King
-**Version:** 0.8
+**Version:** 0.9
 
 ---
 
@@ -37,6 +37,7 @@ _Within one use case, `PRE-1`, `POST-1`, and the step numbers are local and may 
 | 2026-10-28 | 0.6     | Added `UC-MKT-link-anonymous-consumer`: a device's anonymous activity joins the account signed in on it, matched by the device reference rather than IP address; the client confirmed linking (OI-48). Made an anonymous return resume its Market session in `UC-FDBK-complete-market` (2c, 7a1, 7a2) so the Consumer count holds, and defined that count as distinct session owners | Griffin Kuchar |
 | 2026-10-28 | 0.7     | Filed the fifth client meeting's answers into the BRND use cases: the Admin, not the Brand, generates API Keys (`UC-BRND-generate-api-key`); Brands put each product in one of their own Categories, creating new ones as needed, so the Admin no longer chooses a Category at Approval; the Admin can approve a Brand's products all at once; an existing SKU changes that product; results restart after an approved change; JPEG or PNG photos; video limited to YouTube and Vimeo links until the client answers on other sites and video files (`OI-57`). Added `UC-BRND-remove-product` | Matthew Stafford |
 | 2026-11-04 | 0.8     | Expanded `UC-PROD-view-product-details` with public access, published Card content, optional media, and failure paths; linked existing Flip and Click capture use cases; brought in line with client meetings 4 and 5 (video sites and files, Anonymous Consumer, resolved `OI-16`)                                                                                                                                                                                                                                                                                                           | Vinh Nguyen      |
+| 2026-11-04 | 0.9     | `UC-BRND-generate-api-key`: Description gives the client's reason for issuing keys himself (not being flooded); Assumptions mark showing once, replace, revoke, and \*a as team decisions; added `OI-60`–`OI-62`                                                                                                                                                                                                                                                                                                                                                                              | Matthew Stafford |
 
 ---
 
@@ -1503,7 +1504,7 @@ The Brand sees each decision in its list of submitted products. Market Match sen
 **Primary Actor:** Admin
 **Secondary Actors:** Brand, which receives the API Key and gives it to whoever sets up its system; the Brand's product system, which uses it (`UC-BRND-send-products`)
 **Trigger:** The Admin has signed a Brand and set up its Organization, and chooses to give the Brand an API Key.
-**Description:** The Admin generates an API Key for one Brand so the Brand's own system can send products through Market Match's API, and hands it to the Brand himself. The key belongs to that Brand alone and reaches only its Inventory, it is shown once, and generating a new one ends the old one. Brands do not generate their own keys, so the Admin controls who can send products; the client expects Brands to set themselves up later (fifth client meeting).
+**Description:** The Admin generates an API Key for one Brand so the Brand's own system can send products through Market Match's API, and hands it to the Brand himself. The key belongs to that Brand alone and reaches only its Inventory, it is shown once, and generating a new one ends the old one. Brands do not generate their own keys for now: the client hands each one out himself so he is not flooded with submissions, and Brands will probably set themselves up later (fifth client meeting, line 122).
 
 **Preconditions:**
 
@@ -1564,9 +1565,13 @@ How the Admin hands the key to the Brand happens outside Market Match.
 
 **Assumptions:**
 - The Brand passes the key only to whoever sets up its system, and tells the Admin if it is lost or leaked.
+- Showing the key once, replacing and revoking it (1a, 1b), and ending it when the Brand's Organization is deleted (\*a) are team decisions, from `SEC-api-key-strength` and `SEC-api-key-ending`. The client said only that he will give each Brand its key (fifth client meeting, line 124). Whether deleting the Organization is how he removes a Brand is open (`OI-61`).
 
 **Open Issues:** Tracked in [OPEN-ISSUES.md](OPEN-ISSUES.md).
 - Resolved in the fifth client meeting: the Admin, not the Brand, gives out API Keys ([OI-31](OPEN-ISSUES.md#resolved)).
+- [OI-60](OPEN-ISSUES.md#open): How does the client tell which Organizations are Brands, and are a Brand's users set up before he hands over the key?
+- [OI-61](OPEN-ISSUES.md#open): When a Brand stops working with Market Match, does the client delete its Organization, remove its users, or something else?
+- [OI-62](OPEN-ISSUES.md#open): Could a Brand need more than one key or Organization, and should a key expire?
 
 ---
 
