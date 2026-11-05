@@ -3,7 +3,7 @@
 **Project:** Market Match
 **Team:** Team 11
 **Client:** Demetrie King, Market Match
-**Version:** 0.3
+**Version:** 0.4
 
 ---
 
@@ -37,6 +37,7 @@ _[These are slugs, like every other identifier in your project, so an inserted d
 | 0.1     |   2026-10-02    |   Team 11     | Initial draft for Checkpoint 1 |
 | 0.2     | 2026-10-28 | Matthew Stafford | Brand product import (BRND): quality goals and the §9.1 ranking for BRND; the Brand's product system and the R2 Media Store in the context and container diagrams, and PostgreSQL removed; the §5.2 component table; API Keys in §8.1; §8.2.5, §8.2.7, §8.2.8, §8.2.9, and §8.2.10 rewritten to match the code; `KD-api-key-storage`, `KD-import-in-request`, and `KD-photos-copied`; §11 risks and debt |
 | 0.3     | 2026-10-28 | Matthew Stafford | From the BRND design-of-record (`docs/design/brnd.md`): §8.2.2 time and time zones; `RISK-workos-org-deleted-event` in §11 |
+| 0.4     | 2026-11-04 | Matthew Stafford | §8.2.9: who made a change can be a system event, such as `workos:organization.deleted` from the BRND design |
 
 ---
 
@@ -365,7 +366,7 @@ Cloudflare D1 is the only database: production and preview use their own D1 data
 
 #### 8.2.9 Auditing
 
-Every change to a product's Approval, an API Key's status, or a product's removal records who made it (a user ID, or the API Key's ID for a sending) and when, in D1, and the record is never edited. Why: the BRND use cases require it (their POST conditions), and a refused sending with an ended key is recorded so the Admin can see it (`UC-BRND-send-products` extension 2a).
+Every change to a product's Approval, an API Key's status, or a product's removal records who made it (a user ID, the API Key's ID for a sending, or the name of the system event that made it, such as `workos:organization.deleted`) and when, in D1, and the record is never edited. Why: the BRND use cases require it (their POST conditions), and a refused sending with an ended key is recorded so the Admin can see it (`UC-BRND-send-products` extension 2a).
 
 #### 8.2.10 Testing
 
