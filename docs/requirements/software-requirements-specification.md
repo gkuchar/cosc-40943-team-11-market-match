@@ -3,7 +3,7 @@
 **Project:** Market Match
 **Team:** 11
 **Client:** Demetrie King
-**Version:** 0.3
+**Version:** 0.4
 
 ---
 
@@ -41,6 +41,7 @@ _Requirements cited from elsewhere keep their own identifiers: `UC-*` from [use-
 | 09/14/2026 | 0.1 | Initial draft | Vinh Nguyen |
 | 10/25/2026 | 0.2 | Product import requirements: §5.2 functional requirements for Brand-scoped storage, Approval, server-side checks, and the published product contract; §8.3 and §8.4 for Brands' own systems; §9.2, §9.3, §9.4, §9.6, and §9.7 attributes for import, API Keys, and privacy | Matthew Stafford |
 | 10/28/2026 | 0.3 | Fifth client meeting: set `PER-import-results` to 60 seconds (team decision; the client set none), noted 500-SKU Brands under `SCA-import-batch-limit`, and made the Admin the one shown a new API Key in `SEC-api-key-strength` | Matthew Stafford |
+| 11/04/2026 | 0.4 | Consumer feedback: §5.2 functional requirements for Market sessions, returning Anonymous Consumers, Brand results, and the Engagement Funnel; §7.1 domain model; §7.2 data dictionary; §7.3 feedback reports; §7.4 data acquisition, integrity, privacy, and retention. Brought in line with the use cases and glossary from client meetings 4 and 5 | Kritika Karanjit |
 
 ---
 
@@ -179,6 +180,18 @@ These hold for every way a Brand's products come in: `UC-BRND-create-product`, `
 
 - **`FR-API-published-contract`** (ubiquitous): The system shall publish the product import contract (the fields, their formats, the 200-product batch limit, and the result returned for each product) where every Brand with an API Key can read it. *Oracle:* a batch built only from the published contract is accepted. Needed by `UC-BRND-send-products` and `UC-BRND-generate-api-key`.
 
+#### Consumer feedback and insights
+
+These requirements support `FEAT-consumer-feedback` and `FEAT-feedback-insights` across `UC-MKT-create-anonymous-consumer`, `UC-FDBK-rate-product`, `UC-FDBK-flip-card`, `UC-FDBK-open-card-media`, and `UC-FDBK-complete-market`.
+
+- **`FR-FDBK-session-association`** (ubiquitous): The system shall store every Card impression, swipe, Flip, and Click against its Market session and its Line Item, and a Click also against the media item opened. *Oracle:* A stored swipe, Flip, or Click can be traced to its Market session and the item involved.
+
+- **`FR-FDBK-anonymous-return`** (state driven): While an Anonymous Consumer has not expired, the system shall treat a return to the same Market on the same device as that same Anonymous Consumer, resuming its Market session. *Oracle:* An Anonymous Consumer who leaves and returns before expiring is not counted as a new Consumer. Carries out `UC-MKT-create-anonymous-consumer` extension 2a and `UC-FDBK-complete-market` extension 2c. The expiry period, and whether it counts from the first scan or the last swipe, are open (`OI-47`, `OI-51`).
+
+- **`FR-FDBK-feedback-insights`** (event driven): When a Brand opens its results on the Brand Dashboard, the system shall compute each figure only from the swipes, Flips, and Clicks recorded on that Brand's own Line Items. *Oracle:* Each figure can be recomputed from the stored records, and none includes another Brand's. Carries out `BR-access-own-data`.
+
+- **`FR-FDBK-market-funnel`** (ubiquitous): The system shall support Engagement Funnel reporting for both Brand Markets and Standard Markets using their recorded Market session stages. *Oracle:* Funnel counts can be derived from recorded session stages for either Market type. Vendor visibility remains unresolved under `OI-21`.
+
 ---
 
 ## 6. Business Rules
@@ -193,28 +206,93 @@ _[Link only, to [business-rules.md](business-rules.md). Business rules are a ric
 
 _[The entities in the problem domain and how they relate, as a mermaid class diagram. Model the **business**, not your database schema: this is what the client would recognize, before any decision about tables or persistence.]_
 
-    ```mermaid
-    classDiagram
-      class Team {
-        +String name
-      }
-      class Student {
-        +String email
-      }
-      Team "1" --> "*" Student : has
-    ```
+```mermaid
+classDiagram
+    class Brand
+    class Consumer
+    class AnonymousConsumer
+    class Market
+    class MarketSession
+    class Category
+    class LineItem
+    class Product
+    class TextCard
+    class Card
+    class MediaItem
+    class CardImpression
+    class Swipe
+    class Click
+
+    Consumer <|-- AnonymousConsumer
+    LineItem <|-- Product
+    LineItem <|-- TextCard
+    Brand "1" --> "0..*" Product : owns
+    Market "1" --> "0..*" Category : contains
+    Category "1" --> "0..*" LineItem : contains
+    LineItem "1" --> "1" Card : shown as
+    Product "1" --> "0..4" MediaItem : has
+    Consumer "0..1" --> "0..*" MarketSession : goes through
+    Market "1" --> "0..*" MarketSession : has
+    MarketSession "1" --> "0..*" CardImpression : records
+    MarketSession "1" --> "0..*" Swipe : records
+    MarketSession "1" --> "0..*" Click : records
+    CardImpression "*" --> "1" Card : shows
+    Swipe "*" --> "1" Card : rates
+    Click "*" --> "1" MediaItem : opens
+```
+
+A Product has up to three photos and one video. A Flip is recorded on the Card impression and the swipe rather than on its own. A Market session keeps its data when its Anonymous Consumer expires and is detached from it, hence `0..1` (`UC-MKT-expire-anonymous-consumer`).
 
 ### 7.2 Data dictionary
 
 _[Each entity's fields, with data type, allowed values, defaults, and validation rules. Where a use case already specifies a field's validation in its Associated Information, cite the use case instead of repeating it.]_
 
+#### FDBK - Consumer Feedback and Data Capture
+
+The entities in §7.1 that hold Consumer data. These are business-level data requirements, not database column definitions. Each field's type and validation rule are specified once, in the Associated Information of the use case named.
+
+| Entity | Fields | Specified in |
+|---|---|---|
+| Anonymous Consumer | Anonymous Consumer, device reference, Market reference, created at, expires at | `UC-MKT-create-anonymous-consumer` |
+| Market session | Market session, entry method, entered at, Chosen Categories, viewed at, started at, completed at, last activity at. Completion Time is derived from these, and is zero for a session never completed. | `UC-FDBK-complete-market` |
+| Card impression | Market session, Line Item, shown at, flipped, dwell time | `UC-FDBK-rate-product`, `UC-FDBK-flip-card` |
+| Swipe | Market session, Line Item, Category, swipe direction, Time-to-Swipe, dwell time, flipped, Demographic snapshot, submission key | `UC-FDBK-rate-product`, `UC-FDBK-flip-card` |
+| Click | Market session, Line Item, media slot, media item, clicked at, and for a photo its Photo View Time | `UC-FDBK-open-card-media` |
+
+The Anonymous Consumer's retention period is open (`OI-47`, `OI-51`). Demographic data collection and retention must be reconciled with `BR-collect-email-only` and `OI-45`. Vendor access to funnel reporting remains open under `OI-21`.
+
 ### 7.3 Reports
 
 _[Any report the system generates: who reads it, what it contains, how often, and in what format. Reports are where clients discover late that a field they need was never captured, so specify them early.]_
 
+#### FDBK - Consumer Feedback Reports
+
+Market Match reports to each Brand on its own Line Items, from the data in §7.2. The reports below describe the expected information. Exact metric calculations and access permissions remain subject to the linked use cases and open issues.
+
+| Report | Intended audience | Information included | Frequency / format |
+|---|---|---|---|
+| Product Feedback Insights | Owning Brand | Likes, Passes, Like Rate, Reach (`OI-9`), Average Decision Time, Average Dwell Time, and Demographic breakdowns where collected (`OI-45`) | On request through the Brand Dashboard; exact refresh frequency not yet specified |
+| Card Interaction Insights | Owning Brand | Flip rate (`OI-13`) and front and back time (`UC-FDBK-flip-card`) | On request through the Brand Dashboard; exact refresh frequency not yet specified |
+| Media Engagement Insights | Owning Brand | Total Clicks on each photo and on the video, and average Photo View Time for each photo | On request through the Brand Dashboard; exact refresh frequency not yet specified |
+| Engagement Funnel | The Market's Brands and Vendors (`UC-FDBK-complete-market`) | Counts for entered, viewed, started, and completed stages, plus average Completion Time | On request through a reporting interface; exact refresh frequency not yet specified |
+
+The Engagement Funnel applies to both Standard Markets and Brand Markets. Vendor visibility is unresolved (`OI-21`). The treatment of incomplete sessions in average Completion Time (`OI-49`), the Average Swipes formula (`OI-34`), and demographic collection and retention (`OI-45`) require confirmation. Metrics must follow the definitions in the FDBK use cases and project glossary.
+
 ### 7.4 Data acquisition, integrity, retention, and disposal
 
 _[Where the data comes from, how it is kept correct, how long it is kept, and how it is destroyed. If your system holds anything about students or other identifiable people, this section is not optional, and its content is usually a business rule you should cite rather than invent.]_
+
+#### FDBK - Data Acquisition, Integrity, Retention, and Disposal
+
+**Data acquisition:** Market Match records Consumers' activity as they go through Markets: Card impressions, swipes, Flips, Clicks on photos and videos, Photo View Time, Time-to-Swipe, dwell time, and Engagement Funnel stages. Each record is stored against its Market session and its Line Item or media item. Signed-in Consumers are recorded under their own account, and each Public Access visitor as their own Anonymous Consumer (`UC-MKT-create-anonymous-consumer`).
+
+**Data integrity:** Each record must be stored against the correct Consumer, Market session, and item. Repeated taps on the same photo count as one Click per Consumer, while Photo View Time accumulates across repeat viewings. A retried swipe is detected by its submission key and stored once (`UC-FDBK-rate-product`). Market session records must remain consistent when Consumers leave, resume, or select additional Categories.
+
+**Privacy and access:** A Brand sees results only for its own Line Items, and only in aggregate (`BR-access-own-data`). Demographic data collection and retention must be reconciled with `BR-collect-email-only`, `SEC-pii-protection`, and `OI-45`.
+
+**Retention and disposal:** An Anonymous Consumer is removed once it expires, while its Market sessions and their swipes, Flips, and Clicks stay in the Market's figures (`BR-anonymous-consumer-expiry`, `UC-MKT-expire-anonymous-consumer`). The retention period, and whether it counts from the first scan or the last swipe, are open (`OI-47`, `OI-51`). No retention period has been set for signed-in Consumers' swipes, Market sessions, or Demographic answers (`OI-12`, `OI-45`).
+
+**Open decisions:** Demographic retention (`OI-12`, `OI-45`), Anonymous Consumer retention (`OI-47`, `OI-51`), Vendor access to funnel reports (`OI-21`), incomplete session handling (`OI-49`), and Average Swipes calculation (`OI-34`) remain unresolved.
 
 ---
 
