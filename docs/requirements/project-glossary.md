@@ -3,7 +3,7 @@
 **Project:** Market Match
 **Team:** \_11
 **Client:** Demetrie King
-**Version:** 0.7
+**Version:** 0.8
 
 ---
 
@@ -57,6 +57,7 @@ _Rules:_
 | 2026-10-23 | 0.5     | Data point answers from the fourth client meeting: added Average Swipes and Photo View Time; Clicks count once per photo; Completion Time start, resume, and incomplete rules; Engagement Funnel covers Standard Markets.                                                                           | Matthew Stafford |
 | 2026-10-25 | 0.6     | Product import terms: added API Key; Inventory now fills by import as well as one item at a time. (Version 0.5 is in the data points pull request.)                                                                                                                                                 | Matthew Stafford |
 | 2026-10-28 | 0.7     | Fifth client meeting: the Admin generates each Brand's API Key; Brands create their own Categories; Card video can be any of several video sites or a file, and photos are JPEG or PNG; Inventory items can be removed by their Brand.                                                              | Matthew Stafford |
+| 2026-11-04 | 0.8     | Added Card impression, which the feedback use cases and the SRS domain model rely on.                                                                                                                                                                                                                | Matthew Stafford |
 
 ---
 
@@ -189,6 +190,16 @@ _A Market run for a Brand, so the Brand can test its own products with an audien
 _A Card has a front side and back side. The front side is a photo of the product and the product name. The back of the Card includes more details in which a Brand can put a description of their product as well as a video showcasing their product. A Card carries up to three photos, each a JPEG or PNG under 3 MB, and one video, given as a link to YouTube, Vimeo, or another video site, or as a video file._
 
 **Not to be confused with:** a Text Card, which is a Card with no product photo or video.
+
+### Card impression
+
+_One showing of a Card to a Consumer in a Market session, recorded when the Card appears, with the time it was shown, whether the Card was flipped, and the dwell time. It is recorded whether or not the Consumer goes on to swipe, so Reach and flip rate can count Cards that were seen but never swiped (`OI-9`, `OI-13`). Time-to-Swipe and dwell time are both measured from the moment it records._
+
+**Synonyms:** impression
+
+**Not to be confused with:** a Swipe, which is recorded only if the Consumer swipes the Card. Also not Reach, which counts Consumers who saw a SKU and is computed from Card impressions.
+
+**Source:** term chosen by the team in `UC-FDBK-rate-product`; the client's app records no impressions today, so its Reach is total swipes
 
 ### Category
 
