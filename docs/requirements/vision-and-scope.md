@@ -3,7 +3,7 @@
 **Project:** Market Match
 **Team:** Team 11
 **Client:** Demetrie King
-**Version:** 0.4
+**Version:** 0.5
 
 ---
 
@@ -37,6 +37,7 @@ _Why this matters more with an agent than it used to: ask an agent to insert a n
 | _[2026-10-10]_| 0.2 | Updated business requirements, success metrics, process flows, and MVP scope based on client discussions and team use cases | _[Kritika Karanjit]_ |
 | 2026-10-23 | 0.3 | Redrew the as-is flow to show the client entering each Brand's products by hand, and named its three pain points; rewrote the product onboarding problem in the problem statement from the fourth client meeting; added meetings 2 to 4 and the client's 2026-10-23 text to the references; listed every feature as in or out of the MVP, moving `FEAT-api-integration` and `FEAT-user-administration` out; added photo viewing time and average swipes to `FEAT-feedback-insights`; added product onboarding to the stakeholders, user environment, and alternatives. Widened `FEAT-bulk-product-import` to Brands importing 10 to 200 SKUs by spreadsheet or from their own system, with Admin approval of every import (client answers to `OI-27` and `OI-28`); narrowed `FEAT-api-integration`; rewrote `BO-product-onboarding` and `SM-product-onboarding` around Admin effort; added the import and approval steps to the to-be flow and the organization's product system to the context diagram; added `RI-bad-import-data`, `RI-broken-product-photos`, `RI-integration-key-misuse`, `AS-stable-product-id`, `AS-video-links`, and `AS-org-can-supply-products` | Matthew Stafford |
 | 2026-10-28 | 0.4 | Fifth client meeting: set the baseline and target of `SM-product-onboarding` (client answers to `OI-29` and `OI-30`; deadline open as `OI-58`) and the target in `BO-product-onboarding`; recorded that the Admin hands out API Keys (`OI-31`) and that Brands send new batches as new designs arrive (`OI-32`); updated `AS-video-links` now that the client accepts video files; set the mitigation of `RI-broken-product-photos` (`KD-photos-copied`) | Matthew Stafford |
+| 2026-11-04 | 0.5 | Out of scope: Brands generating their own API Keys is later work; the Admin issues each key (`BR-admin-issues-api-key`) | Matthew Stafford |
 
 ---
 
@@ -418,7 +419,7 @@ _Ask your client the question directly: "If we can deliver only one of these in 
 
 **In scope for the MVP:** *`FEAT-consumer-feedback`*, *`FEAT-product-information`*, *`FEAT-market-management`* (Market entry only, which starts the Engagement Funnel; how the Admin creates Markets is unchanged), *`FEAT-product-management`*, *`FEAT-bulk-product-import`*, *`FEAT-feedback-insights`*. Phase 1 is bringing in Brands' products and capturing the data points (third and fourth client meetings); the Card and Market features are in because the data points are captured inside them. To be confirmed with the client at the 2026-10-26 meeting (`OI-1`).
 
-**Explicitly out of scope:** *`FEAT-user-administration`* (the Admin keeps managing users, organizations, and roles through WorkOS as today; phase 1 changes none of it, and a Brand generating its own API Key belongs to `FEAT-bulk-product-import`), *`FEAT-white-label`* (enterprise-specific branding and white-label deployment; the next phase after the MVP), *`FEAT-api-integration`* (connecting outside systems for anything other than products, such as a Brand creating its own surveys; the client wants this "down the line" and wants Brands pushing their products first, fourth client meeting).
+**Explicitly out of scope:** *`FEAT-user-administration`* (the Admin keeps managing users, organizations, and roles through WorkOS as today; phase 1 changes none of it, and Brands generating their own API Keys is later work: for now the Admin issues each key (`BR-admin-issues-api-key`)), *`FEAT-white-label`* (enterprise-specific branding and white-label deployment; the next phase after the MVP), *`FEAT-api-integration`* (connecting outside systems for anything other than products, such as a Brand creating its own surveys; the client wants this "down the line" and wants Brands pushing their products first, fourth client meeting).
 
 
 ### 4.4 Deployment Considerations
