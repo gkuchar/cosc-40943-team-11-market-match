@@ -266,7 +266,6 @@ _[What this design could not settle and who can, and what could go wrong that yo
 - **A key generated while its Organization is being deleted.** If the Admin generates a key in the same moment he deletes its Organization in WorkOS, the webhook can run before the insert and revoke nothing, leaving an `ACTIVE` key for a deleted Organization that the Brands tab no longer shows. Accepted: only the Admin can do both, and doing both at once is not a real workflow. If it matters later, the webhook records deleted Organization ids and `issueKey` refuses them. Decided by Matthew Stafford, 2026-11-09.
 - **Nothing uses a key yet.** A key can be generated and ended, but no sending exists until `UC-BRND-send-products`; that use case's design adds the key check, the product contract link of step 3, and the deferred tests above.
 - **The Brand test needs a Brand user in WorkOS.** A Brand whose Organization has no active `brand` membership yet is refused with `422 NOT_A_BRAND`; the Admin adds the Brand's user in WorkOS first. No sync into D1 is needed. Whether a Brand user always exists before the key is handed over is `OI-60`.
-- **PR #36 does not yet follow this Brand test.** It still reads D1 (`like(users.roles, '%"brand"%')` in `worker/src/index.ts`); the PRE-2 check changes there before PR #36 merges.
 
 ---
 
