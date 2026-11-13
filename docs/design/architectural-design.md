@@ -38,6 +38,7 @@ _[These are slugs, like every other identifier in your project, so an inserted d
 | 0.2     | 2026-10-28 | Matthew Stafford | Brand product import (BRND): quality goals and the §9.1 ranking for BRND; the Brand's product system and the R2 Media Store in the context and container diagrams, and PostgreSQL removed; the §5.2 component table; API Keys in §8.1; §8.2.5, §8.2.7, §8.2.8, §8.2.9, and §8.2.10 rewritten to match the code; `KD-api-key-storage`, `KD-import-in-request`, and `KD-photos-copied`; §11 risks and debt |
 | 0.3     | 2026-10-28 | Matthew Stafford | From the BRND design-of-record (`docs/design/brnd.md`): §8.2.2 time and time zones; `RISK-workos-org-deleted-event` in §11 |
 | 0.4     | 2026-11-04 | Matthew Stafford | §8.2.9: who made a change can be a system event, such as `workos:organization.deleted` from the BRND design |
+| 0.5     | 2026-11-13 | Matthew Stafford | Added §8.2.11 Static analysis and §7.1; added the required-identifier and promise rules to §8.2.1, form-date and older-data rules to §8.2.2, and boundary typing and unavailable measures to §8.2.4; corrected §8.2.10, which said there was no linter; added `TD-analyzer-findings`, `TD-gate-scope`, and `TD-obsolete-postgres-config` in §11 |
 
 ---
 
@@ -284,6 +285,16 @@ _Due: Checkpoint 3. [Filled in once your pipeline exists, after week 11. Three t
 
 _Section 4.4 of [vision and scope](../requirements/vision-and-scope.md) says who can operate the system and where its users are. Cite it; this section says how the deployment meets it.]_
 
+### 7.1 Where each check runs
+
+| Where | What runs | Notes |
+| --- | --- | --- |
+| Editor | Nothing required | Editor plugins read the configs in §8.2.11 (`eslint.config.js`, `.prettierrc.json`, `.sqlfluff`). |
+| Before pushing | The gate commands in §8.2.11, run by hand | The opt-in pre-push hook in `MM-Version` PR #42 runs the same checks once merged. A hook can be skipped, so it is never the only gate. |
+| Pull request | `.github/workflows/pull-request.yml`, on every pull request to `tcu-fall-2026-stage` | Not a required check (`TD-gate-scope`). |
+| On a schedule | Nothing | |
+| Deploy | `npm run deploy` builds only (`vite build`, `wrangler deploy`) and runs no check | `TD-gate-scope`. |
+
 ## 8. Crosscutting Concepts
 
 _[arc42 leaves this section an open list of concepts. This template fixes its first entry, 8.1 Security, because Checkpoint 1 asks for the trust boundary; 8.2 holds every other concept.]_
@@ -336,9 +347,17 @@ _Example, from the Cafeteria Ordering System:_
 
 Frontend API calls are centralized through `services/apiService.ts`; non-successful HTTP responses are treated as errors using the error information returned by the API. This keeps API failure handling consistent across frontend features.
 
+A route that changes a record does nothing without the identifier it needs. It never substitutes an empty or default value, never uses a non-null assertion to hide the gap, and answers with the existing convention: an HTTP status and a JSON body `{ error: message }`. The browser shows a message that names the action that failed ("Failed to save the Category", not a generic product message). Where the route's declared path already guarantees the parameter, fix the type inference rather than adding a check. Why: the worker type checker flags 17 sites where it cannot prove the parameter is present (`TD-analyzer-findings`). Shown in: the `{ error: message }` returns in `worker/src/index.ts`.
+
+A promise is awaited or returned wherever the caller relies on its outcome: before advancing, closing a dialog, or claiming success. Work that runs in the background says so and handles its own failure, logged per §8.2.7. `void` on its own is not handling, and no `catch` is empty. A cleanup keeps each flow's current blocking or background behavior; changing it is use-case work (for example `UC-FDBK-rate-product` extension 4b), and where a use case leaves the failure policy open it stays open (`OI-8`).
+
 #### 8.2.2 Time and time zones
 
 Every timestamp is taken from the server's clock and stored in UTC as ISO 8601 text, as the code already does (`new Date().toISOString()` in the Application API, `datetime('now')` in the schema). Times are converted to the viewer's time zone only when shown, in the browser. Why: Brands, Consumers, and the client are in different places, and results are split at the moment a change is approved (`BR-results-restart-on-change`), so a stored time must mean one instant. Shown in: `worker/src/schema.ts` (`created_at` defaults); first new use in `docs/design/brnd.md`.
+
+A date and time typed into a form (an `<input type="datetime-local">` has no zone) is read in the viewer's browser time zone and converted to one UTC instant at the API boundary; the browser may hold it as epoch milliseconds, and every conversion between forms is explicit. Editing without changing it keeps the same instant. An absent optional date stays absent. Example: an Admin in Chicago picks 6 PM for a Market's end; a Consumer in New York sees 7 PM, the same deadline.
+
+Older data: text written by SQLite's `datetime('now')` (`YYYY-MM-DD HH:MM:SS`, no zone) is UTC by its producer and is parsed as UTC. A stored time whose zone is unknown is kept as it is and flagged, never shifted by a guessed zone. A missing historical time stays unknown; it is never filled with the current time, and no duration is reported from it.
 
 #### 8.2.3 API conventions
 
@@ -346,7 +365,11 @@ Frontend-to-backend communication uses `/api/*` endpoints with JSON over HTTPS. 
 
 #### 8.2.4 Code conventions
 
-No architecture-level project-wide code convention beyond the existing technology and repository structure is currently documented. Existing conventions should be preserved unless the team records a new decision.
+Data crossing a boundary (an API response, a request body, a database row, browser storage) is typed as `unknown` and narrowed or checked, never `any` and never cast to the type it is hoped to be. Shared domain types in `types.ts` are used only where they describe the actual data.
+
+A measure Market Match does not yet calculate is `null`, meaning unavailable, never a made-up `0` or empty list; a real measured zero stays `0`. This applies today to the Admin's average session duration, churn probability, and activity groups, whose definitions are open (`OI-64`, `OI-65`, `OI-66`).
+
+Formatting is Prettier's (§8.2.11), not a convention written here.
 
 #### 8.2.5 Validation
 
@@ -370,7 +393,36 @@ Every change to a product's Approval, an API Key's status, or a product's remova
 
 #### 8.2.10 Testing
 
-`MM-Version` has no test framework, no tests, and no linter. Adding one is a new dependency, which a person decides first (`AGENTS.md`). Until then, each design-of-record lists its tests, one per main flow and extension, and they are run by hand against `npm run dev` and recorded in the pull request. The first framework added is a decision recorded in section 9.2.
+`MM-Version` has no test framework and no tests; its static analysis is in §8.2.11. Adding a test framework is a new dependency, which a person decides first (`AGENTS.md`). Until then, each design-of-record lists its tests, one per main flow and extension, and they are run by hand against `npm run dev` and recorded in the pull request. The first framework added is a decision recorded in section 9.2.
+
+#### 8.2.11 Static analysis
+
+Every change passes the gate before it merges. The gate is the commands `.github/workflows/pull-request.yml` runs in `MM-Version`, and a person runs them locally before pushing; there is no single command that runs them all. From the root of `MM-Version`:
+
+```bash
+npm run build
+npx tsc --noEmit -p tsconfig.json
+npx tsc --noEmit -p worker/tsconfig.json
+npx eslint --max-warnings 0 App.tsx index.tsx types.ts components services utils hooks
+npx eslint --max-warnings 0 worker/src
+npx prettier --check App.tsx index.tsx types.ts components services utils hooks
+npx prettier --check worker/src
+sqlfluff lint worker/migrations
+```
+
+The build (`vite build`) does not type-check, which is why `tsc` runs separately. Fixing modes (`eslint --fix`, `prettier --write`) run only locally, never in CI.
+
+| Part | Formatter | Linter | Type checker | Why these |
+| --- | --- | --- | --- | --- |
+| Frontend (`App.tsx`, `index.tsx`, `types.ts`, `components/`, `services/`, `utils/`, `hooks/`) | Prettier (`.prettierrc.json`) | ESLint with typescript-eslint and React Hooks rules (`eslint.config.js`) | `tsc` (`tsconfig.json`) | The TypeScript compiler is the checker the code is already written for; typescript-eslint and React Hooks rules catch promise misuse and Hook ordering the compiler cannot; Prettier ends formatting debates. |
+| Worker (`worker/src`) | Prettier (`.prettierrc.json`) | ESLint with typescript-eslint (`eslint.config.js`) | `tsc` (`worker/tsconfig.json`) | The same as the frontend, for the Worker's own TypeScript project. |
+| Migrations (`worker/migrations`) | None | sqlfluff 4.5.0, SQLite dialect (`.sqlfluff`) | None | sqlfluff is the only one of the three that reads SQL. |
+
+**How a finding is settled.** Real: fixed, with a test or a recorded manual check when the bug can be shown (§8.2.10). False positive: suppressed at the site with a reason a reviewer can check, never just "false positive". Not worth it: suppressed with its reason, or the rule turned off in `eslint.config.js` with the reason beside it. A finding whose right fix depends on what the product should do goes to its use case, or to `docs/requirements/OPEN-ISSUES.md` when only the client can say. A person makes every suppression and every rule turned off. A finding is never quieted by changing behavior.
+
+**Baseline.** None for TypeScript and ESLint: their outstanding findings are `TD-analyzer-findings`, fixed to zero, never baselined. sqlfluff skips the eight migrations that existed before it was added (`0001` through `0007`, both `0003_*` files included) through `.sqlfluffignore`, because applied migrations are never edited (§8.2.8); every later migration is linted. That exclusion is permanent and at file grain, not a baseline that shrinks. Custom rules: none yet.
+
+Why: written once here so every agent session checks the same way. What the gate does not cover is `TD-gate-scope`. Shown in: `.github/workflows/pull-request.yml` in `MM-Version`.
 
 ## 9. Architecture Decisions
 
@@ -469,6 +521,9 @@ _A risk written as a category ("security", "performance") is not a risk. Write t
 | `RISK-workos-org-deleted-event` | Risk | A Brand's API Key ends when its Organization is deleted only if the client's WorkOS dashboard sends `organization.deleted` to `/api/webhooks/workos`. If it does not, a deleted Brand's key keeps working until the Admin revokes it. | Check the WorkOS webhook's subscribed events with the client before release; until then the Admin revokes a key before deleting its Organization. | `UC-BRND-generate-api-key` \*a, `SEC-api-key-ending`, `docs/design/brnd.md` |
 | `TD-no-tests` | Debt | `MM-Version` has no test framework, so every check of a use case is manual and nothing catches a regression. | Choose a framework with the team and the client (a new dependency) and record it in section 9.2. | section 8.2.10 |
 | `TD-products-live-unchecked` | Debt | Today every product a Brand adds or imports is live at once and unchecked on the server, and a Brand can delete its products outright with no limit and nothing kept. | Replaced by the Catalog through the BRND use cases, starting with `UC-BRND-create-product`. | `FR-PROD-server-checks`, `FR-PROD-hidden-until-approved`, `BR-remove-product` |
+| `TD-analyzer-findings` | Debt | Measured after the Prettier reformat (`MM-Version` PR #45, staging `e6b49ca`) with the gate's commands: frontend TypeScript 19 errors in 6 files; worker TypeScript 17 errors, all in `worker/src/index.ts`; frontend ESLint 650 errors and 6 warnings in 36 files; worker ESLint 66 errors in 2 files; Prettier clean in both. The largest ESLint rules, frontend / worker: `@typescript-eslint/no-explicit-any` 350 / 51, `no-unused-vars` 156 / 10, `no-misused-promises` 46 / 0, `no-floating-promises` 31 / 0, React Hooks rules 66 / 0. The `frontend` and `worker` jobs fail on every pull request until these reach zero, so a new finding hides among the old ones. | Fix in small pull requests by kind (type contracts, unused code, `any` at boundaries, promises, Hooks), recounting after each; the counts only go down. No baseline file. Owner: Matthew Stafford. | §8.2.11, §8.2.1, §8.2.4 |
+| `TD-gate-scope` | Debt | The gate is not a required check: GitHub rulesets and branch protection are unavailable for this private repository on the organization's plan, and pull requests #40, #44, and #45 merged while `frontend` and `worker` failed. There is no single local gate command. `npm run deploy` from `main` runs no type check, linter, formatter, or sqlfluff, so what reaches production was never checked. There is no test step (`TD-no-tests`). | Make the checks required when the plan allows, or agree with the team that no pull request merges red; one script or the PR #42 hook for the local gate; the client decides whether deploy runs the checks. | §8.2.11, §7.1 |
+| `TD-obsolete-postgres-config` | Debt | The root `drizzle.config.ts` targets PostgreSQL and a `server/` folder that does not exist, and imports `dotenv`, which is not installed. It is the frontend type check's one configuration error, and `npm run db:generate`, `db:push`, and `db:studio` run against it. | Mark it obsolete and exclude only that file from the root type check; no migration, no new dependency. Whether to remove or replace it is the client's call (`OI-71`). | §8.2.8, `OI-71` |
 
 ## 12. Glossary
 

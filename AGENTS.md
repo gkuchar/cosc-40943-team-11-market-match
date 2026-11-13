@@ -17,7 +17,22 @@ The client's `CLAUDE.md` in `MM-Version` is the authority on its two Cloudflare 
 
 ## How to run the tests
 
-`MM-Version` has no test framework and no linter configured yet. Adding one is a new dependency, so a person decides it first (see below).
+`MM-Version` has no test framework yet; adding one is a new dependency, so a person decides it first (see below).
+
+The gate is the static analysis in §8.2.11 of `docs/design/architectural-design.md`. Run it from the root of `MM-Version` before saying a change is done:
+
+```bash
+npm run build
+npx tsc --noEmit -p tsconfig.json
+npx tsc --noEmit -p worker/tsconfig.json
+npx eslint --max-warnings 0 App.tsx index.tsx types.ts components services utils hooks
+npx eslint --max-warnings 0 worker/src
+npx prettier --check App.tsx index.tsx types.ts components services utils hooks
+npx prettier --check worker/src
+sqlfluff lint worker/migrations
+```
+
+Passing a build is not passing the gate.
 
 ## Conventions
 
@@ -29,6 +44,7 @@ The binding conventions live once, in §8.2 of `docs/design/architectural-design
 - Local development uses a local D1 database, never PostgreSQL. Migration files in `worker/migrations/` are never renamed: D1 records applied migrations by filename. New migrations continue from `0008` (§8.2.8).
 - Every change to a product's Approval, an API Key's status, or a product's removal records who made it and when, and that record is never edited (§8.2.9).
 - There is no test framework yet: run each test in the design-of-record's test list by hand against `npm run dev` and record the results in the pull request (§8.2.10).
+- **The gate is the analyzers, and you answer to it** (§8.2.11). Every suppression carries a reason a reviewer can check. Never weaken a check, turn off a rule, or suppress a finding to make a job pass without saying so in the pull request.
 
 **Logging** (§8.2.7). Log identifiers, never content: no secrets, tokens, API Keys, or passwords, and for a person their ID, never their email or demographic answers. Never log a whole object. Every `catch` that does not rethrow logs the exception; an empty `catch` is not allowed.
 
