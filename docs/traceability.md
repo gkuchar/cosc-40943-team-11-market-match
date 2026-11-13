@@ -92,7 +92,7 @@ _A worked example from Project Pulse named each enforcing use case with the step
 | `BR-select-category` | 09-30-2026 client meeting | `UC-FDBK-complete-market` steps 3–5 |
 | `BR-create-market-admin-only` | 09-21-2026 client meeting | Out of MVP scope (vision and scope §4.3); Categories are now the Brand's (`BR-brand-categories`) |
 | `BR-configure-branding` | Client brief | Out of MVP scope (vision and scope §4.3) |
-| `BR-access-own-data` | Client brief | Out of MVP scope (vision and scope §4.3) |
+| `BR-access-own-data` | Client brief | `UC-BRND-update-brand-settings` extension 5a; otherwise out of MVP scope (vision and scope §4.3) |
 | `BR-connect-api` | Client brief | Out of MVP scope (vision and scope §4.3) |
 | `BR-capture-feedback` | Client brief; 09-30-2026 client meeting | `UC-FDBK-rate-product` steps 1–4; `UC-FDBK-flip-card` step 3 and extension 3c; `UC-FDBK-open-card-media` step 2; `UC-FDBK-complete-market` steps 2, 5, 7, and 8 |
 | `BR-media-clicks` | 09-30-2026 client meeting | `UC-FDBK-open-card-media` step 2 and extension 3b |
@@ -143,6 +143,7 @@ _A worked example from Project Pulse, which numbers its releases from its own ta
 | `UC-BRND-import-products` | ❌ Not started |  | After `v0.1.0`; pending `OI-1` |  |  |  |
 | `UC-BRND-send-products` | ❌ Not started |  | After `v0.1.0`; pending `OI-1` |  |  |  |
 | `UC-BRND-update-product` | ❌ Not started |  | After `v0.1.0`; pending `OI-1` |  |  |  |
+| `UC-BRND-update-brand-settings` | ❌ Not started |  | After `v0.1.0`; pending `OI-1` |  |  |  |
 | `UC-BRND-remove-product` | ❌ Not started |  | After `v0.1.0`; pending `OI-1` |  |  |  |
 | `UC-BRND-approve-product` | ❌ Not started |  | After `v0.1.0`; pending `OI-1` |  |  |  |
 | `UC-BRND-generate-api-key` | 🟡 In progress | 🟡 Partial | `v0.1.0` (proving slice) | [`brnd.md`](design/brnd.md#uc-brnd-generate-api-key-generating-replacing-and-revoking-an-api-key) | `MM-Version` PR #36 (`feature/uc-brnd-generate-api-key`, `c894e70`); the Brand test changes before it merges | Run by hand per the `brnd.md` test list, recorded in PR #36. Not verified: the panel in a browser, the real WorkOS calls (stubbed). Deferred to `UC-BRND-send-products`: later sendings refused (\*a) and the step 3 contract link |

@@ -3,7 +3,7 @@
 **Project:** Market Match
 **Team:** 11
 **Client:** Demetrie King
-**Version:** 0.9
+**Version:** 0.10
 
 ---
 
@@ -38,6 +38,7 @@ _Within one use case, `PRE-1`, `POST-1`, and the step numbers are local and may 
 | 2026-10-28 | 0.7     | Filed the fifth client meeting's answers into the BRND use cases: the Admin, not the Brand, generates API Keys (`UC-BRND-generate-api-key`); Brands put each product in one of their own Categories, creating new ones as needed, so the Admin no longer chooses a Category at Approval; the Admin can approve a Brand's products all at once; an existing SKU changes that product; results restart after an approved change; JPEG or PNG photos; video limited to YouTube and Vimeo links until the client answers on other sites and video files (`OI-57`). Added `UC-BRND-remove-product` | Matthew Stafford |
 | 2026-11-04 | 0.8     | Expanded `UC-PROD-view-product-details` with public access, published Card content, optional media, and failure paths; linked existing Flip and Click capture use cases; brought in line with client meetings 4 and 5 (video sites and files, Anonymous Consumer, resolved `OI-16`)                                                                                                                                                                                                                                                                                                           | Vinh Nguyen      |
 | 2026-11-04 | 0.9     | `UC-BRND-generate-api-key`: Description gives the client's reason for issuing keys himself (not being flooded); Assumptions mark showing once, replace, revoke, and \*a as team decisions; added `OI-60`–`OI-62`                                                                                                                                                                                                                                                                                                                                                                              | Matthew Stafford |
+| 2026-11-13 | 0.10    | Filed the linter and type-check cleanup's behavior rulings: added `UC-BRND-update-brand-settings` (only what changed is saved; any combination of social media handles; an emptied handle is removed; `OI-69`, `OI-72`); `UC-FDBK-rate-product` keeps each swipe's displayed text and lists the browser's `yes`-only Like count as a gap; `UC-BRND-update-product` lists the editor opening without the product's photos, video, and description as a gap; `UC-FDBK-complete-market`'s completion assumption now cites the client's answer (`OI-20`) | Matthew Stafford |
 
 ---
 
@@ -115,7 +116,7 @@ _[Your area codes, then a table of every use case by area. Write this list first
 | MKT       | Market participation: `FEAT-market-management`, `FEAT-consumer-feedback`                                         | `UC-MKT-enter-market`: Enter a market; `UC-MKT-create-anonymous-consumer`: Create an Anonymous Consumer; `UC-MKT-expire-anonymous-consumer`: Remove an expired Anonymous Consumer; `UC-MKT-link-anonymous-consumer`: Link anonymous activity to a signed-in Consumer |
 | PROD      | Product information: `FEAT-product-information`                                        | `UC-PROD-view-product-details`: View product details                                                                                                                                                                                                                                                                                                            |
 | FDBK      | Consumer feedback and data capture: `FEAT-consumer-feedback`, `FEAT-feedback-insights` | `UC-FDBK-rate-product`: Rate a product; `UC-FDBK-flip-card`: Flip a card; `UC-FDBK-open-card-media`: Open a card photo or video; `UC-FDBK-complete-market`: Complete a market; listed, not yet written: `UC-FDBK-view-brand-insights`: View a Brand's product insights; `UC-FDBK-view-vendor-results`: View a Vendor's market results; `UC-FDBK-view-platform-activity`: View platform activity                                                                                                                                                                                   |
-| BRND      | Brand participation: `FEAT-product-management`, `FEAT-bulk-product-import`             | `UC-BRND-create-product`: Create a product; `UC-BRND-import-products`: Import products from a spreadsheet; `UC-BRND-send-products`: Send products from a connected system; `UC-BRND-update-product`: Update a product; `UC-BRND-remove-product`: Remove a product; `UC-BRND-approve-product`: Approve or return a submitted product; `UC-BRND-generate-api-key`: Generate an API key |
+| BRND      | Brand participation: `FEAT-product-management`, `FEAT-bulk-product-import`             | `UC-BRND-create-product`: Create a product; `UC-BRND-import-products`: Import products from a spreadsheet; `UC-BRND-send-products`: Send products from a connected system; `UC-BRND-update-product`: Update a product; `UC-BRND-update-brand-settings`: Update Brand settings; `UC-BRND-remove-product`: Remove a product; `UC-BRND-approve-product`: Approve or return a submitted product; `UC-BRND-generate-api-key`: Generate an API key |
 
 ---
 
@@ -638,6 +639,7 @@ These four use cases cover capturing every data point the client named for a Mar
 | Dwell time               | Duration, milliseconds                 | Required; ≥ 0; shown-at to first Flip, zero if never flipped          | Brand sees averages for its own SKUs; Vendor and Admin do not see it         | Average Dwell Time                   |
 | Demographic snapshot     | Gender, age range, ethnicity, location | Copied from the signed-in Consumer's profile; empty for Public Access | Brand sees aggregates only, never one Consumer's answers                     | Demographic                          |
 | Submission key           | Identifier                             | Required; unique per swipe attempt; used to detect retries            | System-generated                                                             | (none)                               |
+| Displayed text           | Text                                   | The Card's text as shown at the swipe; never changed by a later rename; absent on swipes stored before it existed | System-captured                                                              | Card; Text Card                      |
 
 Who sees what, per the third client meeting: a Brand sees per-SKU measures for its own SKUs, totalled across all Markets. A Vendor sees Likes and Passes ranked per Line Item, but not dwell or decision time. The Admin sees swipe counts and users but not Brand or Vendor data points.
 
@@ -656,6 +658,7 @@ Gaps this use case closes:
 - No Card impression is recorded. Reach on every dashboard is total swipes, so a Card that was shown and never swiped is not counted.
 - Button swipes are sent with zero timings (`App.tsx`).
 - The public route coerces unknown directions to `LEFT`.
+- The browser's own per-Card counts (`App.tsx`) treat only `yes` as a Like, but swipes are recorded as `RIGHT` or `LEFT`, so every Like is counted as a Pass there.
 - There is no unique constraint and no retry detection, so a double submit stores two swipes.
 - Average Decision Time is hardcoded to 0 on the Brand Dashboard (`avgSwipeTime`).
 - Demo swipes are written to `user_responses` and can leak into Brand and Vendor totals.
@@ -672,6 +675,7 @@ Gaps this use case closes:
 **Assumptions:**
 
 - One swipe per Card per Market session, as the client's app already hides swiped Cards on return.
+- Each swipe keeps the Card's text as it was displayed, so results stay readable after a product is renamed. This is a team decision (2026-11-11), based on the client wanting swipe history to analyze later.
 - Markets the client deliberately loops are an exception left to the client's existing behavior.
 
 **Open Issues:** Tracked in [OPEN-ISSUES.md](OPEN-ISSUES.md).
@@ -937,7 +941,7 @@ Only the owning Brand sees a media item's total Clicks and, for a photo, its ave
 
 **Assumptions:**
 
-- A Market is complete when every Line Item in the Categories the Consumer chose has been swiped, not every Category in the Market. Decided by the team on 2026-10-13 from the client's five-choose-three example; not yet confirmed with the client.
+- A Market is complete when every Line Item in the Categories the Consumer chose has been swiped, not every Category in the Market. Decided by the team on 2026-10-13 from the client's five-choose-three example, and confirmed by the client in the fourth client meeting, including Categories added later ([OI-20](OPEN-ISSUES.md#resolved)).
 - Public Access Consumers are captured through an Anonymous Consumer (`UC-MKT-create-anonymous-consumer`), with _entered_ recorded when the link is opened.
 - Demographics are collected from signed-in Consumers only; Public Access Consumers are not asked (fourth client meeting).
 
@@ -1323,6 +1327,7 @@ The changeable fields are those of `UC-BRND-create-product` except the SKU and t
 
 **Current state in the client's repository:**
 - `PUT /api/products/:id` (`worker/src/index.ts`) lets a Brand change its own product, checked by `brand_id` or `org_id`, and the change is live at once, with no Approval. Results recorded before the change stay mixed with those after it.
+- Step 2 is not met. Inventory's Edit opens the form from the product's results row, which carries only its id, name, and Category (`components/BrandDashboard.tsx`), so the form fills the photos, video, and description with empty values. Saving after changing only the name can then clear them.
 
 **Related Use Cases:**
 - `UC-BRND-approve-product`: the Admin's review of the change.
@@ -1336,6 +1341,94 @@ The changeable fields are those of `UC-BRND-create-product` except the SKU and t
 - [OI-35](OPEN-ISSUES.md#open): While a change waits for Approval, do Consumers keep seeing the current version, or is the product hidden?
 - [OI-56](OPEN-ISSUES.md#open): Does the limit on removals also count changes?
 - Resolved in the fifth client meeting: results restart after a change ([OI-41](OPEN-ISSUES.md#resolved)), Brands may remove products ([OI-42](OPEN-ISSUES.md#resolved)), and how often Brands send products ([OI-32](OPEN-ISSUES.md#resolved)).
+
+---
+
+### UC-BRND-update-brand-settings: Update Brand settings
+
+**UC ID and Name:** `UC-BRND-update-brand-settings`: Update Brand settings
+**Created By:** Matthew Stafford
+**Date Created:** 2026-11-13
+**Primary Actor:** Brand
+**Secondary Actors:** None
+**Trigger:** The Brand chooses to change its profile on Settings - Brand Dashboard.
+**Description:** The Brand changes its Brand Card - Brand Dashboard: its banner photo, profile photo, overview, address, and social media handles. Only what the Brand changes is saved. Every setting it leaves alone keeps its value, including settings the page does not show, and a handle the Brand deliberately empties is removed.
+
+**Preconditions:**
+
+- PRE-1. The user is signed in with the Brand role and belongs to a Brand's Organization.
+
+**Postconditions:**
+
+- POST-1. Each setting the Brand changed holds its new value, and each handle the Brand emptied is removed. Whether the change waits for the Admin's Approval before Consumers see it is open (`OI-72`).
+- POST-2. Every setting the Brand did not change keeps its saved value, including settings stored with the profile that the page does not show.
+- POST-3. The profile is the same everywhere it appears: the whole change is stored, or none of it.
+
+**Main Success Scenario:**
+
+1. The Brand opens Settings - Brand Dashboard.
+2. The system shows the Brand's saved profile: banner photo, profile photo, overview, address, and each social media handle it has saved.
+3. The Brand changes one or more of them and saves.
+4. The system checks the changed values.
+5. The system stores the changed values, keeps every other saved value, and confirms the change to the Brand.
+
+**Extensions:**
+
+- **2a. The Brand has saved some social media handles, or none:**
+  - 2a1. The system shows the missing ones as empty. This is valid: a Brand needs no social media account. Rejoins at step 3.
+- **3a. The Brand cancels or leaves the page:**
+  - 3a1. Nothing changes. The use case ends.
+- **3b. The Brand empties a handle that was saved:**
+  - 3b1. At step 5 the system removes that handle and keeps the others.
+- **3c. The Brand saves without changing anything:**
+  - 3c1. Nothing changes, and the system confirms. The use case ends.
+- **4a. A changed value fails its check:**
+  - 4a1. Nothing is stored. The system says which value failed, and the form keeps what the Brand typed. Rejoins at step 3.
+- **5a. The save targets another Brand's profile:**
+  - 5a1. The system refuses and changes nothing. The use case ends.
+- **5b. Saving fails, or its outcome cannot be confirmed:**
+  - 5b1. The system reports that the change was not saved and does not claim success. No part of the change is stored, and the form keeps what the Brand typed, so the Brand can save again.
+- **\*a. At any step, the Brand's access is removed:**
+  - \*a1. The system stores nothing and tells the user they no longer have access.
+
+**Priority:** Medium (provisional)
+**Frequency of Use:** Rarely: when a Brand first fills in its profile, and when its details change.
+**Business Rules:** `BR-access-own-data`
+
+**Associated Information:**
+
+| Property name | Data type | Validation rule | Security or access concerns | Glossary reference |
+|---|---|---|---|---|
+| Banner photo | Image | Optional | Set by the Brand; seen by Consumers and Vendors | Brand Card - Brand Dashboard |
+| Profile photo | Image | Optional | Set by the Brand; seen by Consumers and Vendors | Brand Card - Brand Dashboard |
+| Overview | Text | Optional | Set by the Brand; seen by Consumers and Vendors | Brand Card - Brand Dashboard |
+| Address | Text | Optional | Set by the Brand; seen by Consumers and Vendors | Brand Card - Brand Dashboard |
+| Social media handles | Text, one each for Instagram, TikTok, Twitter, and Facebook | Each optional; any combination, or none | Set by the Brand; seen by Consumers and Vendors | Settings - Brand Dashboard |
+
+A save carries only the values the Brand changed. A value left out of a save keeps its saved value; only a value the Brand deliberately empties is removed. The checks on photos and text are pinned in the design, not here.
+
+**Current state in the client's repository:**
+
+- Settings - Brand Dashboard (`components/BrandDashboard.tsx`) saves the profile into the settings of every Brand Card - Market assigned to the Brand's Organization, one Market at a time, through `PUT /api/marketplaces/:id`. If some saves fail, it reports "Saved to x/y markets", and the profile is left different across Markets.
+- Each save replaces the Market's whole stored settings (`worker/src/index.ts`). The page builds them from its own fields plus a copy of the Market's settings that the browser no longer holds (`toConfig` in `App.tsx` drops it). So a profile save can erase settings stored alongside it, such as the Market's end date, age verification, and location.
+- The form assumes all four social media handles exist, so a saved profile with only some of them does not match it.
+- With no Brand Card - Market assigned, the page tells the Brand to ask the Admin to create one and saves nothing.
+- The page also saves a phone number and a website link, which no requirement names.
+
+**Related Use Cases:**
+
+- `UC-BRND-update-product`: changing a product instead of the Brand's profile.
+
+**Assumptions:**
+
+- Saving only what changed, accepting any combination of handles, and removing a deliberately emptied handle are team decisions (2026-11-11 and 2026-11-13), awaiting the client's confirmation (`OI-69`).
+- The whole change is stored or none of it (POST-3). This is a team decision, following architecture §8.2.8.
+- Where the profile is stored (today, in each Brand Card - Market's settings) is design, not part of this use case.
+
+**Open Issues:** Tracked in [OPEN-ISSUES.md](OPEN-ISSUES.md).
+
+- [OI-69](OPEN-ISSUES.md#open): Confirm the three social media handle cases: any combination, untouched handles kept, emptied handles removed.
+- [OI-72](OPEN-ISSUES.md#open): Does a settings change wait for the Admin's Approval before Consumers see it?
 
 ---
 
