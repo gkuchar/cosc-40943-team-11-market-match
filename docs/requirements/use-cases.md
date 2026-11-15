@@ -38,7 +38,7 @@ _Within one use case, `PRE-1`, `POST-1`, and the step numbers are local and may 
 | 2026-10-28 | 0.7     | Filed the fifth client meeting's answers into the BRND use cases: the Admin, not the Brand, generates API Keys (`UC-BRND-generate-api-key`); Brands put each product in one of their own Categories, creating new ones as needed, so the Admin no longer chooses a Category at Approval; the Admin can approve a Brand's products all at once; an existing SKU changes that product; results restart after an approved change; JPEG or PNG photos; video limited to YouTube and Vimeo links until the client answers on other sites and video files (`OI-57`). Added `UC-BRND-remove-product` | Matthew Stafford |
 | 2026-11-04 | 0.8     | Expanded `UC-PROD-view-product-details` with public access, published Card content, optional media, and failure paths; linked existing Flip and Click capture use cases; brought in line with client meetings 4 and 5 (video sites and files, Anonymous Consumer, resolved `OI-16`)                                                                                                                                                                                                                                                                                                           | Vinh Nguyen      |
 | 2026-11-04 | 0.9     | `UC-BRND-generate-api-key`: Description gives the client's reason for issuing keys himself (not being flooded); Assumptions mark showing once, replace, revoke, and \*a as team decisions; added `OI-60`–`OI-62`                                                                                                                                                                                                                                                                                                                                                                              | Matthew Stafford |
-| 2026-11-13 | 0.10    | Filed the linter and type-check cleanup's behavior rulings: added `UC-BRND-update-brand-settings` (only what changed is saved; any combination of social media handles; an emptied handle is removed; `OI-69`, `OI-72`); `UC-FDBK-rate-product` keeps each swipe's displayed text and lists the browser's `yes`-only Like count as a gap; `UC-BRND-update-product` lists the editor opening without the product's photos, video, and description as a gap; `UC-FDBK-complete-market`'s completion assumption now cites the client's answer (`OI-20`) | Matthew Stafford |
+| 2026-11-13 | 0.10    | Filed the linter and type-check cleanup's behavior rulings: added `UC-BRND-update-brand-settings` (only what changed is saved; any combination of social media handles; an emptied handle is removed; `OI-69`, `OI-72`; whether the other profile fields are required is `OI-73`); `UC-FDBK-rate-product` keeps each swipe's displayed text and lists the browser's `yes`-only Like count as a gap; `UC-BRND-update-product` lists the editor opening without the product's photos, video, and description as a gap; `UC-FDBK-complete-market`'s completion assumption now cites the client's answer (`OI-20`) | Matthew Stafford |
 
 ---
 
@@ -1382,6 +1382,8 @@ The changeable fields are those of `UC-BRND-create-product` except the SKU and t
   - 3b1. At step 5 the system removes that handle and keeps the others.
 - **3c. The Brand saves without changing anything:**
   - 3c1. Nothing changes, and the system confirms. The use case ends.
+- **3d. The Brand empties a field the Brand Card requires (which fields, if any, is `OI-73`):**
+  - 3d1. At step 4 the system refuses the change as in 4a, and the saved value stays.
 - **4a. A changed value fails its check:**
   - 4a1. Nothing is stored. The system says which value failed, and the form keeps what the Brand typed. Rejoins at step 3.
 - **5a. The save targets another Brand's profile:**
@@ -1399,10 +1401,10 @@ The changeable fields are those of `UC-BRND-create-product` except the SKU and t
 
 | Property name | Data type | Validation rule | Security or access concerns | Glossary reference |
 |---|---|---|---|---|
-| Banner photo | Image | Optional | Set by the Brand; seen by Consumers and Vendors | Brand Card - Brand Dashboard |
-| Profile photo | Image | Optional | Set by the Brand; seen by Consumers and Vendors | Brand Card - Brand Dashboard |
-| Overview | Text | Optional | Set by the Brand; seen by Consumers and Vendors | Brand Card - Brand Dashboard |
-| Address | Text | Optional | Set by the Brand; seen by Consumers and Vendors | Brand Card - Brand Dashboard |
+| Banner photo | Image | Required or optional is open (`OI-73`) | Set by the Brand; seen by Consumers and Vendors | Brand Card - Brand Dashboard |
+| Profile photo | Image | Required or optional is open (`OI-73`) | Set by the Brand; seen by Consumers and Vendors | Brand Card - Brand Dashboard |
+| Overview | Text | Required or optional is open (`OI-73`) | Set by the Brand; seen by Consumers and Vendors | Brand Card - Brand Dashboard |
+| Address | Text | Required or optional is open (`OI-73`) | Set by the Brand; seen by Consumers and Vendors | Brand Card - Brand Dashboard |
 | Social media handles | Text, one each for Instagram, TikTok, Twitter, and Facebook | Each optional; any combination, or none | Set by the Brand; seen by Consumers and Vendors | Settings - Brand Dashboard |
 
 A save carries only the values the Brand changed. A value left out of a save keeps its saved value; only a value the Brand deliberately empties is removed. The checks on photos and text are pinned in the design, not here.
@@ -1412,6 +1414,7 @@ A save carries only the values the Brand changed. A value left out of a save kee
 - Settings - Brand Dashboard (`components/BrandDashboard.tsx`) saves the profile into the settings of every Brand Card - Market assigned to the Brand's Organization, one Market at a time, through `PUT /api/marketplaces/:id`. If some saves fail, it reports "Saved to x/y markets", and the profile is left different across Markets.
 - Each save replaces the Market's whole stored settings (`worker/src/index.ts`). The page builds them from its own fields plus a copy of the Market's settings that the browser no longer holds (`toConfig` in `App.tsx` drops it). So a profile save can erase settings stored alongside it, such as the Market's end date, age verification, and location.
 - The form assumes all four social media handles exist, so a saved profile with only some of them does not match it.
+- Saving requires no field. A Brand Card with no banner shows a placeholder with the Market Match logo and the Brand's name (`components/BrandSlideCard.tsx`).
 - With no Brand Card - Market assigned, the page tells the Brand to ask the Admin to create one and saves nothing.
 - The page also saves a phone number and a website link, which no requirement names.
 
@@ -1429,6 +1432,7 @@ A save carries only the values the Brand changed. A value left out of a save kee
 
 - [OI-69](OPEN-ISSUES.md#open): Confirm the three social media handle cases: any combination, untouched handles kept, emptied handles removed.
 - [OI-72](OPEN-ISSUES.md#open): Does a settings change wait for the Admin's Approval before Consumers see it?
+- [OI-73](OPEN-ISSUES.md#open): Must a Brand add an overview and a profile photo before its Brand page is shown, and keep them once added?
 
 ---
 
