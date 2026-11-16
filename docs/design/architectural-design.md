@@ -292,8 +292,10 @@ _Section 4.4 of [vision and scope](../requirements/vision-and-scope.md) says who
 | Editor | Nothing required | Editor plugins read the configs in §8.2.11 (`eslint.config.js`, `.prettierrc.json`, `.sqlfluff`). |
 | Before pushing | The gate commands in §8.2.11, run by hand | The opt-in pre-push hook in `MM-Version` PR #42 runs the same checks once merged. A hook can be skipped, so it is never the only gate. |
 | Pull request | `.github/workflows/pull-request.yml`, on every pull request to `tcu-fall-2026-stage` | Not a required check (`TD-gate-scope`). |
-| On a schedule | Nothing | |
+| On a schedule | Nothing | No deployed SLO sampling or alerting is evidenced yet; see [Checkpoint 3](../checkpoints/checkpoint-3.md). |
 | Deploy | `npm run deploy` builds only (`vite build`, `wrangler deploy`) and runs no check | `TD-gate-scope`. |
+
+**Checkpoint 3 readiness design (proposed):** `GET /api/health` is public and sends `Cache-Control: no-store`. It executes `select 1` through the existing D1 connection; success returns `200 {"status":"ok"}`, and a failed query returns `503 {"status":"unavailable"}`. Log a fixed event and the exception's class only (§8.2.7), without database messages or content. This checks the Worker and D1 connection, not WorkOS, Media, the Consumer flow, or an import SLO. No diagnostic state is retained across Worker restarts. Its dependency-double tests are not deployed monitoring.
 
 ## 8. Crosscutting Concepts
 
@@ -392,6 +394,8 @@ Cloudflare D1 is the only database: production and preview use their own D1 data
 Every change to a product's Approval, an API Key's status, or a product's removal records who made it (a user ID, the API Key's ID for a sending, or the name of the system event that made it, such as `workos:organization.deleted`) and when, in D1, and the record is never edited. Why: the BRND use cases require it (their POST conditions), and a refused sending with an ended key is recorded so the Admin can see it (`UC-BRND-send-products` extension 2a).
 
 #### 8.2.10 Testing
+
+Checkpoint 3 proposes one reproducible regression suite using Node 24's built-in `node:test` runner and the already-installed TypeScript compiler, invoked with `npm run test:worker`. It adds no package dependency. It covers the BRND test list's WorkOS failure row and the readiness design in §7.1; all other flow checks below still need their recorded manual evidence. CI runs the suite in the existing Worker job.
 
 `MM-Version` has no test framework and no tests; its static analysis is in §8.2.11. Adding a test framework is a new dependency, which a person decides first (`AGENTS.md`). Until then, each design-of-record lists its tests, one per main flow and extension, and they are run by hand against `npm run dev` and recorded in the pull request. The first framework added is a decision recorded in section 9.2.
 

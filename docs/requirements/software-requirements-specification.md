@@ -342,6 +342,10 @@ _Example: `USE-wcag-aa`: All user-facing views shall conform to WCAG 2.1 level A
 
 - **`PER-import-results`:** For one sending of 200 products, by spreadsheet or through the API, the system shall return the result for every product within 60 seconds at the 95th percentile, measured from receiving the sending to returning the last result. *Measure:* time 20 sendings of 200 valid products, each with three linked photos, against the preview environment. Team decision, 2026-10-28: the client set no limit and would accept even 20 to 30 minutes for the whole process (`OI-44`, fifth client meeting); 60 seconds lets the Brand's system wait for its results on one request, within the timeouts common HTTP clients use.
 
+**SLO for `PER-import-results` (Checkpoint 3):** The SLI is good sendings / all measured sendings. A good sending returns a result for all 200 products within 60 seconds, with the three-photo workload specified above. The measurement window is one recorded preview run of 20 consecutive sendings; failed, timed-out, and incomplete sendings remain in the denominator and are bad events. Target: at least 95% (19/20); error budget: at most 5% (one bad sending per 20). Report both this ratio and the nearest-rank p95 duration (19th sorted duration; failed sendings count as unbounded).
+
+**Current measurement:** unavailable as of 2026-11-16; no qualifying run is recorded. Record the preview version/commit, start and end timestamps, each sending's duration and result count, and the resulting SLI beside this requirement. The traced product sending/import use cases are not yet built. Health-check timings and mocked test durations cannot substitute for this workload. This window measures a controlled sample, not term-long uptime, concurrent load, third-party photo-site diversity, or the Admin's Approval time.
+
 ### 9.3 Security
 
 - **`SEC-authentication`:** The system shall authenticate every request to a non-public endpoint, by a signed-in session or an API Key, and shall refuse an unauthenticated request without revealing whether the requested resource exists. *Measure:* 100% of non-public endpoints, called without credentials, are refused.

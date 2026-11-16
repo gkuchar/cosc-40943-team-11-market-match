@@ -58,6 +58,7 @@ The binding conventions live once, in §8.2 of `docs/design/architectural-design
 - **Cite, never copy.** Refer to `UC-*`, `BR-*`, `FR-*`, quality attributes, and `KD-*` by ID and path.
 - **Pin or derive.** If guessing a detail wrong would violate a requirement, the spec or design pins it; otherwise derive it from the conventions.
 - **Code is evidence, never authority.** Behavior read back from `MM-Version` that nobody specified is not a requirement until the client calls it intended.
+- **Review-derived rule: optional fields need evidence.** Never infer that a field is optional from the current form or database. Cite the decision for requiredness; if none exists, record a client question before changing validation or hiding existing Cards. Source: [PR #35 review](https://github.com/gkuchar/cosc-40943-team-11-market-match/pull/35#discussion_r4566516549), resolved into `OI-73` in `docs/requirements/OPEN-ISSUES.md`.
 - **The client owns `main` in `MM-Version`.** Nothing merges into it without his consent. When pulling his changes from `main` conflicts with ours, ask him how to resolve it.
 
 ### Running more than one agent

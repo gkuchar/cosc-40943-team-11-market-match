@@ -1631,6 +1631,7 @@ The Brand sees each decision in its list of submitted products. Market Match sen
   - 1b1. The system stops accepting the key at once and records the revocation. Products already received keep their Approval status. The use case ends.
 - **2a. Creating the key fails:**
   - 2a1. The system reports it, and any existing key keeps working. The use case ends.
+  - 2a2. If WorkOS cannot confirm the Brand's Organization or its active Brand membership, the system reports that the check failed and changes no API Key. The Admin can try again after WorkOS recovers. This makes the existing failure guarantee explicit; the response contract is in [the BRND design](../design/brnd.md#api-contract).
 - **4a. The Admin leaves without saving the key:**
   - 4a1. The key cannot be shown again. The Admin generates a new one (1a), which ends this one.
 - **5a. The Brand later reports the key lost or leaked:**
