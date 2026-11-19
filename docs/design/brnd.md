@@ -4,8 +4,8 @@
 **Team:** Team 11
 **Area:** `UC-BRND`
 
-> **Realizes:** `UC-BRND-generate-api-key`; `UC-BRND-create-product`, `FR-PROD-brand-scoped-storage`, `FR-PROD-hidden-until-approved`, `FR-PROD-server-checks` (the last three for the products a Brand creates by hand; the imports reuse the same check and storage when they are designed)
-> **Depends on:** `BR-admin-issues-api-key`, `BR-connect-product-system`, `BR-products-brand-only`, `BR-create-organization`, `BR-admin-role`, `BR-submit-product`, `BR-approve-product`, `BR-text-card`, `BR-product-media-limit`, `BR-photo-size`, `BR-brand-categories`; `SEC-authentication`, `SEC-api-key-strength`, `SEC-api-key-ending`, `SEC-brand-isolation`; `KD-api-key-storage`, `KD-photos-copied`
+> **Realizes:** `UC-BRND-generate-api-key` (revised for use cases v0.12: `FR-API-key-expiry`, `FR-API-key-expiry-reminder`); `UC-BRND-create-product`, `FR-PROD-brand-scoped-storage`, `FR-PROD-hidden-until-approved`, `FR-PROD-server-checks` (the last three for the products a Brand creates by hand; the imports reuse the same check and storage when they are designed)
+> **Depends on:** `BR-admin-issues-api-key`, `BR-api-key-expiry`, `BR-api-key-expiry-reminder`, `BR-connect-product-system`, `BR-products-brand-only`, `BR-create-organization`, `BR-admin-role`, `BR-submit-product`, `BR-approve-product`, `BR-text-card`, `BR-product-media-limit`, `BR-photo-size`, `BR-brand-categories`; `SEC-authentication`, `SEC-api-key-strength`, `SEC-api-key-ending`, `SEC-brand-isolation`; `KD-api-key-storage`, `KD-photos-copied`
 > **See:** [use cases](../requirements/use-cases.md#brnd-brand-participation), [specification](../requirements/software-requirements-specification.md), [architecture-of-record](architectural-design.md)
 > **Designed against:** `MM-Version`, branch `tcu-fall-2026-stage`: commit `699a0ac` for `UC-BRND-generate-api-key`; commit `e6b49ca` for `UC-BRND-create-product`
 > **Built:** `UC-BRND-generate-api-key`: `MM-Version` PR #36, commit `c503e5f`. `UC-BRND-create-product`: not yet built
@@ -36,7 +36,7 @@ _**Write it in this order.** Each step is one person's or one pair's work, and t
 
 _[One paragraph: what this area does, which components of your [architecture-of-record](architectural-design.md) it lives in, and what it reads from or calls in other areas. Link the container diagram rather than redrawing it. If this design changes the architecture-of-record, say so here and list the change under "Changes to the architecture-of-record" below.]_
 
-The BRND area brings a Brand's products into Market Match and lets the Admin control who may send them. So far this document realizes two use cases. In `UC-BRND-generate-api-key` the Admin issues, replaces, and revokes the API Key a Brand's own system will use to send products (`UC-BRND-send-products`, designed later); it lives in the Identity component, which issues and ends API Keys, with the Admin's screens in the Brands tab of the Admin dashboard. In `UC-BRND-create-product` a signed-in Brand submits one product, its photos as files, to a new Catalog route. The route takes the Brand from the session's Organization and confirms with WorkOS that the user is an active `brand` member of it. It runs the Catalog's product check, the first instance of section 8.2.5, which the imports will call too. It stores the photos in the Media Store through the first code of the Media component. It then writes the product as waiting for Approval, with any new Category, in one D1 batch. Both use cases live in the Application API and the Web Front End ([containers](architectural-design.md#51-containers); [components](architectural-design.md#52-use-case-areas-and-components)). `UC-BRND-create-product` also changes two read routes outside BRND, so that no Consumer sees a waiting product (`FR-PROD-hidden-until-approved`). It also closes the old `POST /api/products` to Brands, which today puts a Brand's product live with no Approval. `UC-BRND-generate-api-key` adds one D1 table, fills section 8.2.2 of the architecture-of-record, extends section 8.2.9, and adds one risk to section 11. `UC-BRND-create-product` adds two columns and an index, extends sections 8.2.1, 8.2.5, and 8.2.8, and adds one risk to section 11 (see "Changes to the architecture-of-record").
+The BRND area brings a Brand's products into Market Match and lets the Admin control who may send them. So far this document realizes two use cases. In `UC-BRND-generate-api-key` the Admin issues, replaces, and revokes the API Key a Brand's own system will use to send products (`UC-BRND-send-products`, designed later); it lives in the Identity component, which issues and ends API Keys, with the Admin's screens in the Brands tab of the Admin dashboard. In `UC-BRND-create-product` a signed-in Brand submits one product, its photos as files, to a new Catalog route. The route takes the Brand from the session's Organization and confirms with WorkOS that the user is an active `brand` member of it. It runs the Catalog's product check, the first instance of section 8.2.5, which the imports will call too. It stores the photos in the Media Store through the first code of the Media component. It then writes the product as waiting for Approval, with any new Category, in one D1 batch. Both use cases live in the Application API and the Web Front End ([containers](architectural-design.md#51-containers); [components](architectural-design.md#52-use-case-areas-and-components)). `UC-BRND-create-product` also changes two read routes outside BRND, so that no Consumer sees a waiting product (`FR-PROD-hidden-until-approved`). It also closes the old `POST /api/products` to Brands, which today puts a Brand's product live with no Approval. `UC-BRND-generate-api-key` adds one D1 table, fills section 8.2.2 of the architecture-of-record, extends section 8.2.9, and adds one risk to section 11. Its revision for use cases v0.12 (sixth client meeting), designed against `tcu-fall-2026-stage` at `e086280`, gives every key a length the Admin chooses and an expiry the server checks whenever it reads a key, adds the days left to the Admin's Brand list from one new call, and adds migration `0010`; it changes sections 8.1, 8.2.8, 8.2.9, and 11. `UC-BRND-create-product` adds two columns and an index, extends sections 8.2.1, 8.2.5, and 8.2.8, and adds one risk to section 11 (see "Changes to the architecture-of-record").
 
 ## Components & classes
 
@@ -50,34 +50,43 @@ classDiagram
     class BrandManagement {
         <<reused, components/admin>>
         +API Key panel per Brand Organization
+        +key status and days left per row (revision)
+    }
+    class apiKeyDisplay {
+        <<new in revision, components/admin/apiKeyDisplay.ts>>
+        +panelState(summary) action, warning, days left
     }
     class ApiKeys {
-        <<new, services/apiService.ts>>
+        <<reused, services/apiService.ts>>
         +list(orgId)
-        +generate(orgId, confirmReplace)
+        +overview() (revision)
+        +generate(orgId, lengthDays, confirmReplace)
         +revoke(keyId)
     }
     class ApiKeyRoutes {
-        <<new routes, worker/src/index.ts>>
+        <<reused routes, worker/src/index.ts>>
+        +GET /api/api-keys (revision)
         +GET /api/organizations/:orgId/api-keys
         +POST /api/organizations/:orgId/api-keys
         +POST /api/api-keys/:id/revoke
     }
     class WorkOSWebhook {
         <<reused, worker/src/index.ts>>
-        +organization.deleted branch (new)
+        +organization.deleted branch
     }
     class apiKeysModule {
-        <<new, worker/src/apiKeys.ts>>
+        <<reused, worker/src/apiKeys.ts>>
         +generateKey() string
         +hashKey(key) string
-        +listKeys(orgId)
-        +issueKey(orgId, adminId, confirmReplace)
-        +revokeKey(keyId, endedBy)
-        +revokeAllForOrg(orgId, endedBy)
+        +effectiveState(row, now) (revision)
+        +listKeys(orgId, now)
+        +currentKeys(now) (revision)
+        +issueKey(orgId, adminId, lengthDays, confirmReplace, now)
+        +revokeKey(keyId, endedBy, now)
+        +revokeAllForOrg(orgId, endedBy, now)
     }
     class api_keys {
-        <<new table, migration 0008>>
+        <<table from 0008, columns added by 0010>>
     }
     class BrandDashboard {
         <<reused, components>>
@@ -126,6 +135,7 @@ classDiagram
         <<changed table, migration 0009>>
     }
     BrandManagement --> ApiKeys
+    BrandManagement --> apiKeyDisplay
     ApiKeys --> ApiKeyRoutes
     ApiKeyRoutes --> apiKeysModule
     ApiKeyRoutes --> membershipCheck
@@ -148,6 +158,15 @@ classDiagram
 - `worker/src/index.ts` (reused): the three routes, each behind the existing `withFreshRole` and `requireRole('admin')`, and a new `organization.deleted` branch in the existing `POST /api/webhooks/workos` handler.
 - `services/apiService.ts` (reused): a new `ApiKeys` group using the existing `request` helper (§8.2.1, §8.2.3).
 - `components/admin/BrandManagement.tsx` (reused): already receives `workosOrgs` in the Admin's Brands tab. Gains an API Key panel for each Organization in `workosOrgs`: the newest key's status and who generated or ended it and when, Generate (or Replace, with the warning of extension 1a), Revoke, and a dialog that shows a new key once. The new key lives only in the panel's component state: never in browser storage, a shared request cache, or a log, and any way the dialog or the panel closes discards it (4a). The panel is not filtered to Brands in the browser; the server's `422 NOT_A_BRAND` is the check that counts (§8.2.5). Older keys and showing a name rather than a user id are left to the build; no requirement depends on either.
+
+For the revision of `UC-BRND-generate-api-key` (use cases v0.12), every file above is reused and changed:
+
+- `worker/migrations/0010_api_key_expiry.sql` (new): adds `expires_at` and `first_sent_at` to `api_keys` and fills `expires_at` for existing keys (Data model below). `worker/src/schema.ts` (reused) mirrors both columns.
+- `worker/src/apiKeys.ts` (reused): stays the only code that creates, lists, or ends a key. It gains the offered lengths, `API_KEY_LENGTHS_DAYS` (7, 14, 30, 45, 60, 90) and `DEFAULT_API_KEY_LENGTH_DAYS` (14), the team default in `OI-75`, defined here and nowhere else. `effectiveState(row, now)` is the one definition of whether a key works: it returns `EXPIRED` for a row whose `status` is `ACTIVE` and whose `expires_at` is at or before `now`, or is NULL. Every list and every write in the module uses it or its SQL twin, and `UC-BRND-send-products` will call it when it checks a key (POST-5, `FR-API-key-expiry`). Every function that reads or ends keys takes `now` from its caller, so a test sets the time (§8.2.2).
+- `worker/src/index.ts` (reused): the new `GET /api/api-keys`, behind `withFreshRole` and `requireRole('admin')` like the other key routes; `POST /api/organizations/:orgId/api-keys` reads and checks `lengthDays`; each route passes `new Date()` as `now`. The webhook branch is unchanged except for passing `now`.
+- `services/apiService.ts` (reused): `ApiKeys.overview()`, and `generate` sends `lengthDays`. `types.ts` (reused): `ApiKeySummary` gains `EXPIRED`, `expiresAt`, `firstSentAt`, and `daysLeft`; `NewApiKey` gains `expiresAt`.
+- `components/admin/BrandManagement.tsx` (reused): each Organization's row shows its current key's status and, when the server sends one, its days left (\*c1), all from one `overview()` call made with the list. The panel offers the lengths the server sent, with the default chosen (step 1), shows the expiry date beside the new key (step 3), and shows an expired key as expired with Generate, not Replace, and no warning (1c, \*b1).
+- `components/admin/apiKeyDisplay.ts` (new): the panel's choices as plain functions with no React, so they are tested without a browser: whether the button generates or replaces, whether the 1a warning shows, and the text for the status and the days left.
 
 For `UC-BRND-create-product`:
 
@@ -227,6 +246,56 @@ Step 3's link to the published product contract waits for `UC-BRND-send-products
 
 Revoking (1b) and the webhook (\*a) change only `api_keys`; no product, Inventory, or Approval row is touched, so products already received keep their Approval status (1b).
 
+#### UC-BRND-generate-api-key revision: expiry and days left
+
+The diagrams above are the as-built flow (`MM-Version` PR #36). The revision for use cases v0.12 changes step 1, step 3, 1a, and every write, and adds 1c, \*a2, \*b, \*c, and POST-5:
+
+```mermaid
+sequenceDiagram
+    actor A as Admin
+    participant WEB as Web Front End (BrandManagement)
+    participant API as Application API
+    participant K as apiKeys.ts
+    participant WO as WorkOS
+    participant DB as D1
+    A->>WEB: Open the Brands tab
+    WEB->>API: GET /api/api-keys (one call for every Organization)
+    API->>K: currentKeys(now)
+    K->>DB: each Organization's current key, never a key or hash
+    API-->>WEB: lengths offered, default 14; per Organization: status as of now, expires at, days left
+    WEB-->>A: Each row: key status, and days left while ACTIVE and nothing sent (*c1)
+    A->>WEB: Choose a Brand, Generate, and a length (step 1)
+    opt the current key is ACTIVE as of now (1a)
+        WEB-->>A: Warn that the current key stops working at once
+    end
+    Note over WEB: An expired key shows EXPIRED and Generate, with no warning (1c, *b1)
+    WEB->>API: POST /api/organizations/:orgId/api-keys {lengthDays, confirmReplace}
+    API->>API: withFreshRole, requireRole('admin') (PRE-1); lengthDays in the offered list (step 1)
+    API->>WO: Organization exists and is a Brand, as built (PRE-2)
+    API->>K: issueKey(orgId, adminId, lengthDays, confirmReplace, now)
+    K->>DB: Is a key ACTIVE and unexpired as of now? (1a, 1c)
+    alt it is and confirmReplace is not set (1a)
+        K-->>API: refused, ACTIVE_KEY_EXISTS
+    else
+        K->>DB: one batch: end any ACTIVE key past its expiry as EXPIRED (1c), end the unexpired ACTIVE key as REPLACED (1a), insert the new key with expires at = now + length (steps 1, 2)
+    end
+    API-->>WEB: 201 with the key and its expires at
+    WEB-->>A: Show the key once with its expiry date (step 3)
+```
+
+POST-5 and \*b: from the moment a key's `expires_at` passes, `effectiveState` returns `EXPIRED` for it, whatever its `status` column still says. Every read and write in `apiKeys.ts` goes through it, so the key is refused, listed as expired, and never counted as the one active key from that moment. The row itself is written `EXPIRED` the next time anything writes that Organization's keys: a generate, a revoke, the webhook, or, later, the sending that is refused with it (`UC-BRND-send-products` 2a). Nothing runs on a schedule.
+
+1b on an expired key: the revoke ends nothing and answers `409 KEY_ALREADY_ENDED`, and the same batch writes the key's expiry, so the record says it expired, not that the Admin revoked it.
+
+\*a1 is as built, except that the webhook's batch first writes the expiry of any key already past it, so only keys that were still working are recorded as revoked by `workos:organization.deleted`.
+
+\*a2 needs no code. Removing a Brand's WorkOS access while keeping its Organization sends no event this design acts on (`organization_membership.updated` or `.deleted` only resyncs a user's roles), and the key keeps working until it expires (\*b) or the Admin revokes it (1b), until `OI-77` is answered. Expiry now bounds how long such a key works: at most the length chosen, 90 days at the longest.
+
+\*c is in part on screen now and in part waits:
+
+- **Now:** the days left, next to each Brand in the list and in its panel, for every key that is `ACTIVE` as of now and has no `first_sent_at` (`FR-API-key-expiry-reminder`). Until `UC-BRND-send-products` is built nothing sets `first_sent_at`, so every active key shows its days left.
+- **Waits on `OI-76`:** any reminder beyond the countdown (on the dashboard, by email, or both, and how many days before), and what counts as having sent. `first_sent_at` records one fact, the first sending with the key that stored at least one product, written once by `UC-BRND-send-products`. Whether that first sending is what hides the countdown, or every product the Brand meant to send must arrive first, is the client's answer; `UC-BRND-send-products`'s design applies it. Whether a key still expires once the countdown is gone is also `OI-76`; until then it does (`BR-api-key-expiry`).
+
 ### UC-BRND-create-product: creating a product
 
 ```mermaid
@@ -297,6 +366,17 @@ Errors use the existing shape: a status code and `{ "error": "<message>" }`, whi
 | `GET /api/categories` (existing, changed) | Unchanged: anyone | Unchanged | The Admin: every Category, `org_id` filter as today. Anyone else: only Categories whose `org_id` is `'platform'` | Unchanged |
 | `PUT /api/categories/:id` (existing, changed) | Unchanged: the Admin | Unchanged | Unchanged, except that a rename changes `category` only on products whose `category_id` is this Category, and, for a `'platform'` Category, on products with no `category_id` and the old name | Unchanged |
 
+For the revision of `UC-BRND-generate-api-key` (use cases v0.12). Where a row below names an endpoint in the table above, it supersedes that row's cells where they differ, and keeps the rest. A key's status in every response is its state as of the request (`effectiveState`), never the raw column, so a key past its expiry is `EXPIRED` in every response before its row is written. Days left are whole days, rounded up, from the server's clock to `expires_at` (§8.2.2), so a key generated for 14 days shows 14.
+
+| Endpoint or job | Caller (who may) | Request | Success | Errors, by extension |
+| --- | --- | --- | --- | --- |
+| `GET /api/api-keys` (new) | The Admin (`withFreshRole`, `requireRole('admin')`) | None | `200`: the lengths offered and the default (from `apiKeys.ts`), and, for every Organization with at least one key, its current key: the `ACTIVE` one if it is still working, or else the newest. For each: the Organization id, the key's id, status, generated at, `expiresAt`, ended at, `firstSentAt`, and `daysLeft`, which is a number only while the key is `ACTIVE` and `firstSentAt` is NULL, and NULL otherwise (\*c1). **Never the key, never its hash.** One D1 query, whatever the number of Organizations; an Organization with no key is absent, and the list shows it with no key | `401`, `403` as for the other key routes |
+| `GET /api/organizations/:orgId/api-keys` (revised) | Unchanged | Unchanged | As built, plus each key's `expiresAt`, `firstSentAt`, and `daysLeft` as above; status may be `EXPIRED` (\*b1) | Unchanged |
+| `POST /api/organizations/:orgId/api-keys` (revised) | Unchanged | `lengthDays`, required, one of the offered lengths (step 1); `confirmReplace` as built | `201`: as built, plus `expiresAt`, which is generated at plus `lengthDays` × 24 hours (steps 2–3, POST-5) | `lengthDays` missing, not a whole number, or not offered: `422 INVALID_LENGTH` with `fields` naming `lengthDays` and the lengths offered (§8.2.1), checked before WorkOS is called, nothing stored. 1a: `409 ACTIVE_KEY_EXISTS` only when a key is `ACTIVE` and unexpired as of the request; an expired one never causes it (1c). Every other error as built |
+| `POST /api/api-keys/:id/revoke` (revised) | Unchanged | Unchanged | Unchanged | A key past its expiry: `409 KEY_ALREADY_ENDED`, as for any ended key, and its row is written `EXPIRED` if it was not yet. Every other error as built |
+| `POST /api/webhooks/workos`, `organization.deleted` (revised) | Unchanged | Unchanged | As built, except that a key already past its expiry is written `EXPIRED`, not `REVOKED` (\*a1) | Unchanged |
+| A key check for `UC-BRND-send-products` (not an endpoint; designed with that use case) | — | — | — | It must refuse a key whose `effectiveState` is not `ACTIVE`, including one whose `status` column still says `ACTIVE` (2a, POST-5, `SEC-api-key-ending`) |
+
 ## Key decisions
 
 _[Only the decisions a reader could not recover from the code: an invariant, who may do this and how it is enforced, a trade-off you chose, a reason you reused something rather than writing it. **Each one names what you chose, what you rejected, and why.** If you cannot name an alternative you considered, it probably was not a decision; leave it out._
@@ -304,6 +384,7 @@ _[Only the decisions a reader could not recover from the code: an invariant, who
 _A decision that affects the whole system rather than this area is an architecture decision. It belongs in your architecture-of-record as a `KD-*` entry, not here.]_
 
 **One active key per Brand, enforced by D1.** A partial unique index allows one `ACTIVE` row per `workos_org_id`, and replacing a key ends the old row and inserts the new one in one D1 batch, so either both happen or neither does. Rejected: checking for an active key in code and then inserting, because two requests at once could both pass the check, and a failure between the two writes could leave a Brand with two working keys or none (extension 2a). Without `confirmReplace` the insert runs alone, with no replace step, so a key made by another request since the check is refused by the index rather than ended unconfirmed; the request that loses such a race gets `500`, not `409`, and no key is stored for it.
+_Superseded in part, 2026-11-18, by "An expired key ends when it is next read" below: the check for an active key counts only a key still working as of now, and the batch first writes the expiry of an `ACTIVE` key past it, so an expired key no longer holds the index's one place. The index, the batch, and the race behavior above still hold._
 
 **A key belongs to the Brand's WorkOS Organization.** The `workos_org_id` is the same identifier products carry in `org_id`. Rejected: tying a key to the Admin who generated it or to a Brand user, because the key would then stop working when that person leaves, which the use case rules out (extension \*a).
 
@@ -314,12 +395,29 @@ _A decision that affects the whole system rather than this area is an architectu
 **The `organization.deleted` branch returns `500` when revoking fails.** The handler's `catch` returns `200` on every error today, so WorkOS does not retry; this branch alone returns `500`, so WorkOS retries until the keys are revoked. Revoking again changes nothing, so a retry is safe. The other branches keep returning `200` on error. Rejected: the existing `200`, which would leave a deleted Brand's key working with no retry (`SEC-api-key-ending`).
 
 **A key ends once, in one conditional write.** Revoking, replacing, and the webhook end a key with an update that matches only while it is still `ACTIVE` (`WHERE id = ? AND status = 'ACTIVE'`, or by `workos_org_id` and `status = 'ACTIVE'`). When a revoke changes no row, it returns `409 KEY_ALREADY_ENDED`. Rejected: reading the status and then updating, because a revoke and a replace arriving together could both end the same row, and the second would overwrite who ended it and when (§8.2.9).
+_Superseded in part, 2026-11-18, by "An expiry is written once, as the moment it happened" below: revoking and replacing now match only a key that is `ACTIVE` and unexpired as of now, and a key past its expiry is ended as `EXPIRED` instead. Ending each key once, in one conditional write, still holds._
 
 **Replacing a key needs confirmation on the server.** `POST` refuses with `409 ACTIVE_KEY_EXISTS` unless `confirmReplace` is true, so the warning of extension 1a cannot be skipped by calling the API directly. Rejected: warning only in the browser.
 
 **The key row is its own audit record.** Who generated a key and when are written once, at generation; who ended it and when, once, when it ends; neither is overwritten afterwards (§8.2.9). Rejected: a separate audit log table, which no other area needs yet.
 
 **The key format.** 32 bytes from `crypto.getRandomValues`, 256 bits (`SEC-api-key-strength`), encoded as base64url without padding (43 characters), stored only as its SHA-256 hash in lowercase hexadecimal. The hash is taken over the UTF-8 bytes of the key string exactly as the `201` returns it, and only `hashKey` computes it, so `UC-BRND-send-products` hashes a received key the same way; if they differ, no key ever works. A plain hash is enough because a 256-bit random key cannot be guessed (`KD-api-key-storage`). The key has no prefix. Its id comes from `crypto.randomUUID()`, never from the key, and no part of the key other than its hash is stored or returned after the `201`, so no hint such as its last characters.
+
+The decisions below are for the revision of `UC-BRND-generate-api-key` (use cases v0.12). The decisions above still hold except where a note marks one superseded in part. Decided by Matthew Stafford, 2026-11-18.
+
+**An expired key ends when it is next read.** A key is expired from the moment `expires_at` passes, decided by `effectiveState(row, now)`, the one definition the routes, the list, and later `UC-BRND-send-products` all use. Every write to an Organization's keys (generate, revoke, the webhook) first runs, in the same D1 batch, an update that writes the expiry of each of its `ACTIVE` keys past it. The check for an active key before generating (1a) counts only a key still working as of now, so an expired key never returns `409` or the replace warning (1c), and the expiry is written before the insert, so the partial unique index never sees two `ACTIVE` rows. Rejected: a scheduled sweep (a Cloudflare Cron Trigger and a `scheduled` handler), because the Worker has neither today (`export default app` at `e086280`), adding one changes the deploy configuration on the client's account, and between two runs an expired key would still pass the check, so every check would have to compare `expires_at` anyway (`SEC-api-key-ending`: refused from the moment it ends). Also rejected: putting the time into the partial index (`WHERE status = 'ACTIVE' AND expires_at > …`), because SQLite does not allow the current time in an index's `WHERE`. Also rejected: writing the expiry on `GET`, because a read that writes makes every list a write, and the state shown is the same either way. Each function takes `now` from its route (`new Date()`), so a test sets the time; the comparison is between ISO 8601 strings from `toISOString()`, never SQLite's `datetime('now')`, whose different format would compare wrongly (§8.2.2).
+
+**An expiry is written once, as the moment it happened.** The expiry update sets `status` `EXPIRED`, `ended_by` `system:api-key.expired`, and `ended_at` the key's own `expires_at`, and it matches only `WHERE status = 'ACTIVE' AND expires_at <= now`, so it writes each key once and a second run changes nothing (§8.2.9). A revoke or replace then matches only `status = 'ACTIVE' AND expires_at > now`, so an expired key is never recorded as revoked or replaced by the Admin. Rejected: `ended_at` as the moment the server noticed, because it would depend on when anyone next looked, and the record would not say when the key stopped working. Also rejected: `ended_by` NULL for an expiry, because every ended key would then no longer say who or what ended it; `system:api-key.expired` follows §8.2.9's system-event names, and the panel shows it as "Expired".
+
+**The length is checked on the server, against one list.** `POST` accepts only a `lengthDays` in `API_KEY_LENGTHS_DAYS`, and the panel offers exactly the lengths and default that `GET /api/api-keys` returns from that list, so answering `OI-75` changes one constant and its tests. There is no default on the server: a request without `lengthDays` is refused, because step 1 has the Admin choose. Rejected: a copy of the list in the browser, which would drift from the server's on the day `OI-75` is answered. Also rejected: any number of days, and "never", which `OI-75` leaves open and whose team default rules out. A day is 24 hours from the moment the key is generated, in UTC; the expiry is not rounded to midnight in anyone's time zone.
+
+**Existing keys expire 14 days after they were generated.** Migration `0010` sets `expires_at` to `created_at` plus 14 days, the default length in `OI-75`, for every `ACTIVE` key, and leaves it NULL for keys already ended, which never had a length. A key older than 14 days is then expired at once; that breaks nothing, because nothing accepts a key until `UC-BRND-send-products` is built, and the Admin generates a new one (1c). `effectiveState` treats an `ACTIVE` key with NULL `expires_at` as expired, so a row the migration missed fails closed. Rejected: NULL meaning "never expires", which `BR-api-key-expiry` rules out for every key. Also rejected: the migration's own time plus 14 days, which differs between the local, preview, and production databases; and revoking every existing key in the migration, which would record a revocation nobody made.
+
+**One call gives the Brand list every key's status.** `GET /api/api-keys` answers, in one D1 query, each Organization's current key with its status, expiry, and days left, and the Brands tab calls it once next to the existing `GET /api/organizations`; the panel keeps its per-Organization call for the key history. The days left come from the server's clock, so the list, the panel, and the tests agree. Rejected: one `GET /api/organizations/:orgId/api-keys` per row, which is a request per Organization on every visit. Also rejected: adding the key status to `GET /api/organizations`, which reads WorkOS, so a WorkOS failure would also hide every key's status. Also rejected: counting the days in the browser, whose clock may be wrong.
+
+**The key records when its Brand first sent products.** `first_sent_at` is NULL until the first sending with that key stores at least one product, and `UC-BRND-send-products` writes it once, matching `WHERE first_sent_at IS NULL`. The days left show while it is NULL (\*c1). Rejected: working it out from the products each time the list loads, which ties this list to how `UC-BRND-send-products` records a sending, not yet designed. Also rejected: a yes-or-no flag, which loses when. If `OI-76`'s answer is that every product the Brand meant to send must arrive, Market Match cannot see that from a sending, and that use case adds what the answer needs.
+
+**Removing a Brand's WorkOS access does not end its key** (\*a2). The webhook still ends keys only on `organization.deleted`; the membership events still only resync a user's roles. Rejected: ending a Brand's keys when a membership event leaves its Organization with no active `brand` membership, because whether removing access should end the key is `OI-77`, and what "removing access" is in WorkOS is not yet known. Expiry now bounds the gap, and the Admin can revoke the key (1b).
 
 The decisions below are for `UC-BRND-create-product`. Decided by Matthew Stafford, 2026-11-16.
 
@@ -386,6 +484,17 @@ A partial unique index on `workos_org_id` where `status = 'ACTIVE'` keeps one ac
 
 Timestamps are UTC ISO 8601 text (§8.2.2). Both `created_at` and `ended_at` are set in code with `new Date().toISOString()`, with no column default, so the table holds one format: the schema's `datetime('now')` defaults write a different string (`YYYY-MM-DD HH:MM:SS`) that browsers may read as local time.
 
+For the revision of `UC-BRND-generate-api-key`, `worker/migrations/0010_api_key_expiry.sql` adds two columns to `api_keys`, mirrored in `worker/src/schema.ts`:
+
+| Column | Meaning | Constraint |
+| --- | --- | --- |
+| `expires_at` | When the key stops working: generated at plus the length the Admin chose (POST-5), UTC | Null allowed only for keys ended before `0010`; every key generated after it sets one; written once, at generation, never extended (`OI-78`) |
+| `first_sent_at` | When the first sending with this key stored at least one product (\*c) | Null until then; written once, by `UC-BRND-send-products` |
+
+`status` gains `EXPIRED`; the column has no check constraint, so only its comment and `ApiKeyStatus` change. `ended_by` may also hold `system:api-key.expired`, with `ended_at` equal to `expires_at`. The partial unique index is unchanged.
+
+The migration fills `expires_at` for every `ACTIVE` row with `strftime('%Y-%m-%dT%H:%M:%fZ', created_at, '+14 days')`, which writes the same format as `toISOString()`, so the text comparison against `now` holds for old and new rows alike; ended rows keep NULL (Key decisions). It adds no index: the lookups stay by `workos_org_id`, already indexed. `0010` is the next number: `0009` is `UC-BRND-create-product`'s (`MM-Version` PR #49), and no other open pull request in `MM-Version` adds a migration (checked 2026-11-18). Write its SQL by hand, as for `0008`.
+
 For `UC-BRND-create-product`, `worker/migrations/0009_product_approval.sql` changes `universal_products` and is mirrored in `worker/src/schema.ts`:
 
 | Column or index                                                                               | Meaning                                                                       | Constraint                                                                                                                                                 |
@@ -404,6 +513,7 @@ _[Which existing services, components, and conventions this area uses rather tha
 - **WorkOS:** the Organization lookup follows the existing `GET /api/organizations` route, which calls WorkOS's REST API with `WORKOS_API_KEY`; the Brand test calls `organization_memberships` with the same key and reads roles with the existing `workosRoleSlugs` and `roleAliases`; the webhook reuses the existing signature check (`verifyWorkOSSignature`).
 - **Front end calls** go through `services/apiService.ts` (§8.2.1, §8.2.3).
 - **Error handling** (§8.2.1), **time** (§8.2.2), **validation on the server** (§8.2.5), **logging**: never log a key or its hash, only the key's id and the Organization id; at `699a0ac` no middleware logs request or response bodies, so the `201` reaches no log (§8.2.7); a failed save is caught in the route and answered with a fixed `500`, because `app.onError` returns and logs the error's stack and a failed plain insert's Drizzle message lists its parameters, the new key's hash among them; that `catch` logs a fixed message, the Organization id, and only the SQLite cause's message, which names the column but no value, or else the error's name: never the error's own message, its stack, or the whole error, **persistence**: migration `0008`, the D1 batch (§8.2.8), **auditing** (§8.2.9), **testing** by hand (§8.2.10).
+- For the revision: **time** from the route's `new Date()`, passed down as `now`, compared as ISO 8601 text (§8.2.2); **validation** of the length in `apiKeys.ts`, with the field list (§8.2.1, §8.2.5); **persistence**: migration `0010`, the expiry written in the same batch as every other key write (§8.2.8); **auditing**: the expiry's system ender (§8.2.9); **logging** unchanged; **testing**: the rows below are automated Vitest tests (§8.2.10, `KD-test-framework`), and they need its setup pull request in `MM-Version` first.
 
 For `UC-BRND-create-product`:
 
@@ -418,23 +528,43 @@ For `UC-BRND-create-product`:
 
 _[One row per flow: the main success scenario and **every** extension of every use case this document realizes, appended per use case. Name the level (unit or integration) and what the test asserts. No code. This list is the definition of done that the reviewer approves; the agent writes these tests when it builds, and a reviewer can see at a glance whether an extension has no test._
 
-_There is no test framework yet, so each row is run by hand against `npm run dev` and its result recorded in the pull request (§8.2.10).]_
+_Each row is an automated Vitest test whose name begins with the row's ID, written in the pull request that builds it (§8.2.10, `KD-test-framework`); Worker tests stub WorkOS and pass the time as `now`, and none reaches WorkOS, the client's Cloudflare account, or a secret. A row marked **manual** needs a real browser or a real WorkOS sign-in: it is run by hand against `npm run dev` and its result recorded in the pull request. A **deferred** row waits for the use case it names. Rows marked (regression) cover behavior already built (`MM-Version` PR #36, run by hand there) that a change could break. The `UC-BRND-create-product` rows were run by hand in its build pull request, before the framework existed, and become automated tests when that slice is next changed (`TD-no-tests`).]_
 
 | Use case, flow                                                 | Level       | Asserts                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | -------------------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| UC-BRND-generate-api-key main                                  | integration | The Admin generates a key for a Brand with none: `201` carries a key of at least 256 bits; D1 holds one `ACTIVE` row whose `key_hash` is the SHA-256 of that key and no column holds the key; the panel shows the key once and clears it after confirmation; after closing the drawer or reloading the page, no key is shown and none is in the browser's storage                                                                                                                                                                                      |
-| UC-BRND-generate-api-key 1a                                    | integration | With an `ACTIVE` key, `POST` without `confirmReplace` returns `409 ACTIVE_KEY_EXISTS` and changes nothing; with it, the old row becomes `REPLACED` with ended by and at, and the new row is the only `ACTIVE` one                                                                                                                                                                                                                                                                                                                                      |
-| UC-BRND-generate-api-key 1b                                    | integration | Revoking sets `REVOKED` with ended by and at, and leaves every product row unchanged; revoking it again returns `409 KEY_ALREADY_ENDED` and leaves ended by and at unchanged; an unknown id returns `404`                                                                                                                                                                                                                                                                                                                                              |
-| UC-BRND-generate-api-key 2a                                    | integration | Forced on the tester's machine only, never committed and with no failure hook added to the code: change `generateKey` to return a fixed string, generate once, then replace, so the insert's duplicate `key_hash` fails the batch. The response is `500` and the old key is still the one `ACTIVE` row                                                                                                                                                                                                                                                 |
-| UC-BRND-generate-api-key 4a and 5a                             | integration | No response other than the `201` contains a key or a `key_hash`, checked on `GET` after generating, replacing, and revoking                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| UC-BRND-generate-api-key \*a                                   | integration | A signed `organization.deleted` event revokes every `ACTIVE` key of that Organization, ended by `workos:organization.deleted`; an unsigned one returns `401` and changes nothing                                                                                                                                                                                                                                                                                                                                                                       |
-| UC-BRND-generate-api-key \*a, revoking fails                   | integration | Forced on the tester's machine only, as in 2a (make `revokeAllForOrg` throw): a signed `organization.deleted` returns `500`; sent again after the change is undone, it revokes the keys and returns `200`                                                                                                                                                                                                                                                                                                                                              |
-| UC-BRND-generate-api-key \*a, later sendings refused           | deferred    | Needs `UC-BRND-send-products`; added to this list when it is designed                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| UC-BRND-generate-api-key step 3, product contract link         | deferred    | Needs the contract `UC-BRND-send-products` publishes; added to this list when it is designed                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| PRE-1, authorization                                           | integration | Signed out: `401` on all three routes. A Brand or Vendor user: `403`. A user whose Admin role was removed in D1 after signing in: `403`                                                                                                                                                                                                                                                                                                                                                                                                                |
-| PRE-2                                                          | integration | An Organization unknown to WorkOS: `404 ORGANIZATION_NOT_FOUND`. An Organization with no active `brand` membership: `422 NOT_A_BRAND`, including one whose only `brand` membership is pending. A user who is a Brand in Organization A and a Vendor in Organization B, signed in to B: B is refused with `422 NOT_A_BRAND` and A is given a key, whatever D1 holds for that user. An `:orgId` that is a real Organization's id followed by an encoded `/`, `?`, or `&` and more text returns `404 ORGANIZATION_NOT_FOUND`. Nothing stored when refused |
-| PRE-2, WorkOS fails                                            | integration | Sign in as the Admin, then change `WORKOS_API_KEY` in `.dev.vars` to a wrong value and restart `npm run dev`: `POST` returns `502` and stores nothing                                                                                                                                                                                                                                                                                                                                                                                                  |
-| `SEC-api-key-ending`                                           | integration | A replaced or revoked key's row is no longer `ACTIVE` immediately after the call returns                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `GAK-step-1` UC-BRND-generate-api-key step 1, the lengths | integration | `GET /api/api-keys` returns the lengths 7, 14, 30, 45, 60, and 90 days and the default 14, equal to `API_KEY_LENGTHS_DAYS` and `DEFAULT_API_KEY_LENGTH_DAYS`; `POST` with each of them returns `201` |
+| `GAK-step-1-length-refused` UC-BRND-generate-api-key step 1, length checked on the server | integration | `POST` with `lengthDays` missing, `0`, `15`, `365`, `14.5`, `"14"`, or `null`: `422 INVALID_LENGTH` whose `fields` names `lengthDays`; no row stored; the WorkOS stub was not called |
+| `GAK-step-2` UC-BRND-generate-api-key step 2 (regression) | integration | For a Brand with no key: `201` carries a 43-character base64url key (256 bits); D1 holds one `ACTIVE` row whose `key_hash` is the SHA-256 of that key, and no column holds the key |
+| `GAK-step-3` UC-BRND-generate-api-key step 3, the expiry | integration | With `now` fixed and `lengthDays` 14, the `201`'s `expiresAt` and the row's `expires_at` are both exactly `now` plus 14 × 24 hours, as `toISOString()` text |
+| `GAK-step-3-shown` UC-BRND-generate-api-key step 3, on screen | manual | In a browser: the new key dialog shows the key and its expiry date in the viewer's time zone, with the length chosen at step 1 preselected at 14 |
+| `GAK-step-3-link` UC-BRND-generate-api-key step 3, product contract link | deferred | Needs the contract `UC-BRND-send-products` publishes; added to this list when it is designed |
+| `GAK-steps-4-5` UC-BRND-generate-api-key steps 4 and 5, shown once (regression) | manual | In a browser: the panel shows the key once and clears it after confirmation; after closing the drawer or reloading the page, no key is shown and none is in the browser's storage |
+| `GAK-POST-4` UC-BRND-generate-api-key POST-4, the record (regression) | integration | After generating, the row's `created_by` is the Admin's D1 `users.id` and `created_at` is `now`; neither changes after the key is replaced, revoked, or expires |
+| `GAK-POST-1` UC-BRND-generate-api-key POST-1, one active key (regression) | integration | Inserting a second `ACTIVE` row for one Organization directly fails on the partial unique index. Two `POST`s without `confirmReplace` at once, for a Brand with no key and for one whose only key has expired: one `201`, one `500`, and one `ACTIVE` row |
+| `GAK-1a` UC-BRND-generate-api-key 1a (regression) | integration | With a key `ACTIVE` and unexpired, `POST` without `confirmReplace`: `409 ACTIVE_KEY_EXISTS`, nothing changed; with it: the old row is `REPLACED`, ended by the Admin at `now`, and the new row is the only `ACTIVE` one |
+| `GAK-1a-panel` UC-BRND-generate-api-key 1a, the warning | unit | `apiKeyDisplay`: for a current key `ACTIVE` as of now, the action is Replace and the warning shows; for no key, `REVOKED`, `REPLACED`, or `EXPIRED`, the action is Generate and no warning shows |
+| `GAK-1b` UC-BRND-generate-api-key 1b (regression) | integration | Revoking sets `REVOKED`, ended by the Admin at `now`, and leaves every `universal_products` row unchanged; revoking again: `409 KEY_ALREADY_ENDED`, ended by and at unchanged; an unknown id: `404` |
+| `GAK-1b-expired` UC-BRND-generate-api-key 1b on an expired key | integration | Revoking a key whose `status` is still `ACTIVE` but whose `expires_at` has passed: `409 KEY_ALREADY_ENDED`; the row is `EXPIRED`, ended by `system:api-key.expired` at its `expires_at`, never `REVOKED` |
+| `GAK-1c` UC-BRND-generate-api-key 1c | integration | With the clock at the old key's `expires_at` exactly, and again one hour later: `POST` without `confirmReplace` returns `201`; the old row is `EXPIRED`, ended by `system:api-key.expired` at its `expires_at`; the new row is the only `ACTIVE` one. With the clock one millisecond before `expires_at`: `409 ACTIVE_KEY_EXISTS`. With `confirmReplace` on an expired key: the old row is `EXPIRED`, not `REPLACED` |
+| `GAK-2a` UC-BRND-generate-api-key 2a (regression) | integration | The test makes the batch fail with no failure hook in production code (for example, by stubbing `crypto.getRandomValues` so the new key's hash equals a stored one): `500` with the fixed message; the old key is still the one `ACTIVE` row, and an expired old key's row is still unwritten (the batch rolled back); the logged line holds no key or hash |
+| `GAK-4a-5a` UC-BRND-generate-api-key 4a and 5a, never shown again (regression) | integration | After generating, replacing, revoking, and expiring: no response from `GET /api/api-keys`, `GET /api/organizations/:orgId/api-keys`, or the revoke contains the key or any `key_hash` |
+| `GAK-*a1` UC-BRND-generate-api-key \*a1, the webhook (regression) | integration | A signed `organization.deleted` (signed in the test with a test secret binding): every unexpired `ACTIVE` key of that Organization becomes `REVOKED`, ended by `workos:organization.deleted`; one already past its expiry becomes `EXPIRED` instead; other Organizations' keys unchanged; `200`. Sent twice: nothing changes the second time. Unsigned or wrongly signed: `401`, nothing changed |
+| `GAK-*a1-fails` UC-BRND-generate-api-key \*a1, revoking fails (regression) | integration | With the revoke made to fail in the test, a signed `organization.deleted` returns `500`; sent again once it succeeds, it revokes the keys and returns `200` |
+| `GAK-*a1-sending` UC-BRND-generate-api-key \*a1, later sendings refused | deferred | Needs `UC-BRND-send-products`; added to this list when it is designed |
+| `GAK-*a2` UC-BRND-generate-api-key \*a2 | integration | Signed `organization_membership.updated` and `organization_membership.deleted` events for a Brand's only `brand` member (WorkOS stubbed for the role resync): the Brand's key is still `ACTIVE`, and `effectiveState` still says `ACTIVE` |
+| `GAK-*b` UC-BRND-generate-api-key \*b and POST-5, expiry | unit | `effectiveState`: `ACTIVE` with `expires_at` one millisecond after `now` is `ACTIVE`; equal to `now` or before it is `EXPIRED`; `ACTIVE` with NULL `expires_at` is `EXPIRED`; `REPLACED` and `REVOKED` stay as they are |
+| `GAK-*b-listed` UC-BRND-generate-api-key \*b1, shown as expired | integration | With the clock past a key's `expires_at`, both `GET` routes show it `EXPIRED`, ended at its `expires_at`, with `daysLeft` NULL, and the row in D1 is still unwritten (`ACTIVE`): a `GET` writes nothing |
+| `GAK-*b-sending` UC-BRND-generate-api-key \*b1 and POST-5, sending refused | deferred | `FR-API-key-expiry`'s oracle, a sending with a key one second past its expiry refused, needs `UC-BRND-send-products`; added when it is designed |
+| `GAK-*c` UC-BRND-generate-api-key \*c1, days left | integration | A key generated for 14 days shows `daysLeft` 14 at once, 1 at 13 days and 1 hour, and 1 at 13 days exactly; NULL once `first_sent_at` is set (set directly in the test), and NULL for a `REVOKED`, `REPLACED`, or expired key |
+| `GAK-*c-overview` UC-BRND-generate-api-key \*c1, one call for the list | integration | With four Organizations (a working key; an expired key; a replaced key and its working successor; no key), `GET /api/api-keys` returns one entry each for the first three, the current key in each (the working one, else the newest), and none for the fourth |
+| `GAK-*c-row` UC-BRND-generate-api-key \*c1, on screen | manual | In a browser: each Brand row shows its key status and days left from one `GET /api/api-keys` request, whatever the number of Organizations; a row with no key shows none |
+| `GAK-*c-reminder` UC-BRND-generate-api-key \*c1, the reminder | deferred | How and how early the Admin is reminded is `OI-76`; added when it is answered |
+| `GAK-PRE-1` UC-BRND-generate-api-key PRE-1, authorization (regression) | integration | Signed out: `401` on all four key routes. A Brand, Vendor, or Consumer user: `403`. A user whose Admin role was removed in D1 after signing in: `403` |
+| `GAK-PRE-2` UC-BRND-generate-api-key PRE-2 (regression) | integration | WorkOS stubbed. An Organization unknown to WorkOS: `404 ORGANIZATION_NOT_FOUND`. No active `brand` membership, including one whose only `brand` membership is pending: `422 NOT_A_BRAND`. A user who is a Brand in A and a Vendor in B, signed in to B: B refused with `422`, A given a key, whatever D1 holds. An `:orgId` with an encoded `/`, `?`, or `&` and more text: `404`. Nothing stored when refused |
+| `GAK-PRE-2-workos-fails` UC-BRND-generate-api-key PRE-2, WorkOS fails (regression) | integration | WorkOS stubbed to be unreachable, to answer `500`, to send an unreadable body, and to fail on the second page of memberships: `502` each time, nothing stored |
+| `GAK-PRE-2-real` UC-BRND-generate-api-key PRE-2 against WorkOS | manual | Signed in as the Admin through the team's test WorkOS: generate, replace, and revoke a key for a real Brand Organization, and get `422 NOT_A_BRAND` for a Vendor Organization |
+| `GAK-SEC-api-key-ending` `SEC-api-key-ending` (regression, extended) | integration | Immediately after a replace or revoke returns, and from the moment the clock reaches `expires_at`, `effectiveState` of that key is not `ACTIVE` |
+| `GAK-migration-0010` migration `0010` | integration | A D1 at `0009` holding an `ACTIVE` key made 3 days ago, an `ACTIVE` key made 20 days ago, and a `REVOKED` key: after `0010`, the first two have `expires_at` equal to `created_at` plus 14 days, in `toISOString()` format; the second is `EXPIRED` by `effectiveState`; the `REVOKED` key's `expires_at` is NULL; `first_sent_at` is NULL on all three |
 | UC-BRND-create-product main                                    | integration | A Brand creates a Card with two photos in an existing Category: `201`; the D1 row is `WAITING` with the session's `org_id`, the user's `brand_id`, the Category's `category_id` and name, `media.type` `image`, both photo URLs in the order chosen, and the first as `primary_image`; the Media Store holds both photos; the dialog says the product is waiting for Approval                                                                                                                                                                          |
 | UC-BRND-create-product 3a                                      | integration | Choosing photos and naming a new Category, then cancelling, sends no request; no product, Category, or photo is stored                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | UC-BRND-create-product 3b                                      | integration | A Text Card with no photos: `201`, `media.type` `text`, no photos stored. A Text Card sent with a photo or a video link: `422` naming that field, nothing stored                                                                                                                                                                                                                                                                                                                                                                                       |
@@ -467,6 +597,13 @@ _[Designing an area against real code is when the architecture's guesses meet re
 - Section 11: added `RISK-workos-org-deleted-event`, because extension \*a depends on the client's WorkOS dashboard sending `organization.deleted` to the webhook.
 - Section 8.2.9, auditing: who made a change may also be a system event, such as `workos:organization.deleted` from the webhook.
 
+For the revision of `UC-BRND-generate-api-key`:
+
+- Section 8.1, authentication: an expired key is refused from the moment it expires, decided when the key is read, not by a schedule; a Brand's access counts as removed only when its Organization is deleted, until `OI-77`.
+- Section 8.2.8, persistence: `0010` is the API Key expiry's.
+- Section 8.2.9, auditing: `system:api-key.expired` is the system ender of an expired key, and its time is the expiry itself.
+- Section 11: `RISK-workos-org-deleted-event` now says the client usually removes a Brand's access and keeps its Organization, so the webhook covers the rarer path, and the key keeps working until it expires or is revoked (`OI-77`).
+
 For `UC-BRND-create-product`:
 
 - Section 8.2.1, error handling: a refusal by a data check adds `fields`, one `{ field, message }` per failing field, so every route that stores products gives the same reasons (`FR-PROD-server-checks`).
@@ -478,9 +615,14 @@ For `UC-BRND-create-product`:
 
 _[What this design could not settle and who can, and what could go wrong that you are accepting. A question for the client also goes in [`OPEN-ISSUES.md`](../requirements/OPEN-ISSUES.md).]_
 
-- **The webhook must receive `organization.deleted`.** If the client's WorkOS dashboard does not send that event to `/api/webhooks/workos`, a deleted Brand's key keeps working until the Admin revokes it (`RISK-workos-org-deleted-event`). The team checks the WorkOS webhook settings with the client before release.
+- **The webhook must receive `organization.deleted`.** If the client's WorkOS dashboard does not send that event to `/api/webhooks/workos`, a deleted Brand's key keeps working until the Admin revokes it (`RISK-workos-org-deleted-event`). The team checks the WorkOS webhook settings with the client before release. _Revised 2026-11-18: the client usually keeps the Organization and removes the Brand's access instead (sixth client meeting, 08:52–09:22), which no event ends a key for; until `OI-77`, that key works until it expires or he revokes it, so he revokes it when he removes a Brand's access (\*a2)._
 - **A key generated while its Organization is being deleted.** If the Admin generates a key in the same moment he deletes its Organization in WorkOS, the webhook can run before the insert and revoke nothing, leaving an `ACTIVE` key for a deleted Organization that the Brands tab no longer shows. Accepted: only the Admin can do both, and doing both at once is not a real workflow. If it matters later, the webhook records deleted Organization ids and `issueKey` refuses them. Decided by Matthew Stafford, 2026-11-09.
 - **Nothing uses a key yet.** A key can be generated and ended, but no sending exists until `UC-BRND-send-products`; that use case's design adds the key check, the product contract link of step 3, and the deferred tests above.
+- **The lengths are a team default.** 7, 14, 30, 45, 60, and 90 days with 14 chosen and no "never" is the proposal written in `OI-75`, not the client's answer; his answer changes `API_KEY_LENGTHS_DAYS`, its default, and `GAK-step-1`.
+- **The reminder is only the countdown.** Any other reminder, and what counts as having sent, wait on `OI-76`; whether a key can be extended rather than replaced waits on `OI-78`. Until then a key is never extended, and the Admin generates a new one (1c).
+- **Old keys may expire at once.** Migration `0010` gives every active key 14 days from when it was generated, so any key made more than 14 days before `0010` runs is expired at once. Accepted: nothing accepts a key yet.
+- **The spec still says removing access ends a key.** `SEC-api-key-ending` and the glossary's API Key entry say a key whose Brand's access has been removed is refused, while \*a2 keeps it working until `OI-77`. This design follows \*a2; the spec wording waits on the same answer.
+- **Front-end tests have no DOM.** `KD-test-framework` adds Vitest only, so the panel's choices are tested through `apiKeyDisplay.ts`, and what only a rendered page shows is manual. Rendering the panel in a test would need `jsdom` and `@testing-library/react`, dependencies a person must confirm first.
 - **The Brand test needs a Brand user in WorkOS.** A Brand whose Organization has no active `brand` membership yet is refused with `422 NOT_A_BRAND`; the Admin adds the Brand's user in WorkOS first. No sync into D1 is needed. Whether a Brand user always exists before the key is handed over is `OI-60`.
 - **Markets find products by Category name, across Brands.** The Market queries and the Consumer's deck match a product to a Market by its Category's name, not its id. Once Brands create their own Categories, two Brands' Categories of the same name pull each other's approved products into the same Market, which breaks `BR-brand-categories` (`RISK-category-name-join`). A waiting product is hidden, so this use case does not expose it; it must be fixed, using `category_id`, before `UC-BRND-approve-product` puts a Brand's product live. The same fix must resolve a Market's Category ids to names on the server, because `GET /api/categories` no longer gives anyone but the Admin a Brand's Categories.
 - **Brands can still change products with no Approval.** A Brand's spreadsheet import (`POST /api/products/bulk`) and product change (`PUT /api/products/:id`, for products from before Approval only) still go live at once until `UC-BRND-import-products` and `UC-BRND-update-product` replace them (`TD-products-live-unchecked`). Products from before Approval stay live without one; the client should know that only products created after this release wait for him.
