@@ -3,7 +3,7 @@
 **Project:** Market Match
 **Team:** 11
 **Client:** Demetrie King
-**Version:** 0.10
+**Version:** 0.11
 
 ---
 
@@ -39,6 +39,7 @@ _Within one use case, `PRE-1`, `POST-1`, and the step numbers are local and may 
 | 2026-11-04 | 0.8     | Expanded `UC-PROD-view-product-details` with public access, published Card content, optional media, and failure paths; linked existing Flip and Click capture use cases; brought in line with client meetings 4 and 5 (video sites and files, Anonymous Consumer, resolved `OI-16`)                                                                                                                                                                                                                                                                                                           | Vinh Nguyen      |
 | 2026-11-04 | 0.9     | `UC-BRND-generate-api-key`: Description gives the client's reason for issuing keys himself (not being flooded); Assumptions mark showing once, replace, revoke, and \*a as team decisions; added `OI-60`–`OI-62`                                                                                                                                                                                                                                                                                                                                                                              | Matthew Stafford |
 | 2026-11-13 | 0.10    | Filed the linter and type-check cleanup's behavior rulings: added `UC-BRND-update-brand-settings` (only what changed is saved; any combination of social media handles; an emptied handle is removed; `OI-69`, `OI-72`; whether the other profile fields are required is `OI-73`); `UC-FDBK-rate-product` keeps each swipe's displayed text and lists the browser's `yes`-only Like count as a gap; `UC-BRND-update-product` lists the editor opening without the product's photos, video, and description as a gap; `UC-FDBK-complete-market`'s completion assumption now cites the client's answer (`OI-20`) | Matthew Stafford |
+| 2026-11-16 | 0.11    | From the design of `UC-BRND-create-product` (`docs/design/brnd.md`): 3d1 stores a new Category with the product at step 5, so it no longer contradicts 5a; 3b1 says a Text Card's title is its text and the other fields of step 2 are still asked for; set the title limit at 100 characters; moved the video note out of the Associated Information table, which it had split; SKU letter case is `OI-74` | Matthew Stafford |
 
 ---
 
@@ -971,7 +972,7 @@ A Brand also sees, for every product it has submitted however it arrived, whethe
 
 **UC ID and Name:** `UC-BRND-create-product`: Create a product
 **Created By:** Chris Ramirez; revised by Matthew Stafford
-**Date Created:** 2026-09-14; revised 2026-10-25 and 2026-10-28
+**Date Created:** 2026-09-14; revised 2026-10-25, 2026-10-28, and 2026-11-16
 **Primary Actor:** Brand
 **Secondary Actors:** Admin, who reviews the product (`UC-BRND-approve-product`)
 **Trigger:** The Brand chooses to add a product to its Inventory.
@@ -1001,11 +1002,11 @@ A Brand also sees, for every product it has submitted however it arrived, whethe
 - **3a. The Brand cancels before submitting:**
   - 3a1. No product is created. The use case ends.
 - **3b. The product is a Text Card:**
-  - 3b1. The Brand supplies the title and the text only. Photos and a video are not asked for. Rejoins at step 4.
+  - 3b1. Photos and a video are not asked for; the title is the Card's text. The Brand supplies the other content of step 2. Rejoins at step 4.
 - **3c. The product is a Card:**
   - 3c1. The Brand supplies one to three photos, the first being the Card's front, and may add one video link. Rejoins at step 4.
 - **3d. The Category the product belongs in does not exist yet:**
-  - 3d1. The Brand names a new Category. The system creates it for this Brand only and selects it. Rejoins at step 3.
+  - 3d1. The Brand names a new Category. The system selects it, and stores it for this Brand only together with the product at step 5. Rejoins at step 3.
 - **4a. A required field is missing or a field is invalid:**
   - 4a1. The system names each failing field and stores nothing; the form keeps what the Brand typed. The Brand corrects it and returns to step 3, or cancels.
 - **4b. A Card has no photo, more than three photos, or more than one video link, or a photo is not JPEG or PNG or is 3 MB or larger:**
@@ -1031,16 +1032,16 @@ These are the fields the client fills in today (fifth client meeting); a longer 
 |---|---|---|---|---|
 | SKU | String | Required; unique within the Brand's Inventory; cannot be changed later | Supplied by the Brand; identifies the product on later imports | SKU |
 | Card type | Enumeration | Required; `CARD` or `TEXT_CARD` | Supplied by the Brand | Card; Text Card |
-| Title | String | Required; the client set no length limit, so the design sets one | Shown to Consumers once approved | Card |
+| Title | String | Required; at most 100 characters (the client set no limit, so the design set one; `OI-55`) | Shown to Consumers once approved | Card |
 | Description | String | Required | Shown to Consumers once approved | Card |
 | Price | Decimal | Optional; ≥ 0 | Shown only where a Market shows prices | Line Item |
 | Category | Identifier | Required; one of the Brand's own Categories, or a new one the Brand names (3d) | A Brand sees and uses only its own Categories | Category |
 | Photos | One to three images | Cards only; the first is the front; each JPEG or PNG and under 3 MB | Shown to Consumers once approved | Card |
 | Video link | URL | Cards only; optional; at most one; a YouTube or Vimeo link | Shown to Consumers once approved | Card |
-
-The client also accepts other video sites and video files (fifth client meeting). This release takes YouTube and Vimeo links only (team decision, 2026-10-28): other sites wait for his list, and video files wait for his answer on their size and on storing them, which adds to his Cloudflare storage (`OI-57`). Adding either later is a new extension here, not a change to this flow.
 | Brand reference | Identifier | Required; taken from the signed-in user's Organization, never from input | A Brand creates products only in its own Inventory | Brand |
 | Approval status | Enumeration | Set by the system: `WAITING`, `APPROVED`, or `RETURNED` | Only the Admin changes it, in `UC-BRND-approve-product` | Approval |
+
+The client also accepts other video sites and video files (fifth client meeting). This release takes YouTube and Vimeo links only (team decision, 2026-10-28): other sites wait for his list, and video files wait for his answer on their size and on storing them, which adds to his Cloudflare storage (`OI-57`). Adding either later is a new extension here, not a change to this flow.
 
 **Current state in the client's repository:**
 - A Brand's "Add Item" saves the product as `ACTIVE`, live at once, with no Approval (`components/BrandDashboard.tsx`; `POST /api/products` in `worker/src/index.ts`).
@@ -1061,6 +1062,7 @@ The client also accepts other video sites and video files (fifth client meeting)
 **Open Issues:** Tracked in [OPEN-ISSUES.md](OPEN-ISSUES.md).
 - [OI-57](OPEN-ISSUES.md#open): Which other video sites, and may Brands send video files, how large, and stored in Market Match? Not needed for this release, which takes YouTube and Vimeo links only.
 - [OI-55](OPEN-ISSUES.md#open): Which further product details, by kind of product? Phase 1 uses the fields above.
+- [OI-74](OPEN-ISSUES.md#open): Are `ABC-1` and `abc-1` the same SKU? Until answered, letter case counts and surrounding spaces do not (`docs/design/brnd.md`).
 - Resolved in the fifth client meeting: required fields for phase 1 ([OI-23](OPEN-ISSUES.md#resolved)), JPEG or PNG under 3 MB ([OI-24](OPEN-ISSUES.md#resolved)), video links ([OI-38](OPEN-ISSUES.md#resolved)), the Brand chooses the Category ([OI-39](OPEN-ISSUES.md#resolved)), and an existing SKU changes that product ([OI-40](OPEN-ISSUES.md#resolved)).
 - [OI-25](OPEN-ISSUES.md#resolved) and [OI-26](OPEN-ISSUES.md#resolved) (resolved): who may create products, and how an approved product reaches a Market. See [Approval](project-glossary.md#approval), [Inventory](project-glossary.md#inventory), and [Category](project-glossary.md#category).
 
