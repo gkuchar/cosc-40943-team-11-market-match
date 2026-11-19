@@ -8,7 +8,7 @@
 > **Depends on:** `BR-admin-issues-api-key`, `BR-connect-product-system`, `BR-products-brand-only`, `BR-create-organization`, `BR-admin-role`, `BR-submit-product`, `BR-approve-product`, `BR-text-card`, `BR-product-media-limit`, `BR-photo-size`, `BR-brand-categories`; `SEC-authentication`, `SEC-api-key-strength`, `SEC-api-key-ending`, `SEC-brand-isolation`; `KD-api-key-storage`, `KD-photos-copied`
 > **See:** [use cases](../requirements/use-cases.md#brnd-brand-participation), [specification](../requirements/software-requirements-specification.md), [architecture-of-record](architectural-design.md)
 > **Designed against:** `MM-Version`, branch `tcu-fall-2026-stage`: commit `699a0ac` for `UC-BRND-generate-api-key`; commit `e6b49ca` for `UC-BRND-create-product`
-> **Built:** `UC-BRND-generate-api-key`: `MM-Version` PR #36, commit `c503e5f`. `UC-BRND-create-product`: in progress on `MM-Version` branch `feature/uc-brnd-create-product` (`b4b26f3`)
+> **Built:** `UC-BRND-generate-api-key`: `MM-Version` PR #36, commit `c503e5f`. `UC-BRND-create-product`: `MM-Version` PR #49, commit `b4b26f3`
 
 ---
 
