@@ -423,7 +423,7 @@ sqlfluff lint worker/migrations
 npm test
 ```
 
-`npm test` and the `worker/test` type check, lint, and format joined the gate with the setup pull request that added Vitest (`MM-Version` PR #50, §8.2.10), and run in the worker job of `.github/workflows/pull-request.yml`. `worker/test/tsconfig.json` also type-checks the `worker/src` files the tests import, so it reports their existing errors (`TD-analyzer-findings`) as well. A failing or skipped test fails the gate as an analyzer finding does: a test is never skipped, deleted, or loosened to make a job pass without saying so in the pull request.
+`npm test` and the `worker/test` type check, lint, and format joined the gate with the setup pull request that added Vitest (`MM-Version` PR #50, §8.2.10), and run in `.github/workflows/pull-request.yml`: the `worker/test` checks in the worker job, and `npm test` in a `tests` job of its own, so a test failure shows apart from the analyzer findings. `worker/test/tsconfig.json` also type-checks the `worker/src` files the tests import, so it reports their existing errors (`TD-analyzer-findings`) as well. A failing or skipped test fails the gate as an analyzer finding does: a test is never skipped, deleted, or loosened to make a job pass without saying so in the pull request.
 
 The build (`vite build`) does not type-check, which is why `tsc` runs separately. Fixing modes (`eslint --fix`, `prettier --write`) run only locally, never in CI.
 
