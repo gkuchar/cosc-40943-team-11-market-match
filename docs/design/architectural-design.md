@@ -40,7 +40,7 @@ _[These are slugs, like every other identifier in your project, so an inserted d
 | 0.4     | 2026-11-04 | Matthew Stafford | §8.2.9: who made a change can be a system event, such as `workos:organization.deleted` from the BRND design |
 | 0.5     | 2026-11-13 | Matthew Stafford | Added §8.2.11 Static analysis and §7.1; added the required-identifier and promise rules to §8.2.1, form-date and older-data rules to §8.2.2, and boundary typing and unavailable measures to §8.2.4; corrected §8.2.10, which said there was no linter; added `TD-analyzer-findings`, `TD-gate-scope`, and `TD-obsolete-postgres-config` in §11 |
 | 0.6     | 2026-11-16 | Matthew Stafford | From the BRND design of `UC-BRND-create-product` (`docs/design/brnd.md`): the field list of a refused data check in §8.2.1; §8.2.5 names the Catalog's product check; §8.2.8 continues migrations from `0009`; `RISK-category-name-join` added and `TD-products-live-unchecked` updated in §11, including the Brand's `PUT /api/products/:id` refused for products in Approval |
-| 0.7     | 2026-11-18 | Matthew Stafford | `KD-test-framework`: Vitest, with `@cloudflare/vitest-pool-workers` for the Worker; §8.2.10 rewritten so a design's test list is automated tests; `npm test` joins the §8.2.11 gate; `TD-no-tests` being fixed |
+| 0.7     | 2026-11-18 | Matthew Stafford | `KD-test-framework`: Vitest, with `@cloudflare/vitest-pool-workers` for the Worker; §8.2.10 rewritten so a design's test list is automated tests; `npm test` joins the §8.2.11 gate; `TD-no-tests` being fixed; §8.2.8 numbers a new migration after every open pull request's, not from a fixed number |
 
 ---
 
@@ -389,7 +389,7 @@ Log identifiers, never content: no secrets, session tokens, API Keys, or passwor
 
 #### 8.2.8 Persistence and concurrency
 
-Cloudflare D1 is the only database: production and preview use their own D1 databases, and local development (`npm run dev`) uses a local D1 database, never PostgreSQL. Schema changes are Drizzle migrations in `worker/migrations/`, never renamed, because D1 records applied migrations by filename; new ones continue from `0009` (`0008` is `api_keys`). A change that writes several rows (a sending, approving many products at once) commits each product's rows together, so a product is never half-stored; a sending stopped partway is completed by sending it again, matched by SKU (`ROB-import-resend`). When two people act on one record, the later action is checked against the version it was based on and refused if that version changed (`UC-BRND-approve-product` extension 6a).
+Cloudflare D1 is the only database: production and preview use their own D1 databases, and local development (`npm run dev`) uses a local D1 database, never PostgreSQL. Schema changes are Drizzle migrations in `worker/migrations/`, never renamed, because D1 records applied migrations by filename; a new one takes the next number after the highest in `worker/migrations/` on `tcu-fall-2026-stage` and in any open pull request, so two branches never claim the same number (`0008` is `api_keys`, `0009` is `UC-BRND-create-product`'s). A change that writes several rows (a sending, approving many products at once) commits each product's rows together, so a product is never half-stored; a sending stopped partway is completed by sending it again, matched by SKU (`ROB-import-resend`). When two people act on one record, the later action is checked against the version it was based on and refused if that version changed (`UC-BRND-approve-product` extension 6a).
 
 #### 8.2.9 Auditing
 
