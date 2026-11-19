@@ -3,7 +3,7 @@
 **Project:** Market Match
 **Team:** 11
 **Client:** Demetrie King
-**Version:** 0.11
+**Version:** 0.12
 
 ---
 
@@ -40,6 +40,7 @@ _Within one use case, `PRE-1`, `POST-1`, and the step numbers are local and may 
 | 2026-11-04 | 0.9     | `UC-BRND-generate-api-key`: Description gives the client's reason for issuing keys himself (not being flooded); Assumptions mark showing once, replace, revoke, and \*a as team decisions; added `OI-60`–`OI-62`                                                                                                                                                                                                                                                                                                                                                                              | Matthew Stafford |
 | 2026-11-13 | 0.10    | Filed the linter and type-check cleanup's behavior rulings: added `UC-BRND-update-brand-settings` (only what changed is saved; any combination of social media handles; an emptied handle is removed; `OI-69`, `OI-72`; whether the other profile fields are required is `OI-73`); `UC-FDBK-rate-product` keeps each swipe's displayed text and lists the browser's `yes`-only Like count as a gap; `UC-BRND-update-product` lists the editor opening without the product's photos, video, and description as a gap; `UC-FDBK-complete-market`'s completion assumption now cites the client's answer (`OI-20`) | Matthew Stafford |
 | 2026-11-16 | 0.11    | From the design of `UC-BRND-create-product` (`docs/design/brnd.md`): 3d1 stores a new Category with the product at step 5, so it no longer contradicts 5a; 3b1 says a Text Card's title is its text and the other fields of step 2 are still asked for; set the title limit at 100 characters; moved the video note out of the Associated Information table, which it had split; SKU letter case is `OI-74` | Matthew Stafford |
+| 2026-11-18 | 0.12    | Filed the sixth client meeting: `UC-BRND-generate-api-key` keys expire after a length the Admin chooses (step 1, extensions 1c and \*b, POST-5), the Admin sees the days left until the Brand sends products (\*c), and \*a follows how the client actually removes a Brand; `UC-BRND-send-products` 2a refuses an expired key; a waiting change leaves Consumers seeing the last approved version (`UC-BRND-update-product` POST-2, `UC-PROD-view-product-details`, `UC-BRND-approve-product`), resolving `OI-35` | Matthew Stafford |
 
 ---
 
@@ -546,7 +547,7 @@ Rate a product.
 | Video | Optional link or file | At most one; a link to the site hosting it, or a video file (`BR-product-media-limit`; which sites, and file limits, pending `OI-57`); a Text Card has none | Opening media follows `UC-FDBK-open-card-media` | Card; Clicks |
 | Media item and slot | Identifier and enumeration | Identify the specific photo or video and its slot as defined in `UC-FDBK-open-card-media` | System associates Clicks with the correct product and media | Clicks |
 
-Product data is read only in this use case. A Text Card's lack of photos or video is valid and is not a media-load failure. Details access exposes only approved content, never a change still waiting for Approval (`FR-PROD-hidden-until-approved`); what Consumers see of the product in the meantime is open (`OI-35`).
+Product data is read only in this use case. A Text Card's lack of photos or video is valid and is not a media-load failure. Details access exposes only approved content, never a change still waiting for Approval (`FR-PROD-hidden-until-approved`); while a change waits, Consumers see the product's last approved version (sixth client meeting, `OI-35`).
 
 Behavioral capture belongs to `FEAT-feedback-insights`, and this use case only refers to it. `UC-FDBK-flip-card` owns the first Flip and its dwell time ([Average Dwell Time](project-glossary.md#average-dwell-time)), including repeated flips and leaving without swiping. `UC-FDBK-rate-product` owns Time-to-Swipe. `UC-FDBK-open-card-media` owns media Clicks, Photo View Time, and their retries; video watch time is not measured (`BR-media-clicks`). Time spent reading the back is not dwell time; whether the cumulative front and back time is kept is open (`OI-14`). An empty back can still be flipped, while a failed details load must not be counted as a successful details view. OI-8 remains open for Flip or viewing-activity recording failures.
 
@@ -567,7 +568,7 @@ Behavioral capture belongs to `FEAT-feedback-insights`, and this use case only r
 - [OI-14](OPEN-ISSUES.md#open): Should the cumulative front and back time on a Card be kept, now that dwell time ends at the first Flip?
 - [OI-15](OPEN-ISSUES.md#open): Does navigating the photo carousel count as a Click, or only tapping to enlarge? Governed by `UC-FDBK-open-card-media`.
 - [OI-16](OPEN-ISSUES.md#resolved) (resolved): One Click per Consumer per photo; tapping the same photo again adds none. Governed by `UC-FDBK-open-card-media`.
-- [OI-35](OPEN-ISSUES.md#open): While a change to a published product waits for Approval, do Consumers keep seeing the current version, or is the product hidden?
+- Resolved in the sixth client meeting: while a change waits for Approval, Consumers keep seeing the last approved version ([OI-35](OPEN-ISSUES.md#resolved)).
 - [OI-57](OPEN-ISSUES.md#open): Besides YouTube and Vimeo, which video sites may a Brand link to, and may it send a video file?
 
 ---
@@ -1205,7 +1206,7 @@ Market Match downloads each linked photo when the row is checked and keeps its o
   - 1a1. The system rejects the whole batch with the reason and stores nothing.
 - **1b. The batch names a Brand other than the API Key's Brand, or a product belonging to another Brand:**
   - 1b1. The system rejects the whole batch, stores nothing, and records the attempt so the Admin can see it. A batch never needs to name a Brand, because the API Key decides it.
-- **2a. The API Key is unknown, has been replaced by a newer one, or has been revoked, or the Brand's access has been removed:**
+- **2a. The API Key is unknown, has been replaced by a newer one, has been revoked, or has expired, or the Brand's access has been removed:**
   - 2a1. The system rejects the batch, stores nothing, and records the attempt so the Admin can see it.
 - **2b. The batch has more products than one sending accepts:**
   - 2b1. The system rejects the batch with the limit (`SCA-import-batch-limit`), and the Brand's system sends smaller batches; a Brand with 500 SKUs sends three.
@@ -1280,7 +1281,7 @@ Market Match publishes the contract the Brand's system must follow: the fields, 
 **Postconditions:**
 
 - POST-1. The change is stored against the product, waiting for Approval.
-- POST-2. No Consumer sees the change until the Admin approves it. What Consumers see of the product in the meantime is open.
+- POST-2. No Consumer sees the change until the Admin approves it. Until then, Consumers keep seeing the product's last approved version, in every Market it is in (sixth client meeting, 11:05).
 - POST-3. The change is in the Admin's list of products waiting for Approval, marked as a change, and in the Brand's list of submitted products.
 - POST-4. Once the Admin approves the change, the product's data points (swipes, Clicks, viewing times) start fresh from that moment, and those from before it are kept and reported to the Brand as the earlier period, dated by the change.
 
@@ -1340,7 +1341,7 @@ The changeable fields are those of `UC-BRND-create-product` except the SKU and t
 - A change replaces the whole content the Brand submits, not a single field at a time.
 
 **Open Issues:** Tracked in [OPEN-ISSUES.md](OPEN-ISSUES.md).
-- [OI-35](OPEN-ISSUES.md#open): While a change waits for Approval, do Consumers keep seeing the current version, or is the product hidden?
+- Resolved in the sixth client meeting: Consumers keep seeing the last approved version while a change waits ([OI-35](OPEN-ISSUES.md#resolved)).
 - [OI-56](OPEN-ISSUES.md#open): Does the limit on removals also count changes?
 - Resolved in the fifth client meeting: results restart after a change ([OI-41](OPEN-ISSUES.md#resolved)), Brands may remove products ([OI-42](OPEN-ISSUES.md#resolved)), and how often Brands send products ([OI-32](OPEN-ISSUES.md#resolved)).
 
@@ -1590,7 +1591,7 @@ The Brand sees each decision in its list of submitted products. Market Match sen
 - The Admin gives a reason whenever he returns a product, so the Brand knows what to fix.
 
 **Open Issues:** Tracked in [OPEN-ISSUES.md](OPEN-ISSUES.md).
-- [OI-35](OPEN-ISSUES.md#open): While a change waits for Approval, what do Consumers see?
+- Resolved in the sixth client meeting: while a change waits, Consumers see the last approved version ([OI-35](OPEN-ISSUES.md#resolved)).
 - Resolved in the fifth client meeting: approving all at once ([OI-37](OPEN-ISSUES.md#resolved)) and the Brand choosing the Category ([OI-39](OPEN-ISSUES.md#resolved)).
 
 ---
@@ -1599,11 +1600,11 @@ The Brand sees each decision in its list of submitted products. Market Match sen
 
 **UC ID and Name:** `UC-BRND-generate-api-key`: Generate an API key
 **Created By:** Matthew Stafford
-**Date Created:** 2026-10-25; revised 2026-10-28
+**Date Created:** 2026-10-25; revised 2026-10-28, 2026-11-04, and 2026-11-18
 **Primary Actor:** Admin
 **Secondary Actors:** Brand, which receives the API Key and gives it to whoever sets up its system; the Brand's product system, which uses it (`UC-BRND-send-products`)
 **Trigger:** The Admin has signed a Brand and set up its Organization, and chooses to give the Brand an API Key.
-**Description:** The Admin generates an API Key for one Brand so the Brand's own system can send products through Market Match's API, and hands it to the Brand himself. The key belongs to that Brand alone and reaches only its Inventory, it is shown once, and generating a new one ends the old one. Brands do not generate their own keys for now: the client hands each one out himself so he is not flooded with submissions, and Brands will probably set themselves up later (fifth client meeting, line 122).
+**Description:** The Admin generates an API Key for one Brand so the Brand's own system can send products through Market Match's API, and hands it to the Brand himself. The key belongs to that Brand alone and reaches only its Inventory, it is shown once, it expires after a length of time the Admin chooses, and generating a new one ends the old one. Brands do not generate their own keys for now: the client hands each one out himself so he is not flooded with submissions, and Brands will probably set themselves up later (fifth client meeting, line 122).
 
 **Preconditions:**
 
@@ -1616,12 +1617,13 @@ The Brand sees each decision in its list of submitted products. Market Match sen
 - POST-2. Any API Key the Brand had before no longer works.
 - POST-3. The key was shown once, when it was generated, and cannot be shown again.
 - POST-4. The generation is recorded with who did it and when.
+- POST-5. The key expires at the end of the length the Admin chose, and is refused from that moment (`BR-api-key-expiry`).
 
 **Main Success Scenario:**
 
-1. The Admin chooses a Brand and chooses to generate an API Key for it.
+1. The Admin chooses a Brand, chooses to generate an API Key for it, and chooses how long the key lasts.
 2. The system creates a new API Key for that Brand.
-3. The system shows the key once, with a link to Market Match's published product contract.
+3. The system shows the key once, with the date it expires and a link to Market Match's published product contract.
 4. The Admin confirms he has saved the key, to give to the Brand.
 5. The system records the generation and no longer shows the key.
 
@@ -1631,18 +1633,25 @@ The Brand sees each decision in its list of submitted products. Market Match sen
   - 1a1. The system warns that the current key will stop working at once and the Brand's system must switch to the new one. The Admin confirms, and the old key ends at step 2, or cancels and nothing changes.
 - **1b. The Admin revokes the Brand's API Key without generating a new one:**
   - 1b1. The system stops accepting the key at once and records the revocation. Products already received keep their Approval status. The use case ends.
+- **1c. The Brand's last API Key has expired:**
+  - 1c1. An expired key no longer works, so there is no warning; the Admin chooses the new key's length and the use case continues at step 2.
 - **2a. Creating the key fails:**
   - 2a1. The system reports it, and any existing key keeps working. The use case ends.
 - **4a. The Admin leaves without saving the key:**
   - 4a1. The key cannot be shown again. The Admin generates a new one (1a), which ends this one.
 - **5a. The Brand later reports the key lost or leaked:**
   - 5a1. The Admin generates a new one (1a), which ends the leaked key at once.
-- **\*a. The Admin removes the Brand's access, by deleting the Brand's Organization:**
-  - \*a1. The key stops working at once, and every later sending with it is refused (`UC-BRND-send-products` extension 2a). A Brand's access is removed when its Organization no longer exists; a single Brand user losing the Brand role does not end the key, because the key belongs to the Brand, not to a user.
+- **\*a. The Admin removes the Brand's access:**
+  - \*a1. If he deletes the Brand's Organization, the key stops working at once, and every later sending with it is refused (`UC-BRND-send-products` extension 2a). A single Brand user losing the Brand role does not end the key, because the key belongs to the Brand, not to a user.
+  - \*a2. The client usually removes a Brand by taking away its WorkOS access and keeps the Organization (sixth client meeting, 08:52–09:22). Until `OI-77` is answered, that does not end the key: it keeps working until it expires (\*b) or he revokes it (1b).
+- **\*b. The key reaches the end of its length:**
+  - \*b1. The system refuses the key from that moment (`UC-BRND-send-products` extension 2a) and shows it to the Admin as expired. Products already received keep their Approval status. The Admin can generate a new one (1c).
+- **\*c. The key is active and the Brand has not yet sent products with it:**
+  - \*c1. Next to the Brand, the Admin sees how many days the key has left, and is reminded before it expires (`BR-api-key-expiry-reminder`). Once the Brand has sent products with the key, the countdown and the reminder go away. How and how early he is reminded, and what counts as having sent, are open (`OI-76`).
 
 **Priority:** High (provisional). The proving slice (`v0.1.0`, team decision 2026-10-28): it is settled, and it exercises `SEC-api-key-strength` and `SEC-api-key-ending`, ranked second in the architecture. `UC-BRND-send-products` cannot happen without it.
 **Frequency of Use:** Once per Brand the client signs that connects its system, plus a new key whenever one is lost, leaked, or replaced. The client signs Brands one at a time, after a conversation with each.
-**Business Rules:** `BR-admin-issues-api-key`, `BR-connect-product-system`, `BR-products-brand-only`, `BR-create-organization`, `BR-admin-role`
+**Business Rules:** `BR-admin-issues-api-key`, `BR-api-key-expiry`, `BR-api-key-expiry-reminder`, `BR-connect-product-system`, `BR-products-brand-only`, `BR-create-organization`, `BR-admin-role`
 
 **Associated Information:**
 
@@ -1650,27 +1659,33 @@ The Brand sees each decision in its list of submitted products. Market Match sen
 |---|---|---|---|---|
 | Brand reference | Identifier | Required; chosen by the Admin; must be an existing Brand Organization | Only the Admin generates keys | Brand; Organization |
 | API Key | Secret | Issued at step 2 | Shown only at step 3; never shown again; how it is stored is decided in the architecture | API Key |
-| Status | Enumeration | `ACTIVE`, `REPLACED`, or `REVOKED` | Shown to the Admin only, never the key itself | API Key |
+| Status | Enumeration | `ACTIVE`, `REPLACED`, `REVOKED`, or `EXPIRED` | Shown to the Admin only, never the key itself | API Key |
+| Length | Duration | Required; chosen by the Admin at step 1 from the lengths offered (which ones is open, `OI-75`) | Only the Admin chooses it | API Key |
+| Expires at | Timestamp | Generated at plus the length; set by the system | Shown to the Admin, with the days left (\*c) | API Key |
 | Generated by, generated at | Identifier, timestamp | Set by the system | Recorded for every key | Admin |
 | Ended by, ended at | Identifier, timestamp | Set by the system when the key is replaced or revoked | Recorded for every key that ends | API Key |
 
 How the Admin hands the key to the Brand happens outside Market Match.
 
 **Current state in the client's repository:**
-- No API Key exists. The Admin creates Organizations in WorkOS, and every request to Market Match comes from a signed-in user.
+- Generating, replacing, and revoking a key are built (`MM-Version` PR #36), with no expiry and no countdown. Nothing accepts a key yet: `UC-BRND-send-products` is not built.
 
 **Related Use Cases:**
 - `UC-BRND-send-products`: what the API Key is for.
 
 **Assumptions:**
 - The Brand passes the key only to whoever sets up its system, and tells the Admin if it is lost or leaked.
-- Showing the key once, replacing and revoking it (1a, 1b), and ending it when the Brand's Organization is deleted (\*a) are team decisions, from `SEC-api-key-strength` and `SEC-api-key-ending`. The client said only that he will give each Brand its key (fifth client meeting, line 124). Whether deleting the Organization is how he removes a Brand is open (`OI-61`).
+- Showing the key once, replacing and revoking it (1a, 1b), and ending it when the Brand's Organization is deleted (\*a) are team decisions, from `SEC-api-key-strength` and `SEC-api-key-ending`. The client said only that he will give each Brand its key (fifth client meeting, line 124). The client did not object to them when they were demonstrated (sixth client meeting, 01:25–02:38).
 
 **Open Issues:** Tracked in [OPEN-ISSUES.md](OPEN-ISSUES.md).
 - Resolved in the fifth client meeting: the Admin, not the Brand, gives out API Keys ([OI-31](OPEN-ISSUES.md#resolved)).
 - [OI-60](OPEN-ISSUES.md#open): How does the client tell which Organizations are Brands, and are a Brand's users set up before he hands over the key?
-- [OI-61](OPEN-ISSUES.md#open): When a Brand stops working with Market Match, does the client delete its Organization, remove its users, or something else?
-- [OI-62](OPEN-ISSUES.md#open): Could a Brand need more than one key or Organization, and should a key expire?
+- Resolved in the sixth client meeting: the client removes a Brand's WorkOS access and keeps its Organization ([OI-61](OPEN-ISSUES.md#resolved)).
+- [OI-62](OPEN-ISSUES.md#open): Could a Brand need more than one key or Organization? (That a key expires was answered in the sixth client meeting.)
+- [OI-75](OPEN-ISSUES.md#open): Which lengths can the Admin choose, which is preselected, and is "never" one?
+- [OI-76](OPEN-ISSUES.md#open): How and how early is the Admin reminded, and what counts as the Brand having sent its products?
+- [OI-77](OPEN-ISSUES.md#open): What exactly does removing a Brand's access in WorkOS involve, and should it end the Brand's key?
+- [OI-78](OPEN-ISSUES.md#open): When a key is about to expire, does the Admin extend it or generate a new one?
 
 ---
 
