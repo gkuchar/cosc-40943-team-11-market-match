@@ -3,7 +3,7 @@
 **Project:** Market Match
 **Team:** 11
 **Client:** Demetrie King
-**Version:** 0.4
+**Version:** 0.5
 
 ---
 
@@ -42,6 +42,7 @@ _Requirements cited from elsewhere keep their own identifiers: `UC-*` from [use-
 | 10/25/2026 | 0.2 | Product import requirements: §5.2 functional requirements for Brand-scoped storage, Approval, server-side checks, and the published product contract; §8.3 and §8.4 for Brands' own systems; §9.2, §9.3, §9.4, §9.6, and §9.7 attributes for import, API Keys, and privacy | Matthew Stafford |
 | 10/28/2026 | 0.3 | Fifth client meeting: set `PER-import-results` to 60 seconds (team decision; the client set none), noted 500-SKU Brands under `SCA-import-batch-limit`, and made the Admin the one shown a new API Key in `SEC-api-key-strength` | Matthew Stafford |
 | 11/04/2026 | 0.4 | Consumer feedback: §5.2 functional requirements for Market sessions, returning Anonymous Consumers, Brand results, and the Engagement Funnel; §7.1 domain model; §7.2 data dictionary; §7.3 feedback reports; §7.4 data acquisition, integrity, privacy, and retention. Brought in line with the use cases and glossary from client meetings 4 and 5 | Kritika Karanjit |
+| 11/18/2026 | 0.5 | Sixth client meeting: added `FR-API-key-expiry` and `FR-API-key-expiry-reminder`; an expired API Key is one kind of ended key in `SEC-api-key-ending`; `FR-PROD-hidden-until-approved` keeps the last approved version of a product shown while a change waits | Matthew Stafford |
 
 ---
 
@@ -173,12 +174,14 @@ _**Every requirement here needs an oracle.** If you cannot say how a tester woul
 These hold for every way a Brand's products come in: `UC-BRND-create-product`, `UC-BRND-import-products`, `UC-BRND-send-products`, and `UC-BRND-update-product`.
 
 - **`FR-PROD-brand-scoped-storage`** (ubiquitous): The system shall store every product and every change a Brand submits in that Brand's Inventory only, taking the Brand from the signed-in user's Organization or from the API Key and never from the submitted content. *Oracle:* a submission that names another Brand, or another Brand's product, stores nothing in that Brand's Inventory. Carries out `BR-products-brand-only` and `BR-connect-product-system`.
-- **`FR-PROD-hidden-until-approved`** (state driven): While a product or a change is waiting for Approval or has been returned, the system shall not show it to any Consumer. *Oracle:* no Market a Consumer can reach contains a waiting or returned product, or the content of a waiting change. Carries out `BR-approve-product`.
+- **`FR-PROD-hidden-until-approved`** (state driven): While a product or a change is waiting for Approval or has been returned, the system shall not show it to any Consumer; while a change to an approved product waits, the system shall show Consumers the product's last approved version. *Oracle:* no Market a Consumer can reach contains a waiting or returned product, or the content of a waiting change, and an approved product with a waiting change stays in its Markets unchanged. Carries out `BR-approve-product`.
 - **`FR-PROD-server-checks`** (ubiquitous): The system shall apply the same product checks on the server (required fields, media limits, and one SKU per Brand) to every product submission, whether made by hand, by spreadsheet, or through the API. *Oracle:* the same invalid product is refused, with the same reasons, by all three routes. Today the client's app checks spreadsheet rows only in the browser.
 
 #### The product API
 
 - **`FR-API-published-contract`** (ubiquitous): The system shall publish the product import contract (the fields, their formats, the 200-product batch limit, and the result returned for each product) where every Brand with an API Key can read it. *Oracle:* a batch built only from the published contract is accepted. Needed by `UC-BRND-send-products` and `UC-BRND-generate-api-key`.
+- **`FR-API-key-expiry`** (event driven): When the Admin generates an API Key, the system shall set when it expires from the length the Admin chooses, and shall refuse the key from that moment. *Oracle:* a sending with a key one second past its expiry is refused, and the key's status shows it expired. Carries out `BR-api-key-expiry`; the lengths offered are open (`OI-75`).
+- **`FR-API-key-expiry-reminder`** (state driven): While a Brand's API Key is active and the Brand has not yet sent products with it, the system shall show the Admin the days left before the key expires, next to that Brand. *Oracle:* the Admin's list of Brands shows the days left for each such key and none for a Brand that has sent products with its key. Carries out `BR-api-key-expiry-reminder`; how and when the Admin is also reminded is open (`OI-76`).
 
 #### Consumer feedback and insights
 
@@ -347,7 +350,7 @@ _Example: `USE-wcag-aa`: All user-facing views shall conform to WCAG 2.1 level A
 - **`SEC-authentication`:** The system shall authenticate every request to a non-public endpoint, by a signed-in session or an API Key, and shall refuse an unauthenticated request without revealing whether the requested resource exists. *Measure:* 100% of non-public endpoints, called without credentials, are refused.
 - **`SEC-brand-isolation`:** No request authenticated as one Brand, by session or API Key, shall read or change another Brand's products. *Measure:* 0 cross-Brand reads or writes in a test that calls every product endpoint as Brand A against Brand B's products. Carries out `BR-products-brand-only` and `BR-connect-product-system`.
 - **`SEC-api-key-strength`:** Each API Key shall carry at least 256 bits of randomness, shall be shown only once, to the Admin who generates it, and shall be stored only as a one-way hash from which the key cannot be recovered. *Measure:* inspecting storage finds no value that is, or can be turned back into, a key. Team decision, 2026-10-25, following common industry practice for API tokens.
-- **`SEC-api-key-ending`:** A replaced or revoked API Key, or one whose Brand's access has been removed, shall be refused on 100% of requests from the moment it ends. *Measure:* a request with each kind of ended key is refused, in a test run immediately after the key ends.
+- **`SEC-api-key-ending`:** A replaced, revoked, or expired API Key, or one whose Brand's access has been removed, shall be refused on 100% of requests from the moment it ends. *Measure:* a request with each kind of ended key is refused, in a test run immediately after the key ends.
 - **`SEC-pii-protection`:** Personal data shall be encrypted at rest and in transit and never stored in plaintext (`BR-protect-pii`). How this applies on top of the encryption Cloudflare D1 already provides at rest is decided in the architecture-of-record. Which personal data Market Match may hold at all is open: `BR-collect-email-only` allows only an email address, while the feedback use cases store demographic answers (`OI-45`).
 
 ### 9.4 Safety

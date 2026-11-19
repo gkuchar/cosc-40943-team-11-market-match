@@ -3,7 +3,7 @@
 **Project:** Market Match
 **Team:** 11
 **Client:** Demetrie King
-**Version:** 0.5
+**Version:** 0.6
 
 ---
 
@@ -87,6 +87,7 @@ _The Source column is the defense. Every rule traces to a document or a person, 
 | 2026-10-14 | 0.3 | Addressed review: added `BR-dashboard-access`, folded decision and dwell time into `BR-capture-feedback` by glossary reference, flagged the demographic data gap | Griffin Kuchar |
 | 2026-10-25 | 0.4 | Product import rules from the 10-21-2026 client meeting and the client's 10-23-2026 text: widened `BR-approve-product` to every way a brand submits products; added `BR-products-brand-only`, `BR-connect-product-system`, `BR-multiple-categories`, and `BR-photo-size` | Matthew Stafford |
 | 2026-10-28 | 0.5 | Product import answers from the 10-26-2026 client meeting: video links beyond YouTube and video files in `BR-product-media-limit`; JPEG and PNG in `BR-photo-size`; Brands create their own Categories, so `BR-create-market-admin-only` no longer covers Categories; added `BR-brand-categories`, `BR-admin-issues-api-key`, `BR-results-restart-on-change`, `BR-remove-product`, and `BR-keep-removed-product-data` | Matthew Stafford |
+| 2026-11-18 | 0.6 | From the sixth client meeting: added `BR-api-key-expiry` and `BR-api-key-expiry-reminder`; `BR-approve-product` keeps the published product while an update waits; a second source for `BR-admin-issues-api-key` | Matthew Stafford |
 
 ---
 
@@ -167,8 +168,8 @@ Out of scope for this document:
   **Source:**  09-21-2026 Client Meeting; 10-26-2026 Client Meeting (links beyond YouTube, and video files).
 - **`BR-text-card`:** An item that needs no picture can be created as a text-only card.
   **Source:**  09-21-2026 Client Meeting.
-- **`BR-approve-product`:** Every product a brand submits (`BR-submit-product`), whether one at a time, by spreadsheet, or straight from its own system (`BR-connect-product-system`), and any later update the brand makes to its images or details, must be approved by the Market Match admin before it is published.
-  **Source:**  09-21-2026 Client Meeting; 10-21-2026 Client Meeting (approval extends to imported products).
+- **`BR-approve-product`:** Every product a brand submits (`BR-submit-product`), whether one at a time, by spreadsheet, or straight from its own system (`BR-connect-product-system`), and any later update the brand makes to its images or details, must be approved by the Market Match admin before it is published. While an update to a published product waits, consumers keep seeing the product as last approved, and the update replaces it once approved.
+  **Source:**  09-21-2026 Client Meeting; 10-21-2026 Client Meeting (approval extends to imported products); sixth client meeting (the published product stays until the update is approved, [client-meeting-6.md](../client-meetings/client-meeting-6.md), 11:05).
 - **`BR-products-brand-only`:** Only brands upload products to Market Match. Vendors do not upload products; they select categories.
   **Source:**  Demetrie King, text message, 10-23-2026; confirmed in the 10-26-2026 Client Meeting.
 - **`BR-connect-product-system`:** A brand the client is working with can send its products to Market Match straight from the system where it already keeps them, instead of the client entering each product by hand. Only brands the client is working with can connect this way.
@@ -180,7 +181,11 @@ Out of scope for this document:
 - **`BR-brand-categories`:** A brand creates its own categories and says which category each of its products belongs in. A brand's categories hold only that brand's products, so when the admin builds a market for a brand, choosing one of its categories brings in every product in it.
   **Source:**  10-26-2026 Client Meeting.
 - **`BR-admin-issues-api-key`:** The admin gives each brand the key its own system uses to send products, after he has signed the brand and created its organization; brands do not create their own keys. Expected to change later, when brands may set themselves up.
-  **Source:**  10-26-2026 Client Meeting.
+  **Source:**  10-26-2026 Client Meeting; confirmed in the sixth client meeting ([client-meeting-6.md](../client-meetings/client-meeting-6.md), 05:46: "keep everything contained").
+- **`BR-api-key-expiry`:** Every key the admin gives a brand stops working after a set time, which the admin chooses when he generates it, so a key does not stay usable for long after the brand has sent its products. Which lengths he can choose from, and whether "never" is one, are still open (`OI-75`).
+  **Source:**  Sixth client meeting ([client-meeting-6.md](../client-meetings/client-meeting-6.md), 09:54 "2 weeks for now"; 19:02 a length chosen per brand, such as 45 days or a week).
+- **`BR-api-key-expiry-reminder`:** The admin sees how many days each brand's key has left and is reminded before it runs out, so he can follow up with a brand that has not sent its products. Once the brand has sent its products through its key, the countdown and the reminder go away. How he is reminded, how early, and what counts as having sent are still open (`OI-76`).
+  **Source:**  Sixth client meeting ([client-meeting-6.md](../client-meetings/client-meeting-6.md), 13:01–14:13).
 - **`BR-results-restart-on-change`:** When a brand changes a product's photos or details, the product's results start fresh from the change, and its results from before the change are kept so the brand can compare the two.
   **Source:**  10-26-2026 Client Meeting.
 - **`BR-remove-product`:** A brand can remove its own products without the admin's approval, but only a limited number of times, so that brands do not add and remove products over and over and skew their results. The limit is still open (`OI-56`).
