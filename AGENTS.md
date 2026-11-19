@@ -25,10 +25,11 @@ The gate is the static analysis and tests in §8.2.11. Run it from the root of `
 npm run build
 npx tsc --noEmit -p tsconfig.json
 npx tsc --noEmit -p worker/tsconfig.json
+npx tsc --noEmit -p worker/test/tsconfig.json
 npx eslint --max-warnings 0 App.tsx index.tsx types.ts components services utils hooks
-npx eslint --max-warnings 0 worker/src
+npx eslint --max-warnings 0 worker/src worker/test
 npx prettier --check App.tsx index.tsx types.ts components services utils hooks
-npx prettier --check worker/src
+npx prettier --check worker/src worker/test
 sqlfluff lint worker/migrations
 npm test
 ```

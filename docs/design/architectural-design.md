@@ -3,7 +3,7 @@
 **Project:** Market Match
 **Team:** Team 11
 **Client:** Demetrie King, Market Match
-**Version:** 0.7
+**Version:** 0.8
 
 ---
 
@@ -41,6 +41,7 @@ _[These are slugs, like every other identifier in your project, so an inserted d
 | 0.5     | 2026-11-13 | Matthew Stafford | Added §8.2.11 Static analysis and §7.1; added the required-identifier and promise rules to §8.2.1, form-date and older-data rules to §8.2.2, and boundary typing and unavailable measures to §8.2.4; corrected §8.2.10, which said there was no linter; added `TD-analyzer-findings`, `TD-gate-scope`, and `TD-obsolete-postgres-config` in §11 |
 | 0.6     | 2026-11-16 | Matthew Stafford | From the BRND design of `UC-BRND-create-product` (`docs/design/brnd.md`): the field list of a refused data check in §8.2.1; §8.2.5 names the Catalog's product check; §8.2.8 continues migrations from `0009`; `RISK-category-name-join` added and `TD-products-live-unchecked` updated in §11, including the Brand's `PUT /api/products/:id` refused for products in Approval |
 | 0.7     | 2026-11-18 | Matthew Stafford | `KD-test-framework`: Vitest, with `@cloudflare/vitest-pool-workers` for the Worker; §8.2.10 rewritten so a design's test list is automated tests; `npm test` joins the §8.2.11 gate; `TD-no-tests` being fixed; §8.2.8 numbers a new migration after every open pull request's, not from a fixed number |
+| 0.8     | 2026-11-18 | Matthew Stafford | `worker/test` type check, lint, and format join the §8.2.11 gate; `KD-test-framework` records the pinned versions and why |
 
 ---
 
@@ -413,15 +414,16 @@ Every change passes the gate before it merges. The gate is the commands `.github
 npm run build
 npx tsc --noEmit -p tsconfig.json
 npx tsc --noEmit -p worker/tsconfig.json
+npx tsc --noEmit -p worker/test/tsconfig.json
 npx eslint --max-warnings 0 App.tsx index.tsx types.ts components services utils hooks
-npx eslint --max-warnings 0 worker/src
+npx eslint --max-warnings 0 worker/src worker/test
 npx prettier --check App.tsx index.tsx types.ts components services utils hooks
-npx prettier --check worker/src
+npx prettier --check worker/src worker/test
 sqlfluff lint worker/migrations
 npm test
 ```
 
-`npm test` joins the gate with the setup pull request that adds Vitest (§8.2.10), and with it the workflow in `.github/workflows/pull-request.yml`. A failing or skipped test fails the gate as an analyzer finding does: a test is never skipped, deleted, or loosened to make a job pass without saying so in the pull request.
+`npm test` and the `worker/test` type check, lint, and format joined the gate with the setup pull request that added Vitest (`MM-Version` PR #50, §8.2.10), and run in the worker job of `.github/workflows/pull-request.yml`. `worker/test/tsconfig.json` also type-checks the `worker/src` files the tests import, so it reports their existing errors (`TD-analyzer-findings`) as well. A failing or skipped test fails the gate as an analyzer finding does: a test is never skipped, deleted, or loosened to make a job pass without saying so in the pull request.
 
 The build (`vite build`) does not type-check, which is why `tsc` runs separately. Fixing modes (`eslint --fix`, `prettier --write`) run only locally, never in CI.
 
@@ -503,7 +505,7 @@ _A decision that turns out wrong is not deleted or rewritten. Mark it **Supersed
 
 - **Driving requirements:** `TD-no-tests`; every quality attribute whose measure is a test run, such as `SEC-api-key-ending` ("a test run immediately after the key ends"), `SEC-brand-isolation`, and `FR-PROD-server-checks`; built slices being changed (`UC-BRND-generate-api-key` gains expiry after the sixth client meeting).
 - **Context:** Every check so far is manual, so a change to a built slice can break earlier behavior with nothing to catch it. `MM-Version` builds with Vite 6 and runs its API as a Cloudflare Worker on D1, and most of what needs checking is in the Worker: SQL, migrations, partial unique indexes, and audit records.
-- **Decision:** Vitest as the one test framework, as development dependencies only. Worker tests use `@cloudflare/vitest-pool-workers`, Cloudflare's open-source Vitest integration, which runs each test in the local Workers runtime against a local D1 built from `worker/migrations/`. It needs no Cloudflare account, login, or secret, and deploys nothing. Exact versions are the ones the pool supports for the Vite and Wrangler versions in `package.json`, checked when installed.
+- **Decision:** Vitest as the one test framework, as development dependencies only. Worker tests use `@cloudflare/vitest-pool-workers`, Cloudflare's open-source Vitest integration, which runs each test in the local Workers runtime against a local D1 built from `worker/migrations/`. It needs no Cloudflare account, login, or secret, and deploys nothing. Pinned exactly: `vitest` 4.1.6 and `@cloudflare/vitest-pool-workers` 0.16.7 (`MM-Version` PR #50). That pool release is built on the same `wrangler` 4.93.0 and `miniflare` already locked, so tests run the runtime `npm run dev` runs and no second copy is installed. The latest pool, 0.23.0, was rejected because it depends on an alpha of `miniflare` 5. Upgrade the two together, when the repo's `wrangler` moves.
 - **Rejected:** Jest, which needs its own TypeScript and module setup alongside Vite and has no integration with the Workers runtime. Also Vitest in plain Node with D1 mocked, because the mock would not run the real SQL, the migrations, or the partial unique index that keeps one active API Key per Brand.
 - **Trade-off:** A Vitest upgrade waits until the pool supports it. Worker tests are slower than plain Node tests, because each starts a local runtime. WorkOS stays stubbed, so a real sign-in is still checked by hand.
 
