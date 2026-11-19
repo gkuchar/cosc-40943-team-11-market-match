@@ -3,7 +3,7 @@
 **Project:** Market Match
 **Team:** Team 11
 **Client:** Demetrie King, Market Match
-**Version:** 0.6
+**Version:** 0.7
 
 ---
 
@@ -40,6 +40,7 @@ _[These are slugs, like every other identifier in your project, so an inserted d
 | 0.4     | 2026-11-04 | Matthew Stafford | §8.2.9: who made a change can be a system event, such as `workos:organization.deleted` from the BRND design |
 | 0.5     | 2026-11-13 | Matthew Stafford | Added §8.2.11 Static analysis and §7.1; added the required-identifier and promise rules to §8.2.1, form-date and older-data rules to §8.2.2, and boundary typing and unavailable measures to §8.2.4; corrected §8.2.10, which said there was no linter; added `TD-analyzer-findings`, `TD-gate-scope`, and `TD-obsolete-postgres-config` in §11 |
 | 0.6     | 2026-11-16 | Matthew Stafford | From the BRND design of `UC-BRND-create-product` (`docs/design/brnd.md`): the field list of a refused data check in §8.2.1; §8.2.5 names the Catalog's product check; §8.2.8 continues migrations from `0009`; `RISK-category-name-join` added and `TD-products-live-unchecked` updated in §11, including the Brand's `PUT /api/products/:id` refused for products in Approval |
+| 0.7     | 2026-11-18 | Matthew Stafford | `KD-test-framework`: Vitest, with `@cloudflare/vitest-pool-workers` for the Worker; §8.2.10 rewritten so a design's test list is automated tests; `npm test` joins the §8.2.11 gate; `TD-no-tests` being fixed; §8.2.8 numbers a new migration after every open pull request's, not from a fixed number |
 
 ---
 
@@ -388,7 +389,7 @@ Log identifiers, never content: no secrets, session tokens, API Keys, or passwor
 
 #### 8.2.8 Persistence and concurrency
 
-Cloudflare D1 is the only database: production and preview use their own D1 databases, and local development (`npm run dev`) uses a local D1 database, never PostgreSQL. Schema changes are Drizzle migrations in `worker/migrations/`, never renamed, because D1 records applied migrations by filename; new ones continue from `0009` (`0008` is `api_keys`). A change that writes several rows (a sending, approving many products at once) commits each product's rows together, so a product is never half-stored; a sending stopped partway is completed by sending it again, matched by SKU (`ROB-import-resend`). When two people act on one record, the later action is checked against the version it was based on and refused if that version changed (`UC-BRND-approve-product` extension 6a).
+Cloudflare D1 is the only database: production and preview use their own D1 databases, and local development (`npm run dev`) uses a local D1 database, never PostgreSQL. Schema changes are Drizzle migrations in `worker/migrations/`, never renamed, because D1 records applied migrations by filename; a new one takes the next number after the highest in `worker/migrations/` on `tcu-fall-2026-stage` and in any open pull request, so two branches never claim the same number (`0008` is `api_keys`, `0009` is `UC-BRND-create-product`'s). A change that writes several rows (a sending, approving many products at once) commits each product's rows together, so a product is never half-stored; a sending stopped partway is completed by sending it again, matched by SKU (`ROB-import-resend`). When two people act on one record, the later action is checked against the version it was based on and refused if that version changed (`UC-BRND-approve-product` extension 6a).
 
 #### 8.2.9 Auditing
 
@@ -396,7 +397,13 @@ Every change to a product's Approval, an API Key's status, or a product's remova
 
 #### 8.2.10 Testing
 
-`MM-Version` has no test framework and no tests; its static analysis is in §8.2.11. Adding a test framework is a new dependency, which a person decides first (`AGENTS.md`). Until then, each design-of-record lists its tests, one per main flow and extension, and they are run by hand against `npm run dev` and recorded in the pull request. The first framework added is a decision recorded in section 9.2.
+Tests use Vitest (`KD-test-framework`); static analysis is separate, in §8.2.11. Until the setup pull request in `MM-Version` adds them, every test is run by hand as below.
+
+- **Where tests run.** Worker tests run in `@cloudflare/vitest-pool-workers`, inside the same local Workers runtime as `npm run dev`, each against its own local D1 database with every migration in `worker/migrations/` applied. Front-end tests run in Vitest's own environment. No test reaches the client's Cloudflare account, WorkOS, or any other outside service: those calls are stubbed, and test bindings are set in the Vitest configuration, never read from `.dev.vars` or `.env.local`.
+- **Where tests live.** Worker tests in `worker/test/`, front-end tests beside the file they test, each named `<name>.test.ts` or `<name>.test.tsx`.
+- **What is tested.** Each design-of-record lists its tests, one per main flow and extension. Each row is an automated test whose name carries the row's ID. A row that needs a real browser or a real WorkOS sign-in is marked _manual_ in the list, run by hand against `npm run dev`, and its result recorded in the pull request.
+- **When.** A slice's tests ship in the pull request that builds it. A change to code already built adds tests for the behavior it changes and for the existing behavior that the change could break.
+- **What a test checks.** A check that decides whether data is stored (§8.2.5) is tested through the route that calls it, so the test also proves the route calls it. Where a slice writes an audit record (§8.2.9), a test reads that record back.
 
 #### 8.2.11 Static analysis
 
@@ -411,7 +418,10 @@ npx eslint --max-warnings 0 worker/src
 npx prettier --check App.tsx index.tsx types.ts components services utils hooks
 npx prettier --check worker/src
 sqlfluff lint worker/migrations
+npm test
 ```
+
+`npm test` joins the gate with the setup pull request that adds Vitest (§8.2.10), and with it the workflow in `.github/workflows/pull-request.yml`. A failing or skipped test fails the gate as an analyzer finding does: a test is never skipped, deleted, or loosened to make a job pass without saying so in the pull request.
 
 The build (`vite build`) does not type-check, which is why `tsc` runs separately. Fixing modes (`eslint --fix`, `prettier --write`) run only locally, never in CI.
 
@@ -489,6 +499,14 @@ _A decision that turns out wrong is not deleted or rewritten. Mark it **Supersed
 - **Rejected:** Keeping the Brand's links, as `POST /api/products/bulk` does today. It stores nothing, but a Card breaks when the Brand moves or deletes the image, and can show a different picture than the one the Admin approved, which defeats `BR-approve-product`. It does not avoid the Workers plan question either, because checking each photo already takes one download.
 - **Trade-off:** The client's R2 storage grows, at most about 1.8 GB per 200 products with three photos under 3 MB each, and a sending makes two calls per photo (download and store), up to 1,200 for 200 products, which needs the Workers Paid plan (`RISK-workers-plan-limits`, `OI-59`).
 
+**`KD-test-framework`: Vitest, with the Worker tested in Cloudflare's local runtime.** _Accepted by the team, 2026-11-18, Matthew Stafford; the client's agreement to the new development dependencies in his repository is `OI-80`._
+
+- **Driving requirements:** `TD-no-tests`; every quality attribute whose measure is a test run, such as `SEC-api-key-ending` ("a test run immediately after the key ends"), `SEC-brand-isolation`, and `FR-PROD-server-checks`; built slices being changed (`UC-BRND-generate-api-key` gains expiry after the sixth client meeting).
+- **Context:** Every check so far is manual, so a change to a built slice can break earlier behavior with nothing to catch it. `MM-Version` builds with Vite 6 and runs its API as a Cloudflare Worker on D1, and most of what needs checking is in the Worker: SQL, migrations, partial unique indexes, and audit records.
+- **Decision:** Vitest as the one test framework, as development dependencies only. Worker tests use `@cloudflare/vitest-pool-workers`, Cloudflare's open-source Vitest integration, which runs each test in the local Workers runtime against a local D1 built from `worker/migrations/`. It needs no Cloudflare account, login, or secret, and deploys nothing. Exact versions are the ones the pool supports for the Vite and Wrangler versions in `package.json`, checked when installed.
+- **Rejected:** Jest, which needs its own TypeScript and module setup alongside Vite and has no integration with the Workers runtime. Also Vitest in plain Node with D1 mocked, because the mock would not run the real SQL, the migrations, or the partial unique index that keeps one active API Key per Brand.
+- **Trade-off:** A Vitest upgrade waits until the pool supports it. Worker tests are slower than plain Node tests, because each starts a local runtime. WorkOS stays stubbed, so a real sign-in is still checked by hand.
+
 ## 10. Quality Requirements
 
 ### 10.1 Quality requirements overview
@@ -523,7 +541,7 @@ _A risk written as a category ("security", "performance") is not a risk. Write t
 | `RISK-photo-fetch-abuse` | Risk | Fetching a link a Brand supplies lets an outsider make the Worker request any address, including very large files. The existing `GET /api/proxy-image` already fetches any URL with no sign-in. | Fetch only `https` links, stop reading past 3 MB, and require sign-in on `/api/proxy-image`. | `KD-photos-copied`, section 8.1 |
 | `RISK-workos-org-deleted-event` | Risk | A Brand's API Key ends when its Organization is deleted only if the client's WorkOS dashboard sends `organization.deleted` to `/api/webhooks/workos`. If it does not, a deleted Brand's key keeps working until the Admin revokes it. | Check the WorkOS webhook's subscribed events with the client before release; until then the Admin revokes a key before deleting its Organization. | `UC-BRND-generate-api-key` \*a, `SEC-api-key-ending`, `docs/design/brnd.md` |
 | `RISK-category-name-join` | Risk | The Market queries (`GET /api/products?marketplace_id=…`, `GET /api/public/market/:code`) and the Consumer's deck match a product to a Market by its Category's name, across all Brands. Once Brands create their own Categories, two Brands' Categories of the same name pull each other's approved products into one Market, which breaks `BR-brand-categories`. The deck also resolves a Market's Category ids to names through `GET /api/categories`, which gives only the Admin a Brand's Categories. | Match by `category_id`, which every product created through the Catalog carries, and resolve Category names on the server, before `UC-BRND-approve-product` puts a Brand's product live. | `BR-brand-categories`, `UC-BRND-approve-product`, `docs/design/brnd.md` |
-| `TD-no-tests` | Debt | `MM-Version` has no test framework, so every check of a use case is manual and nothing catches a regression. | Choose a framework with the team and the client (a new dependency) and record it in section 9.2. | section 8.2.10 |
+| `TD-no-tests` | Debt | `MM-Version` has no test framework, so every check of a use case is manual and nothing catches a regression. | Being fixed: `KD-test-framework`, added by a setup pull request in `MM-Version`. Slices built before it (`UC-BRND-generate-api-key`, `UC-BRND-create-product`) get tests when next changed or in a follow-up pull request. | section 8.2.10 |
 | `TD-products-live-unchecked` | Debt | Today every product a Brand adds or imports is live at once and unchecked on the server, and a Brand can delete its products outright with no limit and nothing kept. | Replaced by the Catalog through the BRND use cases. `UC-BRND-create-product` stores a Brand's new product as waiting for Approval, checked on the server, and closes `POST /api/products` to Brands; `PUT /api/products/:id` refuses a Brand's change to a product in Approval. The spreadsheet import (`POST /api/products/bulk`) and the Brand's change to a product from before Approval (`PUT /api/products/:id`) remain until `UC-BRND-import-products` and `UC-BRND-update-product`. Products from before Approval stay live. | `FR-PROD-server-checks`, `FR-PROD-hidden-until-approved`, `BR-remove-product` |
 | `TD-analyzer-findings` | Debt | Measured after the Prettier reformat (`MM-Version` PR #45, staging `e6b49ca`) with the gate's commands: frontend TypeScript 19 errors in 6 files; worker TypeScript 17 errors, all in `worker/src/index.ts`; frontend ESLint 650 errors and 6 warnings in 36 files; worker ESLint 66 errors in 2 files; Prettier clean in both. The largest ESLint rules, frontend / worker: `@typescript-eslint/no-explicit-any` 350 / 51, `no-unused-vars` 156 / 10, `no-misused-promises` 46 / 0, `no-floating-promises` 31 / 0, React Hooks rules 66 / 0. The `frontend` and `worker` jobs fail on every pull request until these reach zero, so a new finding hides among the old ones. | Fix in small pull requests by kind (type contracts, unused code, `any` at boundaries, promises, Hooks), recounting after each; the counts only go down. No baseline file. Owner: Matthew Stafford. | §8.2.11, §8.2.1, §8.2.4 |
 | `TD-gate-scope` | Debt | The gate is not a required check: GitHub rulesets and branch protection are unavailable for this private repository on the organization's plan, and pull requests #40, #44, and #45 merged while `frontend` and `worker` failed. There is no single local gate command. `npm run deploy` from `main` runs no type check, linter, formatter, or sqlfluff, so what reaches production was never checked. There is no test step (`TD-no-tests`). | Make the checks required when the plan allows, or agree with the team that no pull request merges red; one script or the PR #42 hook for the local gate; the client decides whether deploy runs the checks. | §8.2.11, §7.1 |

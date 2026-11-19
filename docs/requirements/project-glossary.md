@@ -3,7 +3,7 @@
 **Project:** Market Match
 **Team:** \_11
 **Client:** Demetrie King
-**Version:** 0.8
+**Version:** 0.9
 
 ---
 
@@ -58,6 +58,7 @@ _Rules:_
 | 2026-10-25 | 0.6     | Product import terms: added API Key; Inventory now fills by import as well as one item at a time. (Version 0.5 is in the data points pull request.)                                                                                                                                                 | Matthew Stafford |
 | 2026-10-28 | 0.7     | Fifth client meeting: the Admin generates each Brand's API Key; Brands create their own Categories; Card video can be any of several video sites or a file, and photos are JPEG or PNG; Inventory items can be removed by their Brand.                                                              | Matthew Stafford |
 | 2026-11-04 | 0.8     | Added Card impression, which the feedback use cases and the SRS domain model rely on.                                                                                                                                                                                                                | Matthew Stafford |
+| 2026-11-18 | 0.9     | Sixth client meeting: an API Key expires after a length of time the Admin chooses when generating it. | Matthew Stafford |
 
 ---
 
@@ -93,13 +94,13 @@ _A Consumer who reached a Public Access Market by QR Code or link without signin
 
 ### API Key
 
-_The secret the Admin generates for a Brand and hands to it, so that the Brand's own system, wherever it keeps its products, can send them through Market Match's API without anyone signing in. Each key belongs to one Brand and reaches only that Brand's Inventory. It is shown once, generating a new one ends the old one, and it stops working when the Brand's access is removed. Every product sent with it still waits for Approval. Brands do not generate their own keys for now._
+_The secret the Admin generates for a Brand and hands to it, so that the Brand's own system, wherever it keeps its products, can send them through Market Match's API without anyone signing in. Each key belongs to one Brand and reaches only that Brand's Inventory. It is shown once, generating a new one ends the old one, and it stops working when it expires, after a length of time the Admin chooses when generating it, or when the Brand's access is removed. Every product sent with it still waits for Approval. Brands do not generate their own keys for now._
 
 **Synonyms:** API connection, product connection, integration, credential. Use API Key in code and on screen.
 
 **Not to be confused with:** `FEAT-api-integration`, the wider API for surveys, users, and responses, which is out of the MVP.
 
-**Source:** the client's "API connections" (fourth client meeting with Demetrie King); term chosen by the team for `BR-connect-product-system`; the Admin hands out keys (fifth client meeting)
+**Source:** the client's "API connections" (fourth client meeting with Demetrie King); term chosen by the team for `BR-connect-product-system`; the Admin hands out keys (fifth client meeting); keys expire after a length the Admin chooses (sixth client meeting)
 
 ### Approval
 
