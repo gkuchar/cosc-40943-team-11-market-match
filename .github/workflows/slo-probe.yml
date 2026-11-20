@@ -1,0 +1,36 @@
+# Outside probe for AVL-category-list (SRS §9.5): every 5 minutes, one request to the
+# production Category list. A green run is a good event, a red run a bad one;
+# scripts/slo-report.sh turns the scheduled runs into the SLI.
+
+name: SLO probe
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  # Manual runs never count toward the SLI (slo-report.sh reads scheduled runs only).
+  # Point one at https://login.marketmatch.app/api/health to see the probe fail.
+  workflow_dispatch:
+    inputs:
+      url:
+        description: URL to probe
+        required: false
+        default: https://login.marketmatch.app/api/categories
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # The URL goes through an environment variable, never straight into the script text.
+      - name: Probe the Category list
+        env:
+          PROBE_URL: ${{ inputs.url || 'https://login.marketmatch.app/api/categories' }}
+        run: |
+          set -o pipefail
+          scripts/probe-category-list.sh "$PROBE_URL" | tee -a "$GITHUB_STEP_SUMMARY"
