@@ -3,7 +3,7 @@
 **Project:** Market Match
 **Team:** 11
 **Client:** Demetrie King
-**Version:** 0.5
+**Version:** 0.6
 
 ---
 
@@ -43,6 +43,7 @@ _Requirements cited from elsewhere keep their own identifiers: `UC-*` from [use-
 | 10/28/2026 | 0.3 | Fifth client meeting: set `PER-import-results` to 60 seconds (team decision; the client set none), noted 500-SKU Brands under `SCA-import-batch-limit`, and made the Admin the one shown a new API Key in `SEC-api-key-strength` | Matthew Stafford |
 | 11/04/2026 | 0.4 | Consumer feedback: §5.2 functional requirements for Market sessions, returning Anonymous Consumers, Brand results, and the Engagement Funnel; §7.1 domain model; §7.2 data dictionary; §7.3 feedback reports; §7.4 data acquisition, integrity, privacy, and retention. Brought in line with the use cases and glossary from client meetings 4 and 5 | Kritika Karanjit |
 | 11/18/2026 | 0.5 | Sixth client meeting: added `FR-API-key-expiry` and `FR-API-key-expiry-reminder`; an expired API Key is one kind of ended key in `SEC-api-key-ending`; `FR-PROD-hidden-until-approved` keeps the last approved version of a product shown while a change waits | Matthew Stafford |
+| 11/19/2026 | 0.6 | Added `AVL-category-list`, the first measured objective: its SLI, window, target, error budget, measured value, and what the measurement misses | Matthew Stafford |
 
 ---
 
@@ -362,6 +363,21 @@ _[Conditions under which the system could contribute to harm, and what prevents 
 ### 9.5 Availability
 
 _Example: `AVL-uptime`: The system shall be available 99% of the time during the academic term, excluding announced maintenance windows._
+
+- **`AVL-category-list`:** The production system at `login.marketmatch.app` shall answer the public Category list (`GET /api/categories`), which the app loads at start for every user, correctly on at least 99% of probes over any 28-day window. Team decision, 2026-11-19: the client has set no availability target.
+  - **SLI:** good probes ÷ all probes. A probe is good when it gets HTTP 200, a JSON content type, and a body that is a JSON list, within 10 seconds. Anything else is bad: no answer, a timeout, another status, or the app's web page. Unknown paths such as `/api/health` answer `200 text/html`, so a status-only probe could never fail.
+  - **Window:** the last 28 days, rolling.
+  - **Target (SLO):** 99%.
+  - **Error budget:** 1% of 28 days, which is about 6 hours 43 minutes. At one probe every 5 minutes, that is 80 bad probes out of 8,064.
+  - **Where the number comes from:** an outside probe, `.github/workflows/slo-probe.yml` in this repository. It runs `scripts/probe-category-list.sh` from GitHub Actions every 5 minutes, and each scheduled run is one probe: green is good, red is bad. `scripts/slo-report.sh` counts the scheduled runs from the last 28 days. Manual runs never count.
+  - **Current measured value:** not yet measured. The probe starts when this change merges, and the first value is recorded here and in the Checkpoint 3 post.
+  - **What it misses:**
+    - It covers one read. Sign-in (WorkOS), swipes being saved, product photos from R2, and every page behind a sign-in are unchecked.
+    - A list that is wrong but well-formed, for example empty or missing Categories, still counts as good.
+    - GitHub runs scheduled workflows late, or skips them under load, and a skipped probe is not counted at all. An outage that falls between probes, or during a skipped one, is invisible.
+    - It probes production, which runs the client's `main`, not the team's `v0.2.0` from `tcu-fall-2026-stage`.
+    - It measures from GitHub's network, not from where Consumers are.
+    - It stops when the class repository goes quiet: GitHub turns off scheduled workflows after 60 days with no activity. Who monitors production after the semester is `OI-81`.
 
 ### 9.6 Robustness
 
