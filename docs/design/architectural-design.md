@@ -379,6 +379,8 @@ Formatting is Prettier's (§8.2.11), not a convention written here.
 
 Every check that decides whether data is stored runs in the Application API, once, in one function per kind of data, and every route that stores that data calls it: a product is checked the same way whether it was entered by hand, imported by spreadsheet, or sent through the API (`FR-PROD-server-checks`). Checks in the browser are a convenience for the user and never the one that counts. Why: today `POST /api/products/bulk` stores whatever it receives, because its only checks run in the Brand's browser, and the Admin's CSV upload skips them. Shown in: `worker/src/catalog.ts` (`checkProduct`), designed in `docs/design/brnd.md` for `UC-BRND-create-product`; the imports call the same function.
 
+Whether a field is required is a decision, cited in the use case, never read off the current form or schema. Why: in the review of #35, `UC-BRND-update-brand-settings` marked four Brand fields optional only because today's code allows them empty, which would let a Brand Card go blank; the question became `OI-73`.
+
 #### 8.2.6 Configuration and secrets
 
 Environment-specific configuration and secrets are kept outside source code. Local development uses environment files such as `.env.local` and `.dev.vars`, while production Worker secrets are managed through Cloudflare; secrets must not be committed to the repository.
