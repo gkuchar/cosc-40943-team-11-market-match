@@ -377,6 +377,7 @@ _Example: `AVL-uptime`: The system shall be available 99% of the time during the
     - GitHub runs scheduled workflows late, or skips them under load, and a skipped probe is not counted at all. An outage that falls between probes, or during a skipped one, is invisible.
     - It probes production, which runs the client's `main`, not the team's `v0.2.0` from `tcu-fall-2026-stage`.
     - It measures from GitHub's network, not from where Consumers are.
+    - It stops when the class repository goes quiet: GitHub turns off scheduled workflows after 60 days with no activity. Who monitors production after the semester is `OI-81`.
 
 ### 9.6 Robustness
 
